@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Summer Maths Quest</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☀️</text></svg>" />
+
+<!-- React + Babel from CDN. No build step needed. -->
+<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+
+<style>
+  html, body { margin: 0; height: 100%; background: #fbf4e6; }
+  #root { min-height: 100%; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useRef } = React;
+
+/* ============================================================================
+   SUMMER MATHS QUEST  —  one puzzle a day, 9 weeks (63 days)
+   ----------------------------------------------------------------------------
+   HOW TO ADD YOUR OWN / THE TEACHER'S QUESTIONS:
+   Edit the QUESTIONS array below. Each entry is one day:
+     {
+       day: 1, type: "Algebra", diff: 2,   // type: Algebra | Ratios | Brain Twister | Fun
+       q: "...", hint: "...", answer: "...", why: "..."
+     }
+   Aim level ≈ UK Year 7–8 (ages 11–13). Swap/reorder/replace freely.
+   ========================================================================== */
+
+const QUESTIONS = [
+  // ---- Week 1 ----
+  { day: 1, type: "Brain Twister", diff: 2, q: "A snail is at the bottom of a 10 m well. Each day it climbs up 3 m, and each night it slips back 2 m. How many days until it reaches the top?", hint: "Think about the very last day differently — once it's out, it can't slip back.", answer: "8 days", why: "It gains 1 m net per full day (7 m after 7 days). On day 8 it climbs 3 m from 7 m and is out before nightfall." },
+  { day: 2, type: "Algebra", diff: 1, q: "I think of a number, multiply it by 3, then add 7, and I get 28. What was my number?", hint: "Work backwards: undo the +7 first.", answer: "7", why: "3x + 7 = 28, so 3x = 21, so x = 7." },
+  { day: 3, type: "Ratios", diff: 1, q: "A smoothie uses 2 bananas for every 3 strawberries. If you use 12 strawberries, how many bananas do you need?", hint: "How many lots of 3 strawberries is 12?", answer: "8 bananas", why: "12 ÷ 3 = 4 batches, and 4 × 2 = 8 bananas." },
+  { day: 4, type: "Fun", diff: 2, q: "What number comes next? 1, 1, 2, 3, 5, 8, …", hint: "Add the two numbers before it.", answer: "13", why: "It's the Fibonacci sequence — each number is the sum of the previous two (5 + 8 = 13)." },
+  { day: 5, type: "Brain Twister", diff: 2, q: "A bat and a ball cost £1.10 together. The bat costs £1 more than the ball. How much is the ball?", hint: "It's NOT 10p — check that the bat would then be £1.10.", answer: "5p", why: "Ball 5p, bat £1.05 (which is £1 more). Together that's £1.10." },
+  { day: 6, type: "Ratios", diff: 1, q: "A recipe for 4 people needs 200 g of flour. How much flour for 6 people?", hint: "Find the flour for 1 person first.", answer: "300 g", why: "200 ÷ 4 = 50 g each, and 50 × 6 = 300 g." },
+  { day: 7, type: "Algebra", diff: 1, q: "If 5x = 45, what is x + 2?", hint: "Find x, then add 2.", answer: "11", why: "x = 9, so x + 2 = 11." },
+
+  // ---- Week 2 ----
+  { day: 8, type: "Fun", diff: 2, q: "How many times does the digit 1 appear when you write out all the numbers from 1 to 20?", hint: "Don't forget 11 has two 1s.", answer: "12", why: "1, 10, 12–19 give one each (10), and 11 gives two — total 12." },
+  { day: 9, type: "Algebra", diff: 2, q: "Solve for x:  2x + 3 = x + 10", hint: "Take one x from both sides.", answer: "x = 7", why: "Subtract x: x + 3 = 10, so x = 7." },
+  { day: 10, type: "Brain Twister", diff: 1, q: "A farmer has 17 sheep. All but 9 run away. How many sheep does the farmer have left?", hint: "Read it very slowly.", answer: "9", why: "\"All but 9 run away\" means 9 stay." },
+  { day: 11, type: "Ratios", diff: 2, q: "You mix paint blue : yellow in the ratio 5 : 3. If you use 15 parts blue, how much yellow do you need?", hint: "What do you multiply 5 by to get 15?", answer: "9 parts", why: "15 ÷ 5 = 3, and 3 × 3 = 9." },
+  { day: 12, type: "Brain Twister", diff: 3, q: "A clock takes 5 seconds to strike 6 o'clock. How long does it take to strike 12 o'clock?", hint: "Count the gaps between strikes, not the strikes.", answer: "11 seconds", why: "6 strikes have 5 gaps = 5 s, so 1 s per gap. 12 strikes have 11 gaps = 11 s." },
+  { day: 13, type: "Algebra", diff: 2, q: "The perimeter of a square is 36 cm. What is its area?", hint: "Find one side first.", answer: "81 cm²", why: "Each side is 36 ÷ 4 = 9 cm, and 9 × 9 = 81 cm²." },
+  { day: 14, type: "Brain Twister", diff: 1, q: "In a race, you overtake the person in 2nd place. What position are you in now?", hint: "You take their spot, not 1st.", answer: "2nd", why: "You're now ahead of them but still behind whoever was 1st." },
+
+  // ---- Week 3 ----
+  { day: 15, type: "Ratios", diff: 2, q: "£40 is shared between Amy and Ben in the ratio 3 : 5. How much does Ben get?", hint: "There are 3 + 5 = 8 equal parts.", answer: "£25", why: "£40 ÷ 8 = £5 per part. Ben gets 5 × £5 = £25." },
+  { day: 16, type: "Algebra", diff: 1, q: "Solve for x:  x ÷ 4 = 7", hint: "Do the opposite of dividing.", answer: "x = 28", why: "Multiply both sides by 4: x = 28." },
+  { day: 17, type: "Fun", diff: 3, q: "What is 1 + 2 + 3 + … + 100?", hint: "Pair the first and last: 1 + 100, 2 + 99 … each pair makes 101.", answer: "5050", why: "There are 50 pairs each adding to 101: 50 × 101 = 5050. (Gauss did this aged 8!)" },
+  { day: 18, type: "Brain Twister", diff: 3, q: "A clock shows 3:15. What is the angle between the hour and minute hands?", hint: "The hour hand has crept a bit past the 3.", answer: "7.5°", why: "At 3:15 the minute hand is on the 3, but the hour hand has moved a quarter of the way to the 4 — that's a quarter of 30° = 7.5°." },
+  { day: 19, type: "Ratios", diff: 2, q: "A map has a scale of 1 : 50,000. A road is 4 cm long on the map. How long is it in real life, in kilometres?", hint: "4 cm × 50,000 = … cm. Then convert.", answer: "2 km", why: "4 × 50,000 = 200,000 cm = 2000 m = 2 km." },
+  { day: 20, type: "Algebra", diff: 2, q: "Solve for x:  3(x − 2) = 12", hint: "Divide both sides by 3 first, or expand the bracket.", answer: "x = 6", why: "x − 2 = 4, so x = 6." },
+  { day: 21, type: "Fun", diff: 3, q: "How many squares of all sizes are there on a chessboard (8 × 8)?", hint: "Count 1×1 squares, then 2×2, then 3×3 … add them up.", answer: "204", why: "1² + 2² + 3² + … + 8² = 1 + 4 + 9 + … + 64 = 204." },
+
+  // ---- Week 4 ----
+  { day: 22, type: "Brain Twister", diff: 2, q: "Two fathers and two sons go fishing. They each catch exactly one fish, yet they bring home only three fish. How?", hint: "How few people could this actually be?", answer: "Only 3 people", why: "Grandfather, father and son — the father is both a son and a father." },
+  { day: 23, type: "Algebra", diff: 2, q: "Solve for x:  4x − 5 = 2x + 9", hint: "Get the x's on one side, numbers on the other.", answer: "x = 7", why: "2x = 14, so x = 7." },
+  { day: 24, type: "Ratios", diff: 2, q: "Orange squash is mixed 1 part concentrate to 4 parts water. How much concentrate is in 1 litre (1000 ml) of the finished drink?", hint: "The drink is 1 + 4 = 5 parts in total.", answer: "200 ml", why: "1000 ÷ 5 = 200 ml per part; concentrate is 1 part." },
+  { day: 25, type: "Fun", diff: 1, q: "Which is heavier: a kilogram of feathers or a kilogram of iron?", hint: "Read the units carefully.", answer: "They weigh the same", why: "A kilogram is a kilogram — the feathers just take up much more space." },
+  { day: 26, type: "Algebra", diff: 3, q: "The sum of three consecutive whole numbers is 72. What is the largest of the three?", hint: "Call the middle one x; the others are x − 1 and x + 1.", answer: "25", why: "(x−1) + x + (x+1) = 3x = 72, so x = 24. The numbers are 23, 24, 25." },
+  { day: 27, type: "Ratios", diff: 2, q: "In a class the ratio of girls to boys is 4 : 5. There are 20 girls. How many boys are there?", hint: "What do you multiply 4 by to get 20?", answer: "25 boys", why: "20 ÷ 4 = 5, and 5 × 5 = 25." },
+  { day: 28, type: "Brain Twister", diff: 3, q: "You have a 3-litre jug and a 5-litre jug, and a tap. How can you measure out exactly 4 litres?", hint: "Start by filling the 5 and pouring into the 3.", answer: "Fill the 5, pour into the 3 (2 L left), empty the 3, pour the 2 L in, refill the 5, top up the 3 → 4 L left in the 5.", why: "Topping up the 3-litre jug (which already holds 2 L) takes just 1 L from the full 5 L, leaving exactly 4 L." },
+
+  // ---- Week 5 ----
+  { day: 29, type: "Fun", diff: 2, q: "How many different ways can you arrange the three letters in the word CAT?", hint: "3 choices for the first letter, then 2, then 1.", answer: "6", why: "3 × 2 × 1 = 6: CAT, CTA, ACT, ATC, TAC, TCA." },
+  { day: 30, type: "Algebra", diff: 1, q: "If y = 2x + 1, what is y when x = 5?", hint: "Just substitute 5 in for x.", answer: "y = 11", why: "2 × 5 + 1 = 11." },
+  { day: 31, type: "Ratios", diff: 2, q: "A 30 cm model represents a building that is really 90 m tall. What is the scale of the model (as 1 : n)?", hint: "Put both in the same units first.", answer: "1 : 300", why: "90 m = 9000 cm. 9000 ÷ 30 = 300, so 1 : 300." },
+  { day: 32, type: "Fun", diff: 3, q: "A book has pages numbered 1 to 100. How many times is the digit 9 printed across all the page numbers?", hint: "Count 9s in the units place, then in the tens place.", answer: "20", why: "Units: 9, 19, …, 99 → 10 times. Tens: 90–99 → 10 times. Total 20." },
+  { day: 33, type: "Algebra", diff: 2, q: "Solve for x:  10 − 2x = 4", hint: "Move the 2x across, or the 4 — keep it balanced.", answer: "x = 3", why: "10 − 4 = 2x, so 2x = 6 and x = 3." },
+  { day: 34, type: "Brain Twister", diff: 3, q: "If today is Monday, what day of the week will it be in exactly 100 days' time?", hint: "Only the remainder when you divide by 7 matters.", answer: "Wednesday", why: "100 ÷ 7 = 14 remainder 2. Two days after Monday is Wednesday." },
+  { day: 35, type: "Ratios", diff: 1, q: "A car travels 150 km in 2 hours. At the same speed, how far does it go in 5 hours?", hint: "Find the distance for 1 hour first.", answer: "375 km", why: "150 ÷ 2 = 75 km/h, and 75 × 5 = 375 km." },
+
+  // ---- Week 6 ----
+  { day: 36, type: "Brain Twister", diff: 3, q: "A rope ladder hangs over the side of a ship. Its rungs are 30 cm apart and the bottom rung just touches the water. The tide rises 90 cm. How many rungs are now underwater?", hint: "What happens to the ship when the tide comes in?", answer: "None", why: "The ship floats up with the tide, so the ladder rises too — the bottom rung stays at the water's surface." },
+  { day: 37, type: "Algebra", diff: 2, q: "Two numbers add up to 20 and have a difference of 6. What are the two numbers?", hint: "Try: add 20 and 6, then halve it for the bigger one.", answer: "13 and 7", why: "(20 + 6) ÷ 2 = 13, and 20 − 13 = 7." },
+  { day: 38, type: "Fun", diff: 1, q: "What is the only even prime number?", hint: "Every other even number can be divided by 2 and stay whole.", answer: "2", why: "Every other even number has 2 as a factor, so it isn't prime." },
+  { day: 39, type: "Ratios", diff: 2, q: "A recipe uses sugar and flour in the ratio 2 : 5. If you use 250 g of flour, how much sugar do you need?", hint: "What's 250 ÷ 5?", answer: "100 g", why: "250 ÷ 5 = 50 g per part, and sugar is 2 parts: 2 × 50 = 100 g." },
+  { day: 40, type: "Algebra", diff: 2, q: "Solve for x:  x² = 49", hint: "There are two answers!", answer: "x = 7 or x = −7", why: "Both 7 × 7 and (−7) × (−7) equal 49." },
+  { day: 41, type: "Brain Twister", diff: 2, q: "An explorer builds a house with all four walls facing south. A bear wanders past. What colour is the bear?", hint: "Where on Earth can every wall face south?", answer: "White", why: "Only at the North Pole do all directions point south — so it's a polar bear." },
+  { day: 42, type: "Fun", diff: 2, q: "How many minutes are there in one week?", hint: "Minutes in an hour × hours in a day × days in a week.", answer: "10,080", why: "60 × 24 × 7 = 10,080." },
+
+  // ---- Week 7 ----
+  { day: 43, type: "Ratios", diff: 2, q: "A small gear with 8 teeth turns a big gear with 24 teeth. For every 3 turns of the small gear, how many turns does the big gear make?", hint: "The big gear has 3 times as many teeth.", answer: "1 turn", why: "24 ÷ 8 = 3, so the big gear turns once for every 3 turns of the small one." },
+  { day: 44, type: "Algebra", diff: 2, q: "Solve for x:  2(x + 3) = 16", hint: "Divide both sides by 2 first.", answer: "x = 5", why: "x + 3 = 8, so x = 5." },
+  { day: 45, type: "Brain Twister", diff: 2, q: "A boat is full of people, but there isn't a single person on board. How is that possible?", hint: "It's a play on words — what does \"single\" mean?", answer: "Everyone on board is married", why: "There's no \"single\" (unmarried) person — they're all couples." },
+  { day: 46, type: "Fun", diff: 3, q: "What number comes next? 2, 6, 12, 20, 30, …", hint: "Look at the gaps: 4, 6, 8, 10 …", answer: "42", why: "The gaps go up by 2 each time (next gap is 12), so 30 + 12 = 42. (These are n × (n+1).)" },
+  { day: 47, type: "Algebra", diff: 3, q: "Solve for x:  3x + 2 = 5x − 8", hint: "Gather the x's on the side where there are more of them.", answer: "x = 5", why: "10 = 2x, so x = 5." },
+  { day: 48, type: "Ratios", diff: 2, q: "You make orange juice by mixing concentrate and water in the ratio 1 : 3, and end up with 2 litres of juice. How much concentrate did you use?", hint: "The juice is 1 + 3 = 4 parts altogether.", answer: "500 ml", why: "2000 ml ÷ 4 = 500 ml per part; concentrate is 1 part." },
+  { day: 49, type: "Brain Twister", diff: 1, q: "Which is bigger: half of 20, or 20% of 50?", hint: "Work out both numbers.", answer: "They're equal (both 10)", why: "Half of 20 = 10, and 20% of 50 = 10." },
+
+  // ---- Week 8 ----
+  { day: 50, type: "Fun", diff: 2, q: "If you double the side length of a square, how many times bigger does its area become?", hint: "Try a square of side 2, then side 4.", answer: "4 times bigger", why: "Area scales by the square of the length: 2² = 4." },
+  { day: 51, type: "Algebra", diff: 2, q: "A sequence has the rule: nth term = 3n + 1. What is the 10th term?", hint: "Put n = 10 into the rule.", answer: "31", why: "3 × 10 + 1 = 31." },
+  { day: 52, type: "Ratios", diff: 3, q: "Three friends share a pizza in the ratio 1 : 2 : 3. The biggest share is 6 slices. How many slices were there in total?", hint: "The biggest share (3 parts) is 6 slices — so one part is…?", answer: "12 slices", why: "3 parts = 6 slices → 1 part = 2 slices. Total is 1 + 2 + 3 = 6 parts = 12 slices." },
+  { day: 53, type: "Brain Twister", diff: 3, q: "If 2 typists can type 2 pages in 2 minutes, how many typists are needed to type 18 pages in 6 minutes?", hint: "First find how many pages one typist does in one minute.", answer: "6 typists", why: "One typist types 1 page in 2 min, so 3 pages in 6 min. To get 18 pages you need 18 ÷ 3 = 6 typists." },
+  { day: 54, type: "Algebra", diff: 2, q: "Solve for x:  (x ÷ 2) + 3 = 8", hint: "Undo the +3 first.", answer: "x = 10", why: "x ÷ 2 = 5, so x = 10." },
+  { day: 55, type: "Fun", diff: 3, q: "When you roll two ordinary dice, what is the probability the two numbers add up to 7?", hint: "List the pairs that make 7. How many ways can two dice land in total?", answer: "1/6", why: "6 winning pairs (1+6, 2+5, 3+4, 4+3, 5+2, 6+1) out of 36 equally likely results: 6/36 = 1/6." },
+  { day: 56, type: "Ratios", diff: 2, q: "A flag's length to height is in the ratio 3 : 2. If the flag is 90 cm long, how tall is it?", hint: "90 cm is the \"3\" part.", answer: "60 cm", why: "90 ÷ 3 = 30 cm per part, and height is 2 parts: 2 × 30 = 60 cm." },
+
+  // ---- Week 9 ----
+  { day: 57, type: "Brain Twister", diff: 2, q: "A grandmother, two mothers and two daughters share a basket of 15 apples equally, and each gets a whole number of apples. How many does each person get?", hint: "How few people could that actually be?", answer: "5 apples each", why: "It's only 3 people — grandmother, mother and daughter (the mother is both). 15 ÷ 3 = 5." },
+  { day: 58, type: "Algebra", diff: 3, q: "Solve for x:  7x − 4 = 3x + 16", hint: "Subtract 3x from both sides to start.", answer: "x = 5", why: "4x − 4 = 16, so 4x = 20 and x = 5." },
+  { day: 59, type: "Fun", diff: 2, q: "How many degrees does the hour hand of a clock move in one hour?", hint: "It goes all the way round (360°) in 12 hours.", answer: "30°", why: "360° ÷ 12 = 30° per hour." },
+  { day: 60, type: "Ratios", diff: 2, q: "A recipe for 3 people uses 6 eggs. Using the same ratio, how many eggs do you need for 8 people?", hint: "How many eggs per person?", answer: "16 eggs", why: "6 ÷ 3 = 2 eggs each, and 2 × 8 = 16." },
+  { day: 61, type: "Algebra", diff: 2, q: "The sum of a number and its double is 27. What is the number?", hint: "A number plus double itself is three of that number.", answer: "9", why: "x + 2x = 3x = 27, so x = 9." },
+  { day: 62, type: "Brain Twister", diff: 3, q: "You have 9 identical-looking coins, but one is a fake that weighs slightly less. Using a balance scale, what is the fewest number of weighings that guarantees you'll find the fake?", hint: "Split them into three groups of three.", answer: "2 weighings", why: "Weigh 3 vs 3: the lighter side (or the leftover 3) holds the fake. Then weigh 1 vs 1 of those three to find it." },
+  { day: 63, type: "Fun", diff: 1, q: "Final day! How many days are there in 9 weeks?", hint: "Days in a week × number of weeks.", answer: "63", why: "7 × 9 = 63 — that's one puzzle for every single day of your summer. You did it! 🎉" },
+];
+
+const TYPE_META = {
+  "Algebra":       { color: "#1f9b8a", soft: "#d9f2ee", glyph: "x²" },
+  "Ratios":        { color: "#e08a2b", soft: "#fbe9d2", glyph: "⚖" },
+  "Brain Twister": { color: "#e0553b", soft: "#fbdfd8", glyph: "↻" },
+  "Fun":           { color: "#7a4fd0", soft: "#e8def9", glyph: "✦" },
+};
+
+const STORAGE_KEY = "summer-maths-quest:v1";
+const TOTAL = QUESTIONS.length;
+
+function todayISO() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+function daysBetween(startISO, endISO) {
+  const a = new Date(startISO + "T00:00:00");
+  const b = new Date(endISO + "T00:00:00");
+  return Math.round((b - a) / 86400000);
+}
+function clamp(n, lo, hi) { return Math.min(Math.max(n, lo), hi); }
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch (e) {}
+  return null;
+}
+
+function SummerMathsQuest() {
+  const saved = useRef(loadState()).current;
+  const [startDate, setStartDate] = useState((saved && saved.startDate) || todayISO());
+  const [completed, setCompleted] = useState((saved && saved.completed) || {});
+  const currentDay = clamp(daysBetween(startDate, todayISO()) + 1, 1, TOTAL);
+  const [selected, setSelected] = useState(() => clamp(daysBetween(((saved && saved.startDate) || todayISO()), todayISO()) + 1, 1, TOTAL));
+  const [showHint, setShowHint] = useState(false);
+  const [showAnswer, setShowAnswer] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [burst, setBurst] = useState(0);
+
+  // Save whenever progress changes
+  useEffect(() => {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ startDate, completed })); } catch (e) {}
+  }, [startDate, completed]);
+
+  // Reset reveals when changing day
+  useEffect(() => { setShowHint(false); setShowAnswer(false); }, [selected]);
+
+  const q = QUESTIONS.find((x) => x.day === selected);
+  const meta = TYPE_META[q.type] || TYPE_META["Fun"];
+  const solvedCount = Object.values(completed).filter((c) => c.solved).length;
+
+  let streak = 0;
+  for (let d = currentDay; d >= 1; d--) { if (completed[d] && completed[d].solved) streak++; else break; }
+
+  function markSolved() {
+    setCompleted((prev) => ({ ...prev, [selected]: { ...(prev[selected] || {}), solved: true } }));
+    setBurst((b) => b + 1);
+  }
+  function unmark() {
+    setCompleted((prev) => {
+      const next = { ...prev };
+      if (next[selected]) next[selected] = { ...next[selected], solved: false };
+      return next;
+    });
+  }
+  function peek() {
+    setShowAnswer(true);
+    setCompleted((prev) => ({ ...prev, [selected]: { ...(prev[selected] || {}), peeked: true } }));
+  }
+
+  const css = `
+    @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,800&family=Nunito:wght@400;600;700;800&display=swap');
+    .smq * { box-sizing: border-box; }
+    .smq { font-family: 'Nunito', sans-serif; color: #2a2320; min-height: 100vh; padding: 22px 16px 50px;
+      background: radial-gradient(1200px 500px at 15% -10%, #fff3da 0%, transparent 55%), radial-gradient(900px 500px at 95% 0%, #ffe3d6 0%, transparent 50%), #fbf4e6; position: relative; }
+    .smq:before { content:""; position:absolute; inset:0; pointer-events:none; opacity:.04;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+    .smq-wrap { max-width: 720px; margin: 0 auto; position: relative; }
+    .smq-back { display:inline-block; text-decoration:none; color:#9a8d7d; font-weight:800; font-size:14px; margin-bottom:14px; }
+    .smq-back:hover { color:#e08a2b; }
+    .smq-head { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom: 18px; }
+    .smq-title { font-family:'Fraunces',serif; font-weight:800; font-size: clamp(26px,6vw,40px); line-height:1.02; letter-spacing:-.5px; margin:0; }
+    .smq-title .sun { color:#e08a2b; }
+    .smq-sub { font-weight:700; color:#9a8d7d; font-size:14px; margin-top:4px; }
+    .smq-gear { background:#fff; border:2px solid #efe3cc; width:42px; height:42px; border-radius:14px; font-size:18px; cursor:pointer; box-shadow:0 3px 0 #efe3cc; flex:none; }
+    .smq-gear:active { transform: translateY(2px); box-shadow:0 1px 0 #efe3cc; }
+    .smq-stats { display:flex; gap:10px; margin-bottom:18px; }
+    .smq-stat { flex:1; background:#fff; border:2px solid #efe3cc; border-radius:16px; padding:10px 14px; box-shadow:0 4px 0 #efe3cc; }
+    .smq-stat b { font-family:'Fraunces',serif; font-size:24px; display:block; line-height:1; }
+    .smq-stat span { font-size:12px; font-weight:700; color:#9a8d7d; text-transform:uppercase; letter-spacing:.6px; }
+    .smq-card { background:#fff; border:2.5px solid #2a2320; border-radius:26px; padding:24px 22px; box-shadow: 8px 8px 0 ${meta.color}; position:relative; overflow:hidden; }
+    .smq-card .watermark { position:absolute; right:-10px; bottom:-26px; font-size:150px; font-family:'Fraunces',serif; font-weight:800; color:${meta.soft}; line-height:1; user-select:none; }
+    .smq-badge { display:inline-flex; align-items:center; gap:7px; background:${meta.soft}; color:${meta.color}; font-weight:800; font-size:13px; padding:6px 12px; border-radius:999px; text-transform:uppercase; letter-spacing:.5px; }
+    .smq-day { font-family:'Fraunces',serif; font-weight:800; font-size:13px; color:#9a8d7d; letter-spacing:.5px; margin-top:14px; }
+    .smq-q { font-size: clamp(19px,4.4vw,24px); font-weight:700; line-height:1.4; margin:6px 0 0; position:relative; }
+    .smq-diff { margin-top:12px; font-size:12px; font-weight:700; color:#b8a894; }
+    .smq-diff .dot { color:${meta.color}; }
+    .smq-actions { display:flex; flex-wrap:wrap; gap:10px; margin-top:22px; position:relative; }
+    .smq-btn { font-family:'Nunito',sans-serif; font-weight:800; font-size:15px; border:2.5px solid #2a2320; background:#fff; padding:11px 18px; border-radius:14px; cursor:pointer; box-shadow:0 4px 0 #2a2320; transition: transform .05s; }
+    .smq-btn:active { transform: translateY(3px); box-shadow:0 1px 0 #2a2320; }
+    .smq-btn.solve { background:${meta.color}; color:#fff; }
+    .smq-btn.solved { background:#1f9b8a; color:#fff; }
+    .smq-btn.ghost { box-shadow:0 4px 0 #efe3cc; border-color:#efe3cc; color:#7a6f60; }
+    .smq-reveal { margin-top:16px; background:${meta.soft}; border-radius:16px; padding:14px 16px; font-weight:600; line-height:1.5; animation: pop .25s ease; }
+    .smq-reveal .lab { font-weight:800; color:${meta.color}; text-transform:uppercase; font-size:12px; letter-spacing:.6px; display:block; margin-bottom:3px; }
+    .smq-reveal .ans { font-family:'Fraunces',serif; font-size:22px; font-weight:800; }
+    @keyframes pop { from { opacity:0; transform: translateY(6px) scale(.98);} to {opacity:1; transform:none;} }
+    .smq-nav { display:flex; align-items:center; justify-content:space-between; margin-top:18px; gap:10px; }
+    .smq-navbtn { border:2px solid #efe3cc; background:#fff; border-radius:12px; padding:8px 14px; font-weight:800; cursor:pointer; box-shadow:0 3px 0 #efe3cc; }
+    .smq-navbtn:disabled { opacity:.35; cursor:default; box-shadow:none; }
+    .smq-today { background:#2a2320; color:#fff; border:2px solid #2a2320; box-shadow:0 3px 0 #000; }
+    .smq-section { font-family:'Fraunces',serif; font-weight:800; font-size:15px; margin:26px 0 10px; color:#7a6f60; }
+    .smq-grid { display:grid; grid-template-columns: repeat(7, 1fr); gap:7px; }
+    .smq-cell { aspect-ratio:1; border-radius:11px; border:2px solid #efe3cc; background:#fff; font-weight:800; font-size:13px; cursor:pointer; display:flex; align-items:center; justify-content:center; color:#b8a894; position:relative; }
+    .smq-cell.done { background:#1f9b8a; color:#fff; border-color:#1f9b8a; }
+    .smq-cell.peeked { background:#f4ead4; color:#a8946f; border-color:#e8d9b8; }
+    .smq-cell.today { border-color:#2a2320; border-width:2.5px; color:#2a2320; box-shadow:0 0 0 3px #ffe3a3; }
+    .smq-cell.sel { transform: scale(1.08); box-shadow:0 0 0 2px ${meta.color}; }
+    .smq-weeklab { font-size:11px; font-weight:800; color:#c4b6a0; grid-column: 1 / -1; margin-top:6px; text-transform:uppercase; letter-spacing:.5px; }
+    .smq-modal { position:fixed; inset:0; background:rgba(42,35,32,.45); display:flex; align-items:center; justify-content:center; padding:20px; z-index:50; }
+    .smq-modal-card { background:#fbf4e6; border:2.5px solid #2a2320; border-radius:22px; padding:24px; max-width:380px; width:100%; box-shadow:8px 8px 0 #e08a2b; }
+    .smq-modal-card h3 { font-family:'Fraunces',serif; margin:0 0 6px; font-size:22px; }
+    .smq-modal-card p { font-size:14px; color:#7a6f60; font-weight:600; margin:0 0 16px; line-height:1.5; }
+    .smq-modal-card input { font-family:'Nunito',sans-serif; font-size:16px; font-weight:700; padding:10px 12px; border:2px solid #2a2320; border-radius:12px; width:100%; margin-bottom:16px; }
+    .smq-confetti { position:absolute; left:50%; top:30%; pointer-events:none; }
+    .smq-confetti i { position:absolute; width:9px; height:9px; border-radius:2px; animation: fly .9s ease-out forwards; }
+    @keyframes fly { to { transform: translate(var(--x), var(--y)) rotate(var(--r)); opacity:0; } }
+  `;
+  const confettiColors = ["#e08a2b", "#e0553b", "#1f9b8a", "#7a4fd0", "#f2c14e"];
+  const weekOf = Math.ceil(selected / 7);
+
+  return (
+    <div className="smq">
+      <style>{css}</style>
+      <div className="smq-wrap">
+        <a className="smq-back" href="index.html">← Mind Matters</a>
+        <div className="smq-head">
+          <div>
+            <h1 className="smq-title">Summer Maths <span className="sun">Quest</span> ☀</h1>
+            <div className="smq-sub">One puzzle a day · 63 days · 9 weeks</div>
+          </div>
+          <button className="smq-gear" onClick={() => setShowSettings(true)} title="Settings">⚙</button>
+        </div>
+
+        <div className="smq-stats">
+          <div className="smq-stat"><b>{solvedCount}<span style={{ fontSize: 13, color: "#c4b6a0" }}> / {TOTAL}</span></b><span>Solved</span></div>
+          <div className="smq-stat"><b>{streak} 🔥</b><span>Day streak</span></div>
+          <div className="smq-stat"><b>{currentDay}</b><span>Today is day</span></div>
+        </div>
+
+        <div className="smq-card">
+          <div className="watermark">{meta.glyph}</div>
+          <span className="smq-badge">{meta.glyph} {q.type}</span>
+          <div className="smq-day">DAY {q.day}{q.day === currentDay ? " · today" : q.day < currentDay ? " · catch-up" : " · coming up"}</div>
+          <p className="smq-q">{q.q}</p>
+          <div className="smq-diff">Difficulty: <span className="dot">{"★".repeat(q.diff)}</span><span style={{ color: "#e6dcc8" }}>{"★".repeat(3 - q.diff)}</span></div>
+
+          <div className="smq-actions">
+            {burst > 0 && (
+              <div className="smq-confetti" key={burst}>
+                {Array.from({ length: 14 }).map((_, i) => {
+                  const ang = (i / 14) * Math.PI * 2;
+                  return <i key={i} style={{ background: confettiColors[i % confettiColors.length], "--x": `${Math.cos(ang) * 90}px`, "--y": `${Math.sin(ang) * 90 - 20}px`, "--r": `${Math.random() * 360}deg` }} />;
+                })}
+              </div>
+            )}
+            {q.hint && <button className="smq-btn ghost" onClick={() => setShowHint((s) => !s)}>{showHint ? "Hide hint" : "💡 Hint"}</button>}
+            <button className="smq-btn ghost" onClick={peek}>👀 Reveal answer</button>
+            {completed[selected] && completed[selected].solved
+              ? <button className="smq-btn solved" onClick={unmark}>✓ Solved!</button>
+              : <button className="smq-btn solve" onClick={markSolved}>I solved it ⭐</button>}
+          </div>
+
+          {showHint && q.hint && (<div className="smq-reveal"><span className="lab">Hint</span>{q.hint}</div>)}
+          {showAnswer && (
+            <div className="smq-reveal">
+              <span className="lab">Answer</span>
+              <div className="ans">{q.answer}</div>
+              {q.why && <div style={{ marginTop: 8, fontWeight: 600 }}>{q.why}</div>}
+            </div>
+          )}
+        </div>
+
+        <div className="smq-nav">
+          <button className="smq-navbtn" disabled={selected <= 1} onClick={() => setSelected((s) => Math.max(1, s - 1))}>← Prev</button>
+          <button className="smq-navbtn smq-today" onClick={() => setSelected(currentDay)}>Jump to today</button>
+          <button className="smq-navbtn" disabled={selected >= TOTAL} onClick={() => setSelected((s) => Math.min(TOTAL, s + 1))}>Next →</button>
+        </div>
+
+        <div className="smq-section">Your 9-week journey</div>
+        <div className="smq-grid">
+          {QUESTIONS.map((item, idx) => {
+            const c = completed[item.day] || {};
+            const cls = ["smq-cell", c.solved ? "done" : (c.peeked ? "peeked" : ""), item.day === currentDay ? "today" : "", item.day === selected ? "sel" : ""].join(" ");
+            const newWeek = idx % 7 === 0;
+            return (
+              <React.Fragment key={item.day}>
+                {newWeek && <div className="smq-weeklab">Week {idx / 7 + 1}</div>}
+                <button className={cls} onClick={() => setSelected(item.day)} title={`Day ${item.day} · ${item.type}`}>{c.solved ? "✓" : item.day}</button>
+              </React.Fragment>
+            );
+          })}
+        </div>
+      </div>
+
+      {showSettings && (
+        <div className="smq-modal" onClick={() => setShowSettings(false)}>
+          <div className="smq-modal-card" onClick={(e) => e.stopPropagation()}>
+            <h3>When does summer start? ☀</h3>
+            <p>Pick the first day of the holidays. The app will line up “today’s puzzle” with the calendar from there.</p>
+            <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+            <button className="smq-btn solve" style={{ width: "100%" }} onClick={() => setShowSettings(false)}>Save</button>
+            <button className="smq-btn ghost" style={{ width: "100%", marginTop: 10 }}
+              onClick={() => { if (window.confirm("Reset all solved/peeked progress?")) { setCompleted({}); setShowSettings(false); } }}>Reset progress</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<SummerMathsQuest />);
+</script>
+</body>
+</html>
