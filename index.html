@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mind Matters · Leo · Summer 2026</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧠</text></svg>" />
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,800;9..144,900&family=Nunito:wght@400;600;700;800&display=swap');
+  * { box-sizing: border-box; }
+  html, body { margin: 0; min-height: 100%; }
+  body {
+    font-family: 'Nunito', sans-serif; color: #2a2320; padding: 38px 18px 60px;
+    background:
+      radial-gradient(1100px 480px at 12% -8%, #fff3da 0%, transparent 55%),
+      radial-gradient(900px 520px at 92% 4%, #ffe0d4 0%, transparent 52%),
+      radial-gradient(700px 500px at 50% 110%, #e7f3ef 0%, transparent 55%),
+      #fbf4e6;
+    position: relative; overflow-x: hidden;
+  }
+  body:before {
+    content:""; position:fixed; inset:0; pointer-events:none; opacity:.045; z-index:0;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  .wrap { max-width: 860px; margin: 0 auto; position: relative; z-index: 1; }
+  .sun { position:absolute; top:-26px; right:-6px; font-size:64px; animation: spin 26s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .eyebrow { font-weight:800; letter-spacing:2.5px; text-transform:uppercase; font-size:12px; color:#e08a2b; margin-bottom:8px; }
+  h1 { font-family:'Fraunces',serif; font-weight:900; font-size: clamp(38px, 9vw, 72px); line-height:.96; letter-spacing:-1.5px; margin:0; }
+  h1 .amp { color:#1f9b8a; font-style:italic; }
+  .lede { font-size: clamp(16px,2.6vw,19px); font-weight:600; color:#7a6f60; margin:16px 0 0; max-width:520px; line-height:1.5; }
+  .grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap:18px; margin-top:40px; }
+  .card { position:relative; display:flex; flex-direction:column; gap:6px; text-decoration:none; color:#2a2320;
+    background:#fff; border:2.5px solid #2a2320; border-radius:24px; padding:24px 22px 22px;
+    box-shadow: 7px 7px 0 var(--accent); transition: transform .12s ease, box-shadow .12s ease; overflow:hidden; }
+  .card:hover { transform: translate(-2px,-2px); box-shadow: 11px 11px 0 var(--accent); }
+  .card .wm { position:absolute; right:-12px; bottom:-30px; font-size:120px; line-height:1; opacity:.10; }
+  .card .glyph { font-size:34px; line-height:1; }
+  .card .tag { font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.8px; color:var(--accent);
+    background:var(--soft); align-self:flex-start; padding:4px 10px; border-radius:999px; margin-top:6px; }
+  .card h2 { font-family:'Fraunces',serif; font-weight:800; font-size:23px; margin:10px 0 0; letter-spacing:-.3px; }
+  .card p { font-size:14px; font-weight:600; color:#7a6f60; margin:4px 0 0; line-height:1.45; }
+  .card .go { margin-top:14px; font-weight:800; color:var(--accent); font-size:14px; }
+  .card.soon { border-style:dashed; border-color:#d9c9ad; box-shadow:7px 7px 0 #efe3cc; cursor:default; }
+  .card.soon:hover { transform:none; box-shadow:7px 7px 0 #efe3cc; }
+  .card.soon .go { color:#b8a894; }
+  footer { margin-top:48px; text-align:center; font-weight:700; color:#b8a894; font-size:13px; }
+  footer span { color:#e0553b; }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="sun">☀️</div>
+    <div class="eyebrow">Summer 2026</div>
+    <h1>Mind <span class="amp">Matters</span></h1>
+    <p class="lede">A summer of brain-stretchers for Leo — a little maths, a little Latin, every day. Pick something and dive in.</p>
+    <div class="grid">
+      <a class="card" href="maths-quest.html" style="--accent:#e08a2b; --soft:#fbe9d2;">
+        <div class="wm">🧮</div>
+        <div class="glyph">☀️</div>
+        <span class="tag">Maths · daily</span>
+        <h2>Summer Maths Quest</h2>
+        <p>One puzzle a day for 9 weeks — algebra, ratios, brain twisters and fun ones. Track your streak.</p>
+        <div class="go">Start today's puzzle →</div>
+      </a>
+      <a class="card" href="acta.html" style="--accent:#1f9b8a; --soft:#d9f2ee;">
+        <div class="wm">📜</div>
+        <div class="glyph">🏛️</div>
+        <span class="tag">Latin</span>
+        <h2>ACTA</h2>
+        <p>Latin practice, the fun way.</p>
+        <div class="go">Play →</div>
+      </a>
+      <a class="card" href="ludus-ii.html" style="--accent:#7a4fd0; --soft:#e8def9;">
+        <div class="wm">🗝️</div>
+        <div class="glyph">📖</div>
+        <span class="tag">Latin · vocab</span>
+        <h2>LŪDUS II</h2>
+        <p>Latin vocabulary game.</p>
+        <div class="go">Play →</div>
+      </a>
+      <div class="card soon" style="--accent:#e0553b; --soft:#fbdfd8;">
+        <div class="wm">✨</div>
+        <div class="glyph">🛠️</div>
+        <span class="tag">More soon</span>
+        <h2>Add a game</h2>
+        <p>Drop a new HTML file in this folder and point a card at it.</p>
+        <div class="go">Coming soon</div>
+      </div>
+    </div>
+    <footer>Made with <span>♥</span> for Leo · Summer 2026</footer>
+  </div>
+</body>
+</html>
