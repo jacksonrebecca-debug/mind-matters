@@ -1,7 +1,7 @@
-<!-- ACTA - a Latin verb trainer: present, imperfect, perfect + sum -->
+<!-- CASUS - a Latin noun & adjective trainer: declension, agreement, cases -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ACTA - Latin Verbs</title>
+<title>CASUS - Latin Nouns & Adjectives</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&display=swap" rel="stylesheet">
 <style>
@@ -46,12 +46,12 @@
   .progress{height:8px;background:#e3d3ac;border-radius:99px;overflow:hidden;margin:0 2px 16px;border:1px solid var(--line)}
   .progress > i{display:block;height:100%;background:linear-gradient(90deg,var(--gold-bright),var(--gold));width:0;transition:width .35s}
   .card{background:#fff8e9;border:1.5px solid var(--line);border-radius:14px;padding:22px 20px;text-align:center;box-shadow:inset 0 2px 8px -4px var(--shadow)}
-  .card .verb{font-family:"Cinzel",serif;font-weight:700;font-size:clamp(26px,6vw,36px);color:var(--ink);line-height:1.1}
+  .card .word{font-family:"Cinzel",serif;font-weight:700;font-size:clamp(26px,6vw,36px);color:var(--ink);line-height:1.1}
   .card .gloss{color:var(--ink-soft);font-style:italic;font-size:17px;margin-top:4px}
-  .ask{font-family:"Cinzel",serif;letter-spacing:.06em;text-transform:uppercase;font-size:13px;color:var(--pompeii);margin-top:14px}
+  .ask{font-family:"Cinzel",serif;letter-spacing:.05em;text-transform:uppercase;font-size:13px;color:var(--pompeii);margin-top:14px;line-height:1.5}
   .ask b{color:var(--pompeii-deep)}
   .hint{color:var(--ink-soft);font-size:15px;margin-top:8px;min-height:1.2em}
-  .hint code{background:#efe6cf;border:1px solid var(--gold);border-radius:5px;padding:1px 6px;font-family:"Cormorant Garamond",serif}
+  .hint code{background:#efe6cf;border:1px solid var(--gold);border-radius:5px;padding:1px 6px}
   .opts{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-top:18px}
   .opt{background:#f1e2bf;border:1.5px solid var(--line);border-radius:11px;padding:15px;font-size:20px;font-weight:600;color:var(--ink);transition:all .12s}
   .opt:hover{transform:translateY(-2px);filter:brightness(1.03)}
@@ -72,37 +72,27 @@
 <div class="stage"><div class="scroll">
 
   <section id="start">
-    <h1>ACTA</h1>
-    <div class="tag">Verba - the verb forge</div>
-    <p class="lede">Conjugate across the tenses, or drill the perfect stems. Pick a tense and a conjugation, then forge the forms.</p>
-    <div class="panel-title">Which tense?</div>
-    <div class="chips" id="tenseChips">
-      <button class="chip" data-t="pres" aria-pressed="false">Present</button>
-      <button class="chip" data-t="imp" aria-pressed="false">Imperfect</button>
-      <button class="chip" data-t="perf" aria-pressed="true">Perfect</button>
-      <button class="chip" data-t="stems" aria-pressed="false">Perfect stems</button>
-    </div>
-    <div class="panel-title">Which conjugation?</div>
-    <div class="chips" id="famChips">
-      <button class="chip" data-f="all" aria-pressed="true">All</button>
-      <button class="chip" data-f="1" aria-pressed="false">1st</button>
-      <button class="chip" data-f="2" aria-pressed="false">2nd</button>
-      <button class="chip" data-f="3" aria-pressed="false">3rd</button>
-      <button class="chip" data-f="4" aria-pressed="false">4th</button>
-      <button class="chip" data-f="sum" aria-pressed="false">sum</button>
+    <h1>CASUS</h1>
+    <div class="tag">Casus - the cases</div>
+    <p class="lede">Decline the nouns, make adjectives agree, and learn what each case is for. The three building blocks of reading Latin.</p>
+    <div class="panel-title">Which drill?</div>
+    <div class="chips" id="modeChips">
+      <button class="chip" data-m="decline" aria-pressed="true">Decline a noun</button>
+      <button class="chip" data-m="agree" aria-pressed="false">Make it agree</button>
+      <button class="chip" data-m="cases" aria-pressed="false">Case meanings</button>
     </div>
     <div class="panel-title">Hints?</div>
     <div class="chips" id="hintChips">
-      <button class="chip" data-h="on" aria-pressed="true">Show me the stem</button>
+      <button class="chip" data-h="on" aria-pressed="true">Show me the pattern</button>
       <button class="chip" data-h="off" aria-pressed="false">No hints</button>
     </div>
     <button class="play" id="playBtn">Begin &rarr;</button>
-    <div class="foot">10 questions a round &middot; matches the Level 1 CE grammar sheet</div>
+    <div class="foot">10 questions a round &middot; puella &middot; dominus &middot; bellum</div>
   </section>
 
   <section id="play" class="hidden">
     <div class="hud">
-      <span class="pill" id="tensePill">tense</span>
+      <span class="pill" id="modePill">mode</span>
       <div class="right">
         <span class="stat">Q <b id="qnum">1</b>/10</span>
         <span class="stat">Streak <b id="streak">0</b></span>
@@ -110,7 +100,7 @@
     </div>
     <div class="progress"><i id="bar"></i></div>
     <div class="card">
-      <div class="verb" id="verb"></div>
+      <div class="word" id="word"></div>
       <div class="gloss" id="gloss"></div>
       <div class="ask" id="ask"></div>
       <div class="hint" id="hint"></div>
@@ -118,7 +108,7 @@
     <div class="opts" id="opts"></div>
     <div class="feedback" id="feedback"></div>
     <button class="next hidden" id="nextBtn">Next &rarr;</button>
-    <div class="foot"><a href="#" id="quitLink" style="color:var(--ink-soft)">&larr; change tense</a></div>
+    <div class="foot"><a href="#" id="quitLink" style="color:var(--ink-soft)">&larr; change drill</a></div>
   </section>
 
   <section id="done" class="hidden">
@@ -128,137 +118,140 @@
   </section>
 
 </div>
-<div class="foot">LUDUS I &middot; <b style="color:var(--pompeii)">ACTA</b> &middot; the verb forge</div></div>
+<div class="foot">LUDUS III &middot; <b style="color:var(--pompeii)">CASUS</b> &middot; endings &amp; agreement</div></div>
 
 <script>
 (function(){
-  const V = [
-    {c:1,p:"amo",inf:"amare",pf:"amavi",g:"to love"},
-    {c:1,p:"porto",inf:"portare",pf:"portavi",g:"to carry"},
-    {c:1,p:"laudo",inf:"laudare",pf:"laudavi",g:"to praise"},
-    {c:1,p:"voco",inf:"vocare",pf:"vocavi",g:"to call"},
-    {c:1,p:"paro",inf:"parare",pf:"paravi",g:"to prepare"},
-    {c:1,p:"do",inf:"dare",pf:"dedi",g:"to give",irr:1},
-    {c:1,p:"sto",inf:"stare",pf:"steti",g:"to stand",irr:1},
-    {c:2,p:"moneo",inf:"monere",pf:"monui",g:"to warn"},
-    {c:2,p:"habeo",inf:"habere",pf:"habui",g:"to have"},
-    {c:2,p:"teneo",inf:"tenere",pf:"tenui",g:"to hold"},
-    {c:2,p:"terreo",inf:"terrere",pf:"terrui",g:"to frighten"},
-    {c:2,p:"timeo",inf:"timere",pf:"timui",g:"to fear"},
-    {c:2,p:"deleo",inf:"delere",pf:"delevi",g:"to destroy",irr:1},
-    {c:2,p:"iubeo",inf:"iubere",pf:"iussi",g:"to order",irr:1},
-    {c:2,p:"maneo",inf:"manere",pf:"mansi",g:"to remain",irr:1},
-    {c:2,p:"moveo",inf:"movere",pf:"movi",g:"to move",irr:1},
-    {c:2,p:"respondeo",inf:"respondere",pf:"respondi",g:"to reply",irr:1},
-    {c:2,p:"rideo",inf:"ridere",pf:"risi",g:"to laugh",irr:1},
-    {c:2,p:"video",inf:"videre",pf:"vidi",g:"to see",irr:1},
-    {c:3,p:"rego",inf:"regere",pf:"rexi",g:"to rule"},
-    {c:3,p:"duco",inf:"ducere",pf:"duxi",g:"to lead"},
-    {c:3,p:"mitto",inf:"mittere",pf:"misi",g:"to send"},
-    {c:3,p:"scribo",inf:"scribere",pf:"scripsi",g:"to write"},
-    {c:3,p:"dico",inf:"dicere",pf:"dixi",g:"to say"},
-    {c:3,p:"pono",inf:"ponere",pf:"posui",g:"to put, place"},
-    {c:3,p:"lego",inf:"legere",pf:"legi",g:"to read, choose"},
-    {c:3,p:"ludo",inf:"ludere",pf:"lusi",g:"to play"},
-    {c:3,p:"bibo",inf:"bibere",pf:"bibi",g:"to drink"},
-    {c:3,p:"curro",inf:"currere",pf:"cucurri",g:"to run",irr:1},
-    {c:3,p:"consumo",inf:"consumere",pf:"consumpsi",g:"to eat"},
-    {c:3,p:"constituo",inf:"constituere",pf:"constitui",g:"to decide"},
-    {c:3,p:"discedo",inf:"discedere",pf:"discessi",g:"to leave"},
-    {c:3,p:"ostendo",inf:"ostendere",pf:"ostendi",g:"to show"},
-    {c:4,p:"audio",inf:"audire",pf:"audivi",g:"to hear"},
-    {c:4,p:"venio",inf:"venire",pf:"veni",g:"to come",irr:1},
-    {c:4,p:"dormio",inf:"dormire",pf:"dormivi",g:"to sleep"},
-    {c:4,p:"punio",inf:"punire",pf:"punivi",g:"to punish"},
+  const END={
+    m:{sg:["us","e","um","i","o","o"], pl:["i","i","os","orum","is","is"]},
+    f:{sg:["a","a","am","ae","ae","a"], pl:["ae","ae","as","arum","is","is"]},
+    n:{sg:["um","um","um","i","o","o"], pl:["a","a","a","orum","is","is"]}
+  };
+  const ER_M={sg:["","","um","i","o","o"], pl:["i","i","os","orum","is","is"]};
+  const CASES=[
+    {c:"Nominative",job:"the subject"},
+    {c:"Vocative",job:"the one being spoken to"},
+    {c:"Accusative",job:"the object"},
+    {c:"Genitive",job:"'of'"},
+    {c:"Dative",job:"'to' or 'for'"},
+    {c:"Ablative",job:"'by, with or from'"}
   ];
-  const SUM = [
-    {p:"sum",g:"to be",special:1,c:0,pf:"fui",forms:{pres:["sum","es","est","sumus","estis","sunt"],imp:["eram","eras","erat","eramus","eratis","erant"],perf:["fui","fuisti","fuit","fuimus","fuistis","fuerunt"]}},
-    {p:"adsum",g:"to be present",special:1,c:0,pf:"adfui",forms:{pres:["adsum","ades","adest","adsumus","adestis","adsunt"],imp:["aderam","aderas","aderat","aderamus","aderatis","aderant"],perf:["adfui","adfuisti","adfuit","adfuimus","adfuistis","adfuerunt"]}},
-    {p:"absum",g:"to be absent",special:1,c:0,pf:"afui",forms:{pres:["absum","abes","abest","absumus","abestis","absunt"],imp:["aberam","aberas","aberat","aberamus","aberatis","aberant"],perf:["afui","afuisti","afuit","afuimus","afuistis","afuerunt"]}},
+  const CN=["Nominative","Vocative","Accusative","Genitive","Dative","Ablative"];
+  const NOUNS=[
+    {nom:"puella",stem:"puell",pat:"f",g:"girl"},
+    {nom:"regina",stem:"regin",pat:"f",g:"queen"},
+    {nom:"terra",stem:"terr",pat:"f",g:"land"},
+    {nom:"dominus",stem:"domin",pat:"m",g:"master"},
+    {nom:"servus",stem:"serv",pat:"m",g:"slave"},
+    {nom:"amicus",stem:"amic",pat:"m",g:"friend"},
+    {nom:"bellum",stem:"bell",pat:"n",g:"war"},
+    {nom:"templum",stem:"templ",pat:"n",g:"temple"},
+    {nom:"donum",stem:"don",pat:"n",g:"gift"},
+    {nom:"puer",stem:"puer",pat:"erm",g:"boy"},
+    {nom:"ager",stem:"agr",pat:"erm",g:"field"}
   ];
-  const PERSONS=[{k:"I"},{k:"you (sg.)"},{k:"he/she/it"},{k:"we"},{k:"you (pl.)"},{k:"they"}];
-  const TENSE_LABEL={pres:"Present",imp:"Imperfect",perf:"Perfect",stems:"Perfect stems"};
-  const TENSE_HINT={pres:"present: -o -s -t -mus -tis -nt",imp:"imperfect: -bam -bas -bat -bamus -batis -bant",perf:"perfect: -i -isti -it -imus -istis -erunt"};
+  const ADJS=[
+    {nom:"bonus",stem:"bon",type:"us",g:"good"},
+    {nom:"miser",stem:"miser",type:"er",g:"wretched"}
+  ];
+  const GENDER_OF={f:"f",m:"m",n:"n",erm:"m"};
 
-  function stem(v){ if(v.c===1||v.c===2||v.c===4) return v.inf.slice(0,-2); if(v.c===3) return v.inf.slice(0,-3); return ""; }
-  function conjugate(v,t){
-    if(v.special) return v.forms[t].slice();
-    const st=stem(v);
-    if(t==="pres"){
-      if(v.c===1) return [st.slice(0,-1)+"o",st+"s",st+"t",st+"mus",st+"tis",st+"nt"];
-      if(v.c===2) return [st+"o",st+"s",st+"t",st+"mus",st+"tis",st+"nt"];
-      if(v.c===3) return [st+"o",st+"is",st+"it",st+"imus",st+"itis",st+"unt"];
-      if(v.c===4) return [st+"o",st+"s",st+"t",st+"mus",st+"tis",st+"unt"];
-    }
-    if(t==="imp"){ const b=(v.c===1||v.c===2)?st+"ba":st+"eba"; return [b+"m",b+"s",b+"t",b+"mus",b+"tis",b+"nt"]; }
-    const ps=v.pf.slice(0,-1); return [v.pf,ps+"isti",ps+"it",ps+"imus",ps+"istis",ps+"erunt"];
+  function declineNoun(n,ci,num){
+    if(n.pat==="erm"){ return (num==="sg"&&(ci===0||ci===1)) ? n.nom : n.stem+ER_M[num][ci]; }
+    return n.stem+END[n.pat][num][ci];
+  }
+  function declineAdj(a,gen,ci,num){
+    if(gen==="m"){ if(a.type==="er"){ return (num==="sg"&&(ci===0||ci===1)) ? a.stem : a.stem+ER_M[num][ci]; } return a.stem+END.m[num][ci]; }
+    if(gen==="f") return a.stem+END.f[num][ci];
+    return a.stem+END.n[num][ci];
   }
 
   const $=id=>document.getElementById(id);
   const secStart=$("start"),secPlay=$("play"),secDone=$("done");
-  let tense="perf",fam="all",hints="on",pool=[],q=0,correct=0,streak=0,answer="";
+  let mode="decline",hints="on",q=0,correct=0,streak=0,answer="";
   const TOTAL=10;
+  const MODE_LABEL={decline:"Decline",agree:"Agreement",cases:"Cases"};
 
   function chipRow(id,attr,setter){ $(id).addEventListener("click",e=>{const c=e.target.closest(".chip");if(!c)return;
     setter(c.dataset[attr]); document.querySelectorAll("#"+id+" .chip").forEach(x=>x.setAttribute("aria-pressed",x===c?"true":"false"));}); }
-  chipRow("tenseChips","t",v=>tense=v); chipRow("famChips","f",v=>fam=v); chipRow("hintChips","h",v=>hints=v);
-
+  chipRow("modeChips","m",v=>mode=v); chipRow("hintChips","h",v=>hints=v);
   $("playBtn").addEventListener("click",start);
   $("againBtn").addEventListener("click",()=>{secDone.classList.add("hidden");secStart.classList.remove("hidden");});
   $("quitLink").addEventListener("click",e=>{e.preventDefault();secPlay.classList.add("hidden");secStart.classList.remove("hidden");});
   $("nextBtn").addEventListener("click",()=>{q++;(q>=TOTAL)?finish():render();});
 
-  function buildPool(){
-    let base = (fam==="sum") ? SUM.slice() : (fam==="all" ? V.concat(SUM) : V.filter(v=>v.c===+fam));
-    if(tense!=="stems" && fam==="all"){ base=V.concat(SUM); }
-    return base;
-  }
-  function start(){ pool=buildPool(); q=0;correct=0;streak=0;
-    secStart.classList.add("hidden");secDone.classList.add("hidden");secPlay.classList.remove("hidden");
-    $("tensePill").textContent=TENSE_LABEL[tense]; render(); }
-
   const pick=a=>a[Math.floor(Math.random()*a.length)];
-  function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+  const ri=n=>Math.floor(Math.random()*n);
+  function shuffle(a){for(let i=a.length-1;i>0;i--){const j=ri(i+1);[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+  function start(){ q=0;correct=0;streak=0;
+    secStart.classList.add("hidden");secDone.classList.add("hidden");secPlay.classList.remove("hidden");
+    $("modePill").textContent=MODE_LABEL[mode]; render(); }
 
   function render(){
     $("qnum").textContent=q+1; $("streak").textContent=streak; $("bar").style.width=(q/TOTAL*100)+"%";
-    $("feedback").textContent=""; $("nextBtn").classList.add("hidden");
-    const v=pick(pool);
-    $("verb").textContent=v.p; $("gloss").textContent=v.g+(v.special?" (irregular)":" \u00b7 "+ordinal(v.c)+" conj.");
+    $("feedback").textContent=""; $("nextBtn").classList.add("hidden"); $("hint").innerHTML="";
+    if(mode==="decline") qDecline();
+    else if(mode==="agree") qAgree();
+    else qCases();
+  }
 
-    if(tense==="stems"){
-      answer=v.pf;
-      $("ask").innerHTML="What is the <b>perfect</b> (I \u2026)?";
-      $("hint").innerHTML = hints==="on" ? "Present is <code>"+v.p+"</code>"+(v.irr?" &middot; watch out, irregular stem!":"") : "";
-      const wrong=stemDistractors(v);
-      buildOpts([v.pf,...wrong]);
+  function qDecline(){
+    const n=pick(NOUNS), ci=ri(6), num=pick(["sg","pl"]);
+    answer=declineNoun(n,ci,num);
+    $("word").textContent=n.nom; $("gloss").textContent=n.g+" \u00b7 like "+(n.pat==="f"?"puella":n.pat==="m"?"dominus":n.pat==="erm"?"puer":"bellum");
+    $("ask").innerHTML="Give the <b>"+CN[ci]+" "+(num==="sg"?"singular":"plural")+"</b>";
+    if(hints==="on") $("hint").innerHTML="stem <code>"+n.stem+"-</code>";
+    const opts=new Set([answer]);
+    while(opts.size<4){ opts.add(declineNoun(n,ri(6),pick(["sg","pl"]))); if(opts.size<4&&Math.random()<.3)opts.add(declineNoun(pick(NOUNS),ci,num)); }
+    buildOpts([...opts]);
+  }
+
+  function qAgree(){
+    const n=pick(NOUNS), a=pick(ADJS), ci=ri(6), num=pick(["sg","pl"]);
+    const gen=GENDER_OF[n.pat];
+    const nounForm=declineNoun(n,ci,num);
+    answer=declineAdj(a,gen,ci,num);
+    $("word").textContent=a.nom+" + "+nounForm;
+    $("gloss").textContent="make "+a.g+" agree with "+n.g;
+    $("ask").innerHTML="Agree with <b>"+nounForm+"</b><br>"+gName(gen)+" \u00b7 "+CN[ci]+" \u00b7 "+(num==="sg"?"singular":"plural");
+    if(hints==="on") $("hint").innerHTML="adjectives match gender, number &amp; case";
+    const og = gen==="m"?"f":gen==="f"?"n":"m";
+    const oc = (ci+3)%6, onum = num==="sg"?"pl":"sg";
+    const opts=new Set([answer]);
+    opts.add(declineAdj(a,og,ci,num)); opts.add(declineAdj(a,gen,oc,num)); opts.add(declineAdj(a,gen,ci,onum));
+    while(opts.size<4) opts.add(declineAdj(a,pick(["m","f","n"]),ri(6),pick(["sg","pl"])));
+    buildOpts([...opts]);
+  }
+  function gName(g){return g==="m"?"masculine":g==="f"?"feminine":"neuter";}
+
+  function qCases(){
+    const idx=ri(6), forward=Math.random()<.5, cur=CASES[idx];
+    if(forward){
+      answer=cur.job;
+      $("word").textContent=cur.c; $("gloss").textContent="which job does this case do?";
+      $("ask").innerHTML="The <b>"+cur.c+"</b> case is used for\u2026";
+      const opts=new Set([cur.job]); while(opts.size<4) opts.add(pick(CASES).job);
+      buildOpts([...opts]);
     } else {
-      const idx=Math.floor(Math.random()*6);
-      const forms=conjugate(v,tense);
-      answer=forms[idx];
-      $("ask").innerHTML="Give the <b>"+PERSONS[idx].k+"</b> form &middot; "+TENSE_LABEL[tense];
-      $("hint").innerHTML = hints==="on" ? "stem <code>"+(v.special?v.p:stem(v)+"-")+"</code> &middot; "+(TENSE_HINT[tense]||"") : "";
-      const others=shuffle(forms.filter((_,i)=>i!==idx)).slice(0,3);
-      buildOpts([answer,...others]);
+      answer=cur.c;
+      $("word").textContent=cur.job; $("gloss").textContent="which case does this job?";
+      $("ask").innerHTML="Which case is used for <b>"+cur.job+"</b>?";
+      const opts=new Set([cur.c]); while(opts.size<4) opts.add(pick(CASES).c);
+      buildOpts([...opts]);
     }
+    if(hints==="on") $("hint").innerHTML="Nom=subject &middot; Acc=object &middot; Gen=of &middot; Dat=to/for &middot; Abl=by/with/from";
   }
-  function ordinal(c){return c===1?"1st":c===2?"2nd":c===3?"3rd":"4th";}
-  function stemDistractors(v){
-    const base=v.p.replace(/o$/,"");
-    const cand=[base+"i",base+"si",base+"vi",base+"ui",base+"xi"].filter(x=>x!==v.pf);
-    return shuffle([...new Set(cand)]).slice(0,3);
-  }
+
   function buildOpts(arr){
-    arr=shuffle([...new Set(arr)]);
-    while(arr.length<2)arr.push(answer);
+    arr=shuffle([...new Set(arr)]); while(arr.length<2)arr.push(answer);
     const box=$("opts"); box.innerHTML="";
     arr.forEach(t=>{ const b=document.createElement("button"); b.className="opt"; b.textContent=t;
       b.addEventListener("click",()=>choose(b,t)); box.appendChild(b); });
   }
   function choose(btn,val){
-    document.querySelectorAll(".opt").forEach(b=>{b.disabled=true;
-      if(b.textContent===answer)b.classList.add("right");});
-    if(val===answer){ correct++;streak++;$("feedback").textContent=pick(["Euge! Spot on.","Optime!","Recte!","Correct \u2014 nicely done."]); }
+    document.querySelectorAll(".opt").forEach(b=>{b.disabled=true; if(b.textContent===answer)b.classList.add("right");});
+    if(val===answer){ correct++;streak++;$("feedback").textContent=pick(["Recte! Spot on.","Optime!","Euge!","Correct \u2014 well agreed."]); }
     else{ streak=0; btn.classList.add("wrong"); $("feedback").innerHTML="Not quite \u2014 the answer is <b>"+answer+"</b>."; }
     $("bar").style.width=((q+1)/TOTAL*100)+"%"; $("streak").textContent=streak; $("nextBtn").classList.remove("hidden");
   }
@@ -266,7 +259,7 @@
     secPlay.classList.add("hidden");secDone.classList.remove("hidden");$("bar").style.width="100%";
     const pct=Math.round(correct/TOTAL*100);
     $("score").textContent=correct+" / "+TOTAL;
-    $("blurb").textContent = pct>=90?"Magnificent \u2014 the legions salute you.":pct>=70?"Strong work. A consul in the making.":pct>=50?"Solid progress \u2014 run it again to sharpen up.":"Keep drilling; the forms will come.";
+    $("blurb").textContent = pct>=90?"Magnificent \u2014 the cases bow to you.":pct>=70?"Strong work indeed.":pct>=50?"Good progress \u2014 run it again.":"Keep at it; the endings will settle.";
   }
 })();
 </script>
