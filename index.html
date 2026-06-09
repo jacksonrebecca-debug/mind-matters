@@ -1,102 +1,104 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Mind Matters · Leo · Summer 2026</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧠</text></svg>" />
+<!-- Lūdī Latīnī — a hub for Latin games -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lūdī Latīnī</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&display=swap" rel="stylesheet">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,800;9..144,900&family=Nunito:wght@400;600;700;800&display=swap');
-  * { box-sizing: border-box; }
-  html, body { margin: 0; min-height: 100%; }
-  body {
-    font-family: 'Nunito', sans-serif; color: #2a2320; padding: 38px 18px 60px;
-    background:
-      radial-gradient(1100px 480px at 12% -8%, #fff3da 0%, transparent 55%),
-      radial-gradient(900px 520px at 92% 4%, #ffe0d4 0%, transparent 52%),
-      radial-gradient(700px 500px at 50% 110%, #e7f3ef 0%, transparent 55%),
-      #fbf4e6;
-    position: relative; overflow-x: hidden;
+  :root{
+    --ink:#2b1b10;--ink-soft:#5a4632;--parch:#f3e6cc;--parch-deep:#e7d4ad;
+    --gold:#b8860b;--gold-bright:#d9a528;--pompeii:#9e3b29;--pompeii-deep:#7a2a1c;
+    --green:#4e6b3a;--green-deep:#3a5129;--line:rgba(43,27,16,.18);--shadow:rgba(43,27,16,.35);
   }
-  body:before {
-    content:""; position:fixed; inset:0; pointer-events:none; opacity:.045; z-index:0;
-    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;height:100%}
+  body{
+    font-family:"Cormorant Garamond",Georgia,serif;color:var(--ink);
+    background:radial-gradient(120% 80% at 50% -10%, #fbf2dd 0%, var(--parch) 45%, var(--parch-deep) 100%);
+    background-attachment:fixed;min-height:100%;display:flex;justify-content:center;padding:22px;
   }
-  .wrap { max-width: 860px; margin: 0 auto; position: relative; z-index: 1; }
-  .sun { position:absolute; top:-26px; right:-6px; font-size:64px; animation: spin 26s linear infinite; }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  .eyebrow { font-weight:800; letter-spacing:2.5px; text-transform:uppercase; font-size:12px; color:#e08a2b; margin-bottom:8px; }
-  h1 { font-family:'Fraunces',serif; font-weight:900; font-size: clamp(38px, 9vw, 72px); line-height:.96; letter-spacing:-1.5px; margin:0; }
-  h1 .amp { color:#1f9b8a; font-style:italic; }
-  .lede { font-size: clamp(16px,2.6vw,19px); font-weight:600; color:#7a6f60; margin:16px 0 0; max-width:520px; line-height:1.5; }
-  .grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap:18px; margin-top:40px; }
-  .card { position:relative; display:flex; flex-direction:column; gap:6px; text-decoration:none; color:#2a2320;
-    background:#fff; border:2.5px solid #2a2320; border-radius:24px; padding:24px 22px 22px;
-    box-shadow: 7px 7px 0 var(--accent); transition: transform .12s ease, box-shadow .12s ease; overflow:hidden; }
-  .card:hover { transform: translate(-2px,-2px); box-shadow: 11px 11px 0 var(--accent); }
-  .card .wm { position:absolute; right:-12px; bottom:-30px; font-size:120px; line-height:1; opacity:.10; }
-  .card .glyph { font-size:34px; line-height:1; }
-  .card .tag { font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.8px; color:var(--accent);
-    background:var(--soft); align-self:flex-start; padding:4px 10px; border-radius:999px; margin-top:6px; }
-  .card h2 { font-family:'Fraunces',serif; font-weight:800; font-size:23px; margin:10px 0 0; letter-spacing:-.3px; }
-  .card p { font-size:14px; font-weight:600; color:#7a6f60; margin:4px 0 0; line-height:1.45; }
-  .card .go { margin-top:14px; font-weight:800; color:var(--accent); font-size:14px; }
-  .card.soon { border-style:dashed; border-color:#d9c9ad; box-shadow:7px 7px 0 #efe3cc; cursor:default; }
-  .card.soon:hover { transform:none; box-shadow:7px 7px 0 #efe3cc; }
-  .card.soon .go { color:#b8a894; }
-  footer { margin-top:48px; text-align:center; font-weight:700; color:#b8a894; font-size:13px; }
-  footer span { color:#e0553b; }
+  body::before{
+    content:"";position:fixed;inset:0;pointer-events:none;opacity:.5;mix-blend-mode:multiply;
+    background-image:radial-gradient(circle at 20% 30%, rgba(120,80,30,.06) 0 2px, transparent 3px),
+                     radial-gradient(circle at 70% 60%, rgba(120,80,30,.05) 0 2px, transparent 3px),
+                     radial-gradient(circle at 45% 85%, rgba(120,80,30,.05) 0 2px, transparent 3px);
+    background-size:140px 140px,180px 180px,120px 120px;
+  }
+  .stage{width:100%;max-width:720px;z-index:1}
+  .scroll{
+    background:linear-gradient(180deg,#fbf3df,#f0e2c2);border:1px solid var(--line);border-radius:14px;
+    box-shadow:0 18px 40px -18px var(--shadow), inset 0 0 0 1px rgba(255,255,255,.4);
+    padding:30px 26px 34px;position:relative;
+  }
+  .scroll::before,.scroll::after{
+    content:"";position:absolute;left:14px;right:14px;height:9px;
+    background:repeating-linear-gradient(90deg,var(--gold) 0 6px,transparent 6px 14px);opacity:.5;
+  }
+  .scroll::before{top:11px}.scroll::after{bottom:11px}
+  .tag{font-family:"Cinzel",serif;letter-spacing:.34em;text-transform:uppercase;text-align:center;color:var(--gold);font-size:11px;margin:.4em 0 .2em}
+  h1{font-family:"Cinzel",serif;font-weight:900;letter-spacing:.14em;text-align:center;margin:.05em 0 .1em;
+     color:var(--pompeii-deep);font-size:clamp(32px,8vw,56px);text-shadow:0 1px 0 rgba(255,255,255,.5)}
+  .lede{text-align:center;color:var(--ink-soft);font-size:18px;max-width:46ch;margin:6px auto 26px;line-height:1.45;font-style:italic}
+
+  .games{display:grid;gap:16px}
+  a.game,.game{
+    display:block;text-decoration:none;color:inherit;
+    background:linear-gradient(180deg,#fff8e9,#f1e2bf);border:1.6px solid var(--line);border-radius:12px;
+    padding:20px 22px;box-shadow:0 8px 18px -12px var(--shadow);
+    transition:transform .12s,box-shadow .12s,border-color .12s;position:relative;overflow:hidden;
+  }
+  a.game:hover{transform:translateY(-3px);box-shadow:0 16px 28px -14px var(--shadow);border-color:var(--gold)}
+  .game .num{font-family:"Cinzel",serif;font-weight:900;color:var(--gold-bright);letter-spacing:.1em;font-size:13px}
+  .game h2{font-family:"Cinzel",serif;font-weight:700;letter-spacing:.06em;color:var(--pompeii);margin:.15em 0 .1em;font-size:24px}
+  .game .latin{font-style:italic;color:var(--ink-soft);font-size:16px;margin-bottom:8px}
+  .game .desc{color:var(--ink-soft);font-size:16px;line-height:1.4;max-width:54ch}
+  .badge{position:absolute;top:16px;right:18px;font-family:"Cinzel",serif;font-size:10px;letter-spacing:.14em;
+         text-transform:uppercase;padding:5px 11px;border-radius:999px}
+  .badge.live{background:var(--green);color:#f7f0dc}
+  .badge.soon{background:#e3d3ac;color:var(--ink-soft);border:1px solid var(--line)}
+  .game.soon{opacity:.72;cursor:default}
+  .game.soon:hover{transform:none;box-shadow:0 8px 18px -12px var(--shadow);border-color:var(--line)}
+  .go{font-family:"Cinzel",serif;font-weight:700;letter-spacing:.1em;color:var(--pompeii);font-size:14px;margin-top:12px;display:inline-block}
+  .foot{text-align:center;color:var(--ink-soft);font-size:13px;margin-top:24px;letter-spacing:.03em}
 </style>
-</head>
-<body>
-  <div class="wrap">
-    <div class="sun">☀️</div>
-    <div class="eyebrow">Summer 2026</div>
-    <h1>Mind <span class="amp">Matters</span></h1>
-    <p class="lede">A summer of brain-stretchers for Leo — a little maths, a little Latin, every day. Pick something and dive in.</p>
-    <div class="grid">
-      <a class="card" href="maths-quest.html" style="--accent:#e08a2b; --soft:#fbe9d2;">
-        <div class="wm">🧮</div>
-        <div class="glyph">☀️</div>
-        <span class="tag">Maths · daily</span>
-        <h2>Summer Maths Quest</h2>
-        <p>One puzzle a day for 9 weeks — algebra, ratios, brain twisters and fun ones. Track your streak.</p>
-        <div class="go">Start today's puzzle →</div>
-      </a>
-      <a class="card" href="acta.html" style="--accent:#1f9b8a; --soft:#d9f2ee;">
-        <div class="wm">📜</div>
-        <div class="glyph">🏛️</div>
-        <span class="tag">Latin</span>
+
+<div class="stage">
+  <div class="scroll">
+    <div class="tag">Schola Aestīva</div>
+    <h1>LŪDĪ LATĪNĪ</h1>
+    <p class="lede">A small workshop of Latin games — learn by playing, one trial at a time.</p>
+
+    <div class="games">
+
+      <a class="game" href="perfect-tense.html">
+        <span class="badge live">Play now</span>
+        <div class="num">LŪDUS I</div>
         <h2>ACTA</h2>
-        <p>Latin practice, the fun way.</p>
-        <div class="go">Play →</div>
+        <div class="latin">Verba · the verb forge</div>
+        <div class="desc">Conjugate verbs across the present, imperfect and perfect tenses — plus <i>sum</i> — and drill the tricky perfect stems. Pick a tense and a conjugation, then forge the forms.</div>
+        <span class="go">Enter →</span>
       </a>
-      <a class="card" href="ludus-ii.html" style="--accent:#7a4fd0; --soft:#e8def9;">
-        <div class="wm">🗝️</div>
-        <div class="glyph">📖</div>
-        <span class="tag">Latin · vocab</span>
-        <h2>LŪDUS II</h2>
-        <p>Latin vocabulary game.</p>
-        <div class="go">Play →</div>
+
+      <a class="game" href="vocab.html">
+        <span class="badge live">Play now</span>
+        <div class="num">LŪDUS II</div>
+        <h2>VERBA</h2>
+        <div class="latin">Vocabula · the word hoard</div>
+        <div class="desc">Learn the vocabulary with a memory hook for every word — derivatives, cognates, prefixes and sentence-snippets — and spaced repetition that resurfaces whatever won't stick.</div>
+        <span class="go">Enter →</span>
       </a>
-      <a class="card" href="spark-lab.html" style="--accent:#2f7fe0; --soft:#d8e8fb;">
-        <div class="wm">⚡</div>
-        <div class="glyph">🧪</div>
-        <span class="tag">Science</span>
-        <h2>Spark Lab</h2>
-        <p>Split water into hydrogen and oxygen with two pencils and a battery — then try it for real.</p>
-        <div class="go">Play →</div>
+
+      <a class="game" href="casus.html">
+        <span class="badge live">Play now</span>
+        <div class="num">LŪDUS III</div>
+        <h2>CASUS</h2>
+        <div class="latin">Casus · endings &amp; agreement</div>
+        <div class="desc">Decline the nouns (puella, dominus, bellum), make adjectives agree in gender, number and case, and learn what each of the six cases is actually for.</div>
+        <span class="go">Enter →</span>
       </a>
-      <div class="card soon" style="--accent:#e0553b; --soft:#fbdfd8;">
-        <div class="wm">✨</div>
-        <div class="glyph">🛠️</div>
-        <span class="tag">More soon</span>
-        <h2>Add a game</h2>
-        <p>Drop a new HTML file in this folder and point a card at it.</p>
-        <div class="go">Coming soon</div>
-      </div>
+
     </div>
-    <footer>Made with <span>♥</span> for Leo · Summer 2026</footer>
+
+    <div class="foot">Discendō discimus — we learn by learning.</div>
   </div>
-</body>
-</html>
+</div>
