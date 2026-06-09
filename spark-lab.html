@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spark Lab — Splitting Water with a Pencil</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#16202E;        /* graphite / structure */
+    --paper:#F7F9FB;      /* lab notebook paper */
+    --grid:#DCE6EF;       /* faint graph grid */
+    --water:#16B5D0;      /* the water */
+    --hydrogen:#3B82F6;   /* H side - blue */
+    --oxygen:#F4524D;     /* O side - coral/red */
+    --spark:#FFC42E;      /* electricity / power */
+    --good:#1FB57A;       /* correct / success */
+    --shadow:0 4px 0 rgba(22,32,46,1);
+  }
+  *{box-sizing:border-box;}
+  html{-webkit-text-size-adjust:100%;}
+  body{
+    margin:0;
+    font-family:'Inter',system-ui,sans-serif;
+    color:var(--ink);
+    background-color:var(--paper);
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size:26px 26px;
+    line-height:1.55;
+    min-height:100vh;
+  }
+  .wrap{max-width:760px;margin:0 auto;padding:22px 18px 80px;}
+
+  /* ---------- header ---------- */
+  header{
+    display:flex;align-items:center;gap:14px;
+    border:3px solid var(--ink);background:#fff;
+    border-radius:16px;padding:14px 18px;box-shadow:var(--shadow);
+    margin-bottom:18px;
+  }
+  .logo{
+    width:46px;height:46px;flex:none;border-radius:12px;
+    background:var(--ink);display:grid;place-items:center;
+  }
+  .logo svg{width:30px;height:30px;}
+  h1{
+    font-family:'Space Grotesk',sans-serif;font-weight:700;
+    font-size:1.45rem;margin:0;letter-spacing:-.01em;
+  }
+  .tag{font-family:'Space Mono',monospace;font-size:.74rem;color:#5C6B7A;text-transform:uppercase;letter-spacing:.08em;}
+
+  /* ---------- progress dots ---------- */
+  .dots{display:flex;gap:7px;justify-content:center;margin:0 0 16px;flex-wrap:wrap;}
+  .dot{width:13px;height:13px;border-radius:50%;border:2.5px solid var(--ink);background:#fff;transition:.2s;}
+  .dot.done{background:var(--good);}
+  .dot.now{background:var(--spark);transform:scale(1.25);}
+
+  /* ---------- cards ---------- */
+  .card{
+    border:3px solid var(--ink);background:#fff;border-radius:18px;
+    padding:24px 22px;box-shadow:var(--shadow);
+    animation:pop .28s ease;
+  }
+  @keyframes pop{from{transform:translateY(8px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+  .eyebrow{
+    font-family:'Space Mono',monospace;font-size:.72rem;font-weight:700;
+    text-transform:uppercase;letter-spacing:.12em;color:var(--water);margin:0 0 6px;
+  }
+  h2{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1.55rem;margin:0 0 12px;letter-spacing:-.01em;line-height:1.15;}
+  h3{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:1.1rem;margin:18px 0 8px;}
+  p{margin:0 0 12px;}
+  .big{font-size:1.08rem;}
+  .muted{color:#5C6B7A;}
+  strong{font-weight:600;}
+  .pill{display:inline-block;font-family:'Space Mono',monospace;font-weight:700;font-size:.8rem;padding:2px 9px;border-radius:30px;border:2px solid var(--ink);}
+  .pill.h{background:rgba(59,130,246,.14);color:var(--hydrogen);border-color:var(--hydrogen);}
+  .pill.o{background:rgba(244,82,77,.14);color:var(--oxygen);border-color:var(--oxygen);}
+
+  /* ---------- buttons ---------- */
+  .btn{
+    font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:1rem;
+    border:3px solid var(--ink);border-radius:12px;background:var(--spark);color:var(--ink);
+    padding:12px 22px;cursor:pointer;box-shadow:var(--shadow);transition:transform .08s;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .btn:hover{transform:translateY(-1px);}
+  .btn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--ink);}
+  .btn:disabled{opacity:.4;cursor:not-allowed;transform:none;}
+  .btn.ghost{background:#fff;}
+  .btn.small{font-size:.88rem;padding:9px 16px;}
+  .nav{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:20px;}
+  :focus-visible{outline:3px solid var(--water);outline-offset:2px;}
+
+  /* ---------- choices ---------- */
+  .choices{display:grid;gap:10px;margin:14px 0 4px;}
+  .choice{
+    text-align:left;font-family:'Inter',sans-serif;font-size:1rem;font-weight:500;
+    border:3px solid var(--ink);border-radius:12px;background:#fff;color:var(--ink);
+    padding:13px 16px;cursor:pointer;transition:.12s;display:flex;gap:10px;align-items:center;
+  }
+  .choice:hover{background:#FFF8E4;}
+  .choice .mark{font-family:'Space Mono',monospace;font-weight:700;flex:none;width:24px;height:24px;border:2px solid var(--ink);border-radius:6px;display:grid;place-items:center;font-size:.82rem;}
+  .choice.correct{background:rgba(31,181,122,.16);border-color:var(--good);}
+  .choice.correct .mark{background:var(--good);color:#fff;border-color:var(--good);}
+  .choice.wrong{background:rgba(244,82,77,.14);border-color:var(--oxygen);}
+  .choice.wrong .mark{background:var(--oxygen);color:#fff;border-color:var(--oxygen);}
+  .choice:disabled{cursor:default;}
+  .feedback{margin-top:12px;padding:12px 14px;border-radius:12px;border:2px dashed var(--ink);font-size:.96rem;display:none;}
+  .feedback.show{display:block;animation:pop .25s ease;}
+
+  /* ---------- the lab simulation ---------- */
+  .lab{display:flex;flex-direction:column;align-items:center;gap:6px;margin:6px 0 4px;}
+  .stage{width:100%;max-width:420px;}
+  .readout{
+    display:flex;gap:10px;width:100%;max-width:420px;margin-top:6px;
+  }
+  .gauge{flex:1;border:3px solid var(--ink);border-radius:12px;padding:8px 10px;text-align:center;background:#fff;}
+  .gauge .lbl{font-family:'Space Mono',monospace;font-size:.66rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;}
+  .gauge .num{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1.5rem;line-height:1.1;}
+  .gauge.h{border-color:var(--hydrogen);} .gauge.h .lbl,.gauge.h .num{color:var(--hydrogen);}
+  .gauge.o{border-color:var(--oxygen);} .gauge.o .lbl,.gauge.o .num{color:var(--oxygen);}
+  .gauge.r .num{color:var(--ink);}
+  .controls{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:10px;}
+  .toggle{display:flex;align-items:center;gap:8px;font-size:.92rem;font-weight:500;border:3px solid var(--ink);border-radius:12px;padding:8px 14px;background:#fff;cursor:pointer;}
+  .toggle input{width:18px;height:18px;accent-color:var(--water);}
+
+  .note{background:#FFF8E4;border:3px solid var(--ink);border-radius:14px;padding:14px 16px;margin:14px 0;}
+  .note .h{font-family:'Space Grotesk',sans-serif;font-weight:700;display:flex;align-items:center;gap:8px;margin-bottom:4px;}
+
+  /* ---------- experiment cards ---------- */
+  .exp{border:3px solid var(--ink);border-radius:16px;overflow:hidden;margin:16px 0;}
+  .exp .head{padding:12px 16px;color:#fff;font-family:'Space Grotesk',sans-serif;font-weight:700;display:flex;align-items:center;gap:10px;}
+  .exp.one .head{background:var(--hydrogen);}
+  .exp.two .head{background:var(--oxygen);}
+  .exp .num{font-family:'Space Mono',monospace;background:rgba(255,255,255,.25);border-radius:8px;padding:2px 9px;font-size:.85rem;}
+  .exp .body{padding:6px 18px 16px;}
+  .exp ol{padding-left:22px;margin:8px 0;}
+  .exp li{margin:7px 0;}
+  .kit{font-family:'Space Mono',monospace;font-size:.86rem;background:var(--paper);border:2px dashed var(--ink);border-radius:10px;padding:10px 13px;margin:10px 0;}
+  .safety{font-size:.9rem;border-left:5px solid var(--oxygen);padding:4px 0 4px 12px;margin:12px 0 4px;}
+
+  .badge{text-align:center;padding:8px 0;}
+  .badge .seal{width:120px;height:120px;margin:0 auto 8px;}
+  .center{text-align:center;}
+  .score-line{font-family:'Space Mono',monospace;font-weight:700;font-size:1.1rem;}
+
+  .credit{text-align:center;font-family:'Space Mono',monospace;font-size:.68rem;color:#8595A4;margin-top:24px;letter-spacing:.04em;}
+  @media (max-width:480px){
+    h2{font-size:1.3rem;} .wrap{padding:16px 12px 70px;}
+    .gauge .num{font-size:1.25rem;}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .card{animation:none;} .bubble{transition:none!important;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#FFC42E" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M13 2 4 14h6l-1 8 9-12h-6z" fill="#FFC42E"/>
+      </svg>
+    </div>
+    <div>
+      <h1>Spark Lab</h1>
+      <div class="tag">Splitting water with a pencil ⚡</div>
+    </div>
+  </header>
+
+  <div class="dots" id="dots" aria-hidden="true"></div>
+  <main id="stage" aria-live="polite"></main>
+  <div class="credit">SPARK LAB · A MIND MATTERS EXPERIMENT</div>
+</div>
+
+<script>
+/* ============================================================
+   SPARK LAB — a single-file electrolysis learning game
+   Plain JavaScript, no dependencies. British spelling throughout.
+   ============================================================ */
+
+const stageEl = document.getElementById('stage');
+const dotsEl  = document.getElementById('dots');
+
+const state = { step:0, score:0, predicted:null };
+
+/* ---- the live electrolysis simulation (shared across steps) ---- */
+const Sim = (function(){
+  let svg, bubbleLayer, running=false, hasSalt=true, raf=null;
+  let h2=0, o2=0, spawnTimer=0, beat=0;
+  let onTick=null;
+
+  function cellSVG(){
+    return `
+    <svg viewBox="0 0 260 260" class="stage" role="img" aria-label="An electrolysis cell: two pencils dipped into a beaker of water, wired to a 9-volt battery.">
+      <!-- battery -->
+      <rect x="92" y="6" width="76" height="34" rx="6" fill="#2C3A4B" stroke="#16202E" stroke-width="3"/>
+      <text x="130" y="28" text-anchor="middle" font-family="Space Mono, monospace" font-size="11" fill="#FFC42E" font-weight="700">9V</text>
+      <text x="108" y="56" text-anchor="middle" font-family="Space Mono, monospace" font-size="15" fill="#16202E" font-weight="700">−</text>
+      <text x="152" y="56" text-anchor="middle" font-family="Space Mono, monospace" font-size="15" fill="#16202E" font-weight="700">+</text>
+
+      <!-- wires -->
+      <path id="wireH" d="M108 40 L108 64 L70 64 L70 96" fill="none" stroke="#3B82F6" stroke-width="4" stroke-linecap="round"/>
+      <path id="wireO" d="M152 40 L152 64 L190 64 L190 96" fill="none" stroke="#F4524D" stroke-width="4" stroke-linecap="round"/>
+
+      <!-- beaker -->
+      <path d="M50 110 L50 232 Q50 246 64 246 L196 246 Q210 246 210 232 L210 110 Z"
+            fill="rgba(22,181,208,0.14)" stroke="#16202E" stroke-width="3"/>
+      <!-- water surface -->
+      <line x1="50" y1="128" x2="210" y2="128" stroke="#16B5D0" stroke-width="3" opacity="0.6"/>
+
+      <!-- bubbles render behind pencils -->
+      <g id="bubbleLayer"></g>
+
+      <!-- pencil: hydrogen / minus (left) -->
+      <g>
+        <rect x="62" y="64" width="16" height="120" rx="2" fill="#FFC42E" stroke="#16202E" stroke-width="2.5"/>
+        <polygon points="62,184 78,184 70,206" fill="#E9B11F" stroke="#16202E" stroke-width="2.5"/>
+        <polygon points="66,196 74,196 70,206" fill="#16202E"/>
+      </g>
+      <!-- pencil: oxygen / plus (right) -->
+      <g>
+        <rect x="182" y="64" width="16" height="120" rx="2" fill="#FFC42E" stroke="#16202E" stroke-width="2.5"/>
+        <polygon points="182,184 198,184 190,206" fill="#E9B11F" stroke="#16202E" stroke-width="2.5"/>
+        <polygon points="186,196 194,196 190,206" fill="#16202E"/>
+      </g>
+
+      <!-- labels -->
+      <text x="70" y="62" text-anchor="middle" font-family="Space Mono, monospace" font-size="10" fill="#3B82F6" font-weight="700">HYDROGEN</text>
+      <text x="190" y="62" text-anchor="middle" font-family="Space Mono, monospace" font-size="10" fill="#F4524D" font-weight="700">OXYGEN</text>
+    </svg>`;
+  }
+
+  function mount(container){
+    container.insertAdjacentHTML('beforeend', cellSVG());
+    svg = container.querySelector('svg');
+    bubbleLayer = svg.querySelector('#bubbleLayer');
+  }
+
+  function spawn(x, kind){
+    const c = document.createElementNS('http://www.w3.org/2000/svg','circle');
+    const r = 1.6 + Math.random()*2.2;
+    c.setAttribute('cx', x + (Math.random()*8-4));
+    c.setAttribute('cy', 200);
+    c.setAttribute('r', r);
+    c.setAttribute('fill', kind==='h' ? '#3B82F6' : '#F4524D');
+    c.setAttribute('opacity','0.85');
+    c.classList.add('bubble');
+    bubbleLayer.appendChild(c);
+    const dur = 1400 + Math.random()*900;
+    const start = performance.now();
+    (function rise(now){
+      const t = (now-start)/dur;
+      if(t>=1){ c.remove(); return; }
+      c.setAttribute('cy', 200 - t*72);
+      c.setAttribute('opacity', (0.85*(1-t)).toFixed(2));
+      requestAnimationFrame(rise);
+    })(start);
+  }
+
+  function loop(now){
+    if(!running){ raf=null; return; }
+    spawnTimer += 16;
+    const rate = hasSalt ? 90 : 1100;     // no electrolyte = barely any bubbles
+    if(spawnTimer > rate){
+      spawnTimer = 0;
+      beat++;
+      // hydrogen spawns every beat; oxygen every other beat -> true 2:1
+      spawn(70,'h'); h2 += 1;
+      if(beat % 2 === 0){ spawn(190,'o'); o2 += 1; }
+      if(onTick) onTick(h2, o2);
+    }
+    raf = requestAnimationFrame(loop);
+  }
+
+  return {
+    mount,
+    start(){ if(!running){ running=true; if(!raf) raf=requestAnimationFrame(loop);} },
+    stop(){ running=false; },
+    reset(){ h2=0;o2=0;spawnTimer=0;beat=0; if(bubbleLayer) bubbleLayer.innerHTML=''; if(onTick)onTick(0,0); },
+    setSalt(v){ hasSalt=v; },
+    set tick(fn){ onTick=fn; },
+    get vals(){ return {h2,o2}; }
+  };
+})();
+
+/* ============================================================
+   STEPS
+   ============================================================ */
+const steps = [];
+
+/* 0 — title */
+steps.push({ render(){
+  stageEl.innerHTML = `
+  <div class="card center">
+    <p class="eyebrow">Mission unlocked</p>
+    <h2>Can you tear water apart?</h2>
+    <p class="big">Water looks simple. But every drop is made of two hidden gases stuck together —
+    <span class="pill h">hydrogen</span> and <span class="pill o">oxygen</span>.</p>
+    <p class="big">Today you'll use <strong>two pencils and a battery</strong> to pull them apart. Scientists call this
+    <strong>electrolysis</strong>. Ready, Lab Chief?</p>
+    <div class="nav" style="justify-content:center;">
+      <button class="btn" onclick="go(1)">Start the mission →</button>
+    </div>
+  </div>`;
+}});
+
+/* 1 — what is in water */
+steps.push({ render(){
+  stageEl.innerHTML = `
+  <div class="card">
+    <p class="eyebrow">Step 1 · The secret inside water</p>
+    <h2>Water is a tiny team of two</h2>
+    <p class="big">Every water molecule is made of <strong>3 atoms</strong> joined together:</p>
+    <div class="center" style="font-family:'Space Mono',monospace;font-weight:700;font-size:1.6rem;margin:14px 0;">
+      <span style="color:var(--hydrogen)">H</span><span style="color:var(--hydrogen)">H</span><span style="color:var(--oxygen)">O</span>
+      &nbsp;=&nbsp; H<sub>2</sub>O
+    </div>
+    <p><span class="pill h">2 × hydrogen</span> &nbsp; + &nbsp; <span class="pill o">1 × oxygen</span></p>
+    <p>That little "2" is going to matter a LOT in a minute. Keep it in your pocket. 🧠</p>
+    <div class="nav">
+      <button class="btn ghost small" onclick="go(0)">← Back</button>
+      <button class="btn" onclick="go(2)">Meet your kit →</button>
+    </div>
+  </div>`;
+}});
+
+/* 2 — the kit */
+steps.push({ render(){
+  stageEl.innerHTML = `
+  <div class="card">
+    <p class="eyebrow">Step 2 · Your equipment</p>
+    <h2>Three things to split water</h2>
+    <p><strong>1. Two pencils ✏️✏️</strong> — the grey "lead" inside a pencil isn't lead at all. It's
+    <strong>graphite</strong>, and graphite lets electricity flow through it. These are your
+    <em>electrodes</em> (the doorways electricity goes in and out of).</p>
+    <p><strong>2. A 9V battery 🔋</strong> — this is your pump. It pushes electricity through the water.
+    One end is <strong>minus (−)</strong>, the other is <strong>plus (+)</strong>.</p>
+    <p><strong>3. A pinch of baking soda 🧂</strong> — pure water is actually rubbish at carrying electricity.
+    Stirring in baking soda makes the water conduct, so the experiment works. This is your <em>electrolyte</em>.</p>
+    <div class="note">
+      <div class="h">🔑 New words</div>
+      <strong>Electrode</strong> = the bit electricity flows through (your pencils).
+      <strong>Electrolyte</strong> = the water + baking soda that lets electricity travel.
+    </div>
+    <div class="nav">
+      <button class="btn ghost small" onclick="go(1)">← Back</button>
+      <button class="btn" onclick="go(3)">Into the lab →</button>
+    </div>
+  </div>`;
+}});
+
+/* 3 — predict */
+steps.push({ render(){
+  stageEl.innerHTML = `
+  <div class="card">
+    <p class="eyebrow">Step 3 · Make a prediction first</p>
+    <h2>Which pencil makes more gas?</h2>
+    <p>Good scientists guess <em>before</em> they look — then check if they were right. No peeking at the lab yet!</p>
+    <p>When you switch on the power, bubbles of gas will fizz off <strong>both</strong> pencils.
+    Which side do you think will make <strong>more</strong> bubbles?</p>
+    <div class="choices" id="predict">
+      <button class="choice" onclick="predict('h')"><span class="mark">−</span> The <strong style="margin-left:4px">hydrogen</strong> side</button>
+      <button class="choice" onclick="predict('o')"><span class="mark">+</span> The <strong style="margin-left:4px">oxygen</strong> side</button>
+      <button class="choice" onclick="predict('same')"><span class="mark">=</span> Exactly the <strong style="margin-left:4px">same</strong> on both</button>
+    </div>
+    <div class="feedback" id="predict-fb"></div>
+  </div>`;
+}});
+
+/* 4 — the simulation */
+steps.push({ render(){
+  stageEl.innerHTML = `
+  <div class="card">
+    <p class="eyebrow">Step 4 · Run the experiment</p>
+    <h2>Power it up ⚡</h2>
+    <p>Press <strong>Power on</strong> and watch the bubbles rise. Try the baking-soda switch too —
+    see what happens to plain water with nothing added.</p>
+    <div class="lab" id="lab"></div>
+    <div class="readout">
+      <div class="gauge h"><div class="lbl">Hydrogen</div><div class="num" id="g-h">0</div></div>
+      <div class="gauge o"><div class="lbl">Oxygen</div><div class="num" id="g-o">0</div></div>
+      <div class="gauge r"><div class="lbl">Ratio H : O</div><div class="num" id="g-r">—</div></div>
+    </div>
+    <div class="controls">
+      <button class="btn small" id="power" onclick="togglePower()">Power on ▶</button>
+      <button class="btn ghost small" onclick="resetSim()">Reset</button>
+      <label class="toggle"><input type="checkbox" id="salt" checked onchange="Sim.setSalt(this.checked)"> Baking soda added</label>
+    </div>
+    <div class="feedback show" id="sim-fb" style="margin-top:16px;">
+      Run it for a few seconds and watch the <strong>Ratio</strong> gauge settle. Notice anything? 👀
+    </div>
+    <div class="nav">
+      <button class="btn ghost small" onclick="go(3)">← Back</button>
+      <button class="btn" onclick="go(5)">I see a pattern →</button>
+    </div>
+  </div>`;
+  const lab = document.getElementById('lab');
+  Sim.reset();
+  Sim.mount(lab);
+  Sim.tick = (h,o)=>{
+    document.getElementById('g-h').textContent = h;
+    document.getElementById('g-o').textContent = o;
+    document.getElementById('g-r').textContent = o>0 ? (h/o).toFixed(1)+' : 1' : '—';
+  };
+}, leave(){ Sim.stop(); }});
+
+/* 5 — the big reveal */
+steps.push({ render(){
+  const p = state.predicted;
+  const pre = p==='h'
+    ? `Your prediction was spot on — the hydrogen side won! 🎯`
+    : p==='same'
+      ? `You predicted "the same" — turns out it's not! Here's the twist.`
+      : `You predicted the oxygen side — close, but it's actually the other way round. Here's why.`;
+  stageEl.innerHTML = `
+  <div class="card">
+    <p class="eyebrow">Step 5 · The big discovery</p>
+    <h2>Twice as much hydrogen — every time</h2>
+    <p class="big">${pre}</p>
+    <p>The hydrogen pencil makes <strong>about twice as much gas</strong> as the oxygen pencil. The ratio always settles near <strong>2 : 1</strong>.</p>
+    <div class="note">
+      <div class="h">💡 Remember that little "2"?</div>
+      Water is <strong>H<sub>2</sub>O</strong> — two hydrogens, one oxygen. When you split it back up, you get
+      <strong>twice as much hydrogen gas</strong> as oxygen gas. The maths of the molecule shows up as bubbles you can count!
+    </div>
+    <p class="muted">Scientists write it like this: <span style="font-family:'Space Mono',monospace;font-weight:700">2 H<sub>2</sub>O → 2 H<sub>2</sub> + O<sub>2</sub></span> — two waters give two hydrogens and one oxygen.</p>
+    <div class="nav">
+      <button class="btn ghost small" onclick="go(4)">← Replay lab</button>
+      <button class="btn" onclick="go(6)">Test me! →</button>
+    </div>
+  </div>`;
+}});
+
+/* 6,7,8 — quiz */
+function quizStep(q){
+  return { render(){
+    stageEl.innerHTML = `
+    <div class="card">
+      <p class="eyebrow">Quiz · Question ${q.n} of 3</p>
+      <h2>${q.q}</h2>
+      <div class="choices" id="q">
+        ${q.opts.map((o,i)=>`<button class="choice" onclick="answer(${i},${q.correct})"><span class="mark">${'ABC'[i]}</span>${o}</button>`).join('')}
+      </div>
+      <div class="feedback" id="q-fb"></div>
+    </div>`;
+    window.__qnext = q.next; window.__qwhy = q.why;
+  }};
+}
+steps.push(quizStep({n:1, q:"Why do we add baking soda to the water?", correct:1, next:7,
+  opts:["To make it taste nice","To let electricity flow through the water","To turn the water blue"],
+  why:"Pure water barely conducts electricity. Baking soda makes it an <strong>electrolyte</strong> so the current can flow."}));
+steps.push(quizStep({n:2, q:"The pencil 'lead' that carries the electricity is actually made of…", correct:2, next:8,
+  opts:["Real lead metal","Plastic","Graphite"],
+  why:"It's <strong>graphite</strong> — a form of carbon that conducts electricity and doesn't get used up."}));
+steps.push(quizStep({n:3, q:"Why do you get twice as much hydrogen as oxygen?", correct:0, next:9,
+  opts:["Because water is H₂O — two hydrogens for every one oxygen","Because hydrogen is lighter","Because the battery prefers hydrogen"],
+  why:"Exactly! Two hydrogen atoms, one oxygen atom in every water molecule → twice the hydrogen gas. 🎯"}));
+
+/* 9 — badge */
+steps.push({ render(){
+  const s = state.score;
+  const msg = s===3 ? "Flawless. You're a proper electrochemist! 🥇"
+            : s===2 ? "Brilliant work — nearly perfect! 🥈"
+            : s===1 ? "Nice start — replay the lab and try again to level up! 🥉"
+            : "Give the lab another go — you've got this! 💪";
+  stageEl.innerHTML = `
+  <div class="card center">
+    <p class="eyebrow">Badge earned</p>
+    <div class="badge">
+      <svg class="seal" viewBox="0 0 120 120">
+        <path d="M60 6 73 18 90 14 94 31 110 38 102 54 110 70 94 77 90 94 73 90 60 102 47 90 30 94 26 77 10 70 18 54 10 38 26 31 30 14 47 18Z" fill="#FFC42E" stroke="#16202E" stroke-width="3"/>
+        <circle cx="60" cy="54" r="30" fill="#fff" stroke="#16202E" stroke-width="3"/>
+        <path d="M64 38 50 60 60 60 56 78 72 54 62 54 66 38Z" fill="#FFC42E" stroke="#16202E" stroke-width="2.4" stroke-linejoin="round"/>
+      </svg>
+      <h2 style="margin-bottom:4px;">Water-Splitter Badge</h2>
+      <p class="score-line">Score: ${s} / 3</p>
+      <p>${msg}</p>
+    </div>
+    <p>Now for the best bit — doing it <strong>for real</strong> in the kitchen. 👇</p>
+    <div class="nav" style="justify-content:center;">
+      <button class="btn" onclick="go(10)">Show me the real experiments →</button>
+    </div>
+  </div>`;
+}});
+
+/* 10 — real experiments */
+steps.push({ render(){
+  stageEl.innerHTML = `
+  <div class="card">
+    <p class="eyebrow">Take it home · Real science</p>
+    <h2>Two experiments to try for real</h2>
+    <p class="muted">Grab a grown-up to help with the battery and the kettle. Read the
+    <strong style="color:var(--oxygen)">Stay safe</strong> note at the bottom first.</p>
+
+    <div class="exp one">
+      <div class="head"><span class="num">EXP 1</span> Split the water</div>
+      <div class="body">
+        <div class="kit"><strong>KIT:</strong> a glass of warm water · 1 tbsp baking soda · 2 pencils sharpened at BOTH ends · a 9V battery · (optional) 2 wires with crocodile clips</div>
+        <ol>
+          <li>Sharpen <strong>both ends</strong> of two pencils so the grey graphite shows top and bottom.</li>
+          <li>Stir 1 tablespoon of baking soda into the warm water until it dissolves. This is your electrolyte.</li>
+          <li>Stand the two pencils in the glass so the bottom tips are in the water but <strong>not touching each other</strong>.</li>
+          <li>Touch the top of one pencil to the <strong>+</strong> end of the battery, the other to the <strong>−</strong> end (clip wires on, or just hold them).</li>
+          <li><strong>Watch!</strong> Bubbles fizz off both pencils. Count along the two sides for 20 seconds.</li>
+        </ol>
+        <p><strong>What you'll see:</strong> the pencil on the <strong>−</strong> side bubbles roughly <strong>twice as fast</strong>. That faster side is making <span class="pill h">hydrogen</span>; the slower side makes <span class="pill o">oxygen</span> — just like the gauge in the game.</p>
+      </div>
+    </div>
+
+    <div class="exp two">
+      <div class="head"><span class="num">EXP 2</span> Make the water change colour</div>
+      <div class="body">
+        <div class="kit"><strong>KIT:</strong> same as above · PLUS red-cabbage indicator (ask a grown-up to boil a few chopped red-cabbage leaves and keep the purple water) — or a strip of pH / universal paper</div>
+        <ol>
+          <li>Do everything from Experiment 1, but first add a good splash of the purple cabbage water to your glass.</li>
+          <li>Switch on the power and watch closely <strong>right next to each pencil</strong>.</li>
+          <li>The colour near one pencil drifts towards <strong>pink/red</strong>, and near the other towards <strong>green/blue</strong>.</li>
+        </ol>
+        <p><strong>What's happening:</strong> as the water splits, it turns slightly <strong>acidic</strong> at one pencil and slightly <strong>alkaline</strong> at the other. Red-cabbage juice is a natural <em>indicator</em> — it changes colour to reveal the hidden chemistry. Pink = acid, green/blue = alkaline.</p>
+      </div>
+    </div>
+
+    <div class="safety">
+      <strong style="color:var(--oxygen)">⚠️ Stay safe</strong><br>
+      • Use a <strong>9V battery only</strong> — never, ever mains plugs or sockets.<br>
+      • Use <strong>baking soda</strong>, not table salt. (Salt can make a tiny bit of chlorine gas, which is smelly.)<br>
+      • Hydrogen is flammable, so keep your experiment <strong>away from candles or flames</strong>.<br>
+      • The battery may feel warm — that's normal. Disconnect it when you finish and wash your hands.
+    </div>
+
+    <div class="note">
+      <div class="h">🔬 Lab notebook challenge</div>
+      Write down your <strong>prediction</strong>, then your <strong>result</strong>. Did the hydrogen side really win? Was the ratio close to 2 to 1? Draw what you saw — that's exactly how real scientists work.
+    </div>
+
+    <div class="nav">
+      <button class="btn ghost small" onclick="go(0)">↺ Play again</button>
+      <button class="btn" onclick="window.print()">🖨 Print the experiments</button>
+    </div>
+  </div>`;
+}});
+
+/* ============================================================
+   ENGINE
+   ============================================================ */
+function renderDots(){
+  // group: title(0) learn(1-2) lab(3-5) quiz(6-8) finish(9-10)
+  const groups = 5;
+  const map = [0,1,1,2,2,2,3,3,3,4,4];
+  dotsEl.innerHTML='';
+  for(let i=0;i<groups;i++){
+    const d=document.createElement('div'); d.className='dot';
+    const cur = map[state.step];
+    if(i<cur) d.classList.add('done');
+    if(i===cur) d.classList.add('now');
+    dotsEl.appendChild(d);
+  }
+}
+function go(i){
+  const prev = steps[state.step];
+  if(prev && prev.leave) prev.leave();
+  state.step=i;
+  steps[i].render();
+  renderDots();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* predict handler */
+function predict(p){
+  state.predicted=p;
+  document.querySelectorAll('#predict .choice').forEach(b=>b.disabled=true);
+  const fb=document.getElementById('predict-fb');
+  fb.classList.add('show');
+  fb.innerHTML = `Locked in! 🔒 Now let's switch on the power and find out if you're right…
+    <div style="margin-top:12px"><button class="btn small" onclick="go(4)">Run the lab →</button></div>`;
+}
+
+/* sim controls */
+let powered=false;
+function togglePower(){
+  powered=!powered;
+  const b=document.getElementById('power');
+  if(powered){ Sim.start(); b.textContent='Power off ⏸'; b.style.background='var(--good)'; }
+  else { Sim.stop(); b.textContent='Power on ▶'; b.style.background='var(--spark)'; }
+}
+function resetSim(){ Sim.reset(); }
+
+/* quiz handler */
+function answer(picked, correct){
+  const btns=document.querySelectorAll('#q .choice');
+  btns.forEach((b,i)=>{
+    b.disabled=true;
+    if(i===correct) b.classList.add('correct');
+    if(i===picked && picked!==correct) b.classList.add('wrong');
+  });
+  if(picked===correct) state.score++;
+  const fb=document.getElementById('q-fb');
+  fb.classList.add('show');
+  fb.innerHTML = `${picked===correct?'✅ Correct! ':'Not quite — '} ${window.__qwhy}
+    <div style="margin-top:12px"><button class="btn small" onclick="go(${window.__qnext})">Next →</button></div>`;
+}
+
+/* boot */
+go(0);
+</script>
+</body>
+</html>
