@@ -1,0 +1,753 @@
+<!-- VERBA - a Latin vocabulary game with tiered hooks and spaced repetition -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VERBA - Latin Vocabulary</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#2b1b10;--ink-soft:#5a4632;--parch:#f3e6cc;--parch-deep:#e7d4ad;
+    --gold:#b8860b;--gold-bright:#d9a528;--pompeii:#9e3b29;--pompeii-deep:#7a2a1c;
+    --green:#4e6b3a;--green-deep:#3a5129;--line:rgba(43,27,16,.18);--shadow:rgba(43,27,16,.35);
+    --purple:#5b4a7a;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;height:100%}
+  body{font-family:"Cormorant Garamond",Georgia,serif;color:var(--ink);
+    background:radial-gradient(120% 80% at 50% -10%, #fbf2dd 0%, var(--parch) 45%, var(--parch-deep) 100%);
+    background-attachment:fixed;min-height:100%;display:flex;justify-content:center;padding:18px}
+  body::before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.5;mix-blend-mode:multiply;
+    background-image:radial-gradient(circle at 20% 30%, rgba(120,80,30,.06) 0 2px, transparent 3px),
+                     radial-gradient(circle at 70% 60%, rgba(120,80,30,.05) 0 2px, transparent 3px),
+                     radial-gradient(circle at 45% 85%, rgba(120,80,30,.05) 0 2px, transparent 3px);
+    background-size:140px 140px,180px 180px,120px 120px}
+  .stage{width:100%;max-width:680px;z-index:1}
+  .scroll{background:linear-gradient(180deg,#fbf3df,#f0e2c2);border:1px solid var(--line);border-radius:14px;
+    box-shadow:0 18px 40px -18px var(--shadow), inset 0 0 0 1px rgba(255,255,255,.4);padding:26px 26px 30px;position:relative}
+  .scroll::before,.scroll::after{content:"";position:absolute;left:14px;right:14px;height:9px;
+    background:repeating-linear-gradient(90deg,var(--gold) 0 6px,transparent 6px 14px);opacity:.5}
+  .scroll::before{top:11px}.scroll::after{bottom:11px}
+  h1{font-family:"Cinzel",serif;font-weight:900;letter-spacing:.16em;text-align:center;margin:.4em 0 .05em;
+     color:var(--pompeii-deep);font-size:clamp(30px,7vw,48px);text-shadow:0 1px 0 rgba(255,255,255,.5)}
+  .tag{font-family:"Cinzel",serif;letter-spacing:.34em;text-transform:uppercase;text-align:center;color:var(--gold);font-size:11px;margin-bottom:16px}
+  .lede{text-align:center;color:var(--ink-soft);font-size:18px;max-width:48ch;margin:0 auto 18px;line-height:1.45}
+  .panel-title{font-family:"Cinzel",serif;letter-spacing:.12em;text-transform:uppercase;font-size:12px;color:var(--ink-soft);text-align:center;margin:16px 0 9px}
+  .chips{display:flex;flex-wrap:wrap;gap:9px;justify-content:center;margin-bottom:4px}
+  button{font-family:inherit;cursor:pointer;border:none;color:inherit}
+  .chip{background:#f1e2bf;border:1.5px solid var(--line);border-radius:999px;padding:8px 15px;font-size:15px;font-weight:600;color:var(--ink-soft);transition:all .12s}
+  .chip[aria-pressed="true"]{background:var(--green);border-color:var(--green-deep);color:#f7f0dc;box-shadow:0 6px 14px -8px var(--shadow)}
+  .pickhead{font-family:"Cinzel",serif;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);text-align:center;margin:14px 0 8px}
+  .play{display:block;width:100%;margin:22px auto 4px;max-width:320px;font-family:"Cinzel",serif;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+    font-size:16px;color:#fbf3df;padding:15px;border-radius:11px;background:linear-gradient(180deg,var(--pompeii),var(--pompeii-deep));
+    box-shadow:0 12px 22px -12px var(--pompeii-deep);transition:transform .12s, filter .12s}
+  .play:hover{transform:translateY(-2px);filter:brightness(1.07)}
+  .play:disabled{opacity:.5;cursor:default;transform:none}
+  .hud{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:2px 2px 14px;flex-wrap:wrap}
+  .tierpill{font-family:"Cinzel",serif;font-size:11px;letter-spacing:.1em;text-transform:uppercase;padding:5px 12px;border-radius:999px;color:#fbf3df;background:var(--purple)}
+  .tierpill.content{background:var(--purple)}.tierpill.number{background:var(--gold)}.tierpill.prefix{background:var(--green)}.tierpill.function{background:var(--ink-soft)}
+  .hud .right{display:flex;align-items:center;gap:14px}
+  .hud .stat{font-family:"Cinzel",serif;font-size:13px;color:var(--ink-soft)}.hud .stat b{color:var(--pompeii);font-size:16px}
+  .dirbtn{font-family:"Cinzel",serif;font-size:11px;letter-spacing:.06em;background:#f1e2bf;border:1.5px solid var(--line);border-radius:999px;padding:6px 12px;color:var(--ink-soft)}
+  .progress{height:8px;background:#e3d3ac;border-radius:99px;overflow:hidden;margin:0 2px 16px;border:1px solid var(--line)}
+  .progress > i{display:block;height:100%;background:linear-gradient(90deg,var(--gold-bright),var(--gold));width:0;transition:width .35s}
+  .card{background:#fff8e9;border:1.5px solid var(--line);border-radius:14px;padding:24px 20px;text-align:center;box-shadow:inset 0 2px 8px -4px var(--shadow);min-height:120px;display:flex;flex-direction:column;justify-content:center}
+  .card .front{font-family:"Cinzel",serif;font-weight:700;font-size:clamp(28px,7vw,40px);color:var(--ink);line-height:1.1}
+  .card .frontsub{color:var(--ink-soft);font-size:17px;margin-top:6px;font-style:italic}
+  .card .cue{font-family:"Cinzel",serif;letter-spacing:.1em;text-transform:uppercase;font-size:10px;color:var(--gold);margin-bottom:10px}
+  .reveal{display:block;margin:16px auto 0;max-width:260px;width:100%;font-family:"Cinzel",serif;font-weight:700;letter-spacing:.1em;text-transform:uppercase;font-size:14px;
+    color:#fbf3df;padding:12px;border-radius:10px;background:linear-gradient(180deg,var(--gold-bright),var(--gold));box-shadow:0 10px 20px -12px var(--gold);transition:transform .12s, filter .12s}
+  .reveal:hover{transform:translateY(-2px);filter:brightness(1.05)}
+  .answer{margin-top:16px;text-align:left}
+  .answer .mean{font-family:"Cinzel",serif;font-weight:700;font-size:22px;color:var(--pompeii-deep);text-align:center;margin-bottom:4px}
+  .answer .dict{text-align:center;color:var(--ink-soft);font-style:italic;font-size:16px;margin-bottom:14px}
+  .box{border-radius:11px;padding:13px 15px;margin-bottom:11px;font-size:17px;line-height:1.45}
+  .box .lbl{font-family:"Cinzel",serif;letter-spacing:.1em;text-transform:uppercase;font-size:10px;display:block;margin-bottom:5px}
+  .hookbox{background:#efe6cf;border:1.5px solid var(--gold)}.hookbox .lbl{color:var(--gold)}.hookbox b{color:var(--pompeii)}
+  .usebox{background:#e7eede;border:1.5px solid var(--green)}.usebox .lbl{color:var(--green-deep)}.usebox b{color:var(--green-deep)}
+  .derivrow{display:flex;flex-wrap:wrap;gap:7px;align-items:center;margin-bottom:6px}
+  .derivrow .lbl{font-family:"Cinzel",serif;letter-spacing:.08em;text-transform:uppercase;font-size:10px;color:var(--ink-soft);margin-right:2px}
+  .derivchip{background:#f1e2bf;border:1px solid var(--line);border-radius:999px;padding:4px 11px;font-size:14px;color:var(--ink)}
+  .grade{display:flex;gap:11px;margin-top:16px}
+  .grade button{flex:1;font-family:"Cinzel",serif;font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-size:14px;color:#fbf3df;padding:14px;border-radius:11px;transition:transform .12s, filter .12s}
+  .grade button:hover{transform:translateY(-2px);filter:brightness(1.07)}
+  .missed{background:linear-gradient(180deg,var(--pompeii),var(--pompeii-deep));box-shadow:0 10px 20px -12px var(--pompeii-deep)}
+  .gotit{background:linear-gradient(180deg,var(--green),var(--green-deep));box-shadow:0 10px 20px -12px var(--green-deep)}
+  .laurel{text-align:center;font-family:"Cinzel",serif}
+  .laurel .grade2{font-size:clamp(26px,7vw,40px);font-weight:900;color:var(--pompeii-deep);margin:.3em 0}
+  .laurel .blurb{font-family:"Cormorant Garamond",serif;font-style:italic;font-size:18px;color:var(--ink-soft);max-width:42ch;margin:10px auto 4px}
+  .foot{text-align:center;color:var(--ink-soft);font-size:13px;margin-top:18px}
+  .hidden{display:none}
+</style>
+
+<div class="stage"><div class="scroll">
+
+  <section id="start">
+    <h1>VERBA</h1>
+    <div class="tag">Vocabula - the word hoard</div>
+    <p class="lede">Pick what she's revising, then go. Every word carries a memory hook, and spaced repetition keeps the sticky ones coming back.</p>
+    <div class="panel-title">What to revise</div>
+    <div id="picker"></div>
+    <div class="panel-title">Which way round?</div>
+    <div class="chips" id="dirChips">
+      <button class="chip" data-dir="LE" aria-pressed="true">See Latin, recall English</button>
+      <button class="chip" data-dir="EL" aria-pressed="false">See English, recall Latin</button>
+    </div>
+    <button class="play" id="playBtn">Begin &rarr;</button>
+    <div class="foot" id="startfoot"></div>
+  </section>
+
+  <section id="play" class="hidden">
+    <div class="hud">
+      <span class="tierpill" id="tierPill">tier</span>
+      <div class="right">
+        <span class="stat"><b id="togo">0</b> to go</span>
+        <button class="dirbtn" id="dirToggle">&#8646; flip</button>
+      </div>
+    </div>
+    <div class="progress"><i id="bar"></i></div>
+    <div class="card">
+      <div class="cue" id="cue">Recall the meaning</div>
+      <div class="front" id="front"></div>
+      <div class="frontsub" id="frontsub"></div>
+      <button class="reveal" id="revealBtn">Reveal &amp; check</button>
+      <div class="answer hidden" id="answer"></div>
+    </div>
+    <div class="grade hidden" id="gradeRow">
+      <button class="missed" id="missedBtn">Missed it</button>
+      <button class="gotit" id="gotitBtn">Got it</button>
+    </div>
+    <div class="foot"><a href="#" id="quitLink" style="color:var(--ink-soft)">&larr; back to chapters</a></div>
+  </section>
+
+  <section id="done" class="hidden">
+    <div class="tag">Session complete</div>
+    <div class="laurel"><div class="grade2" id="doneGrade"></div><div class="blurb" id="doneBlurb"></div></div>
+    <button class="play" id="againBtn">Back to chapters &rarr;</button>
+  </section>
+
+</div>
+<div class="foot">LUDUS II &middot; <b style="color:var(--pompeii)">VERBA</b> &middot; Level 3 loaded; more chapters landing in batches</div></div>
+
+<script>
+(function(){
+  const DECK = [
+    {id:"triginta",tier:"number",pos:"numeral",level:"L3",set:"32",setName:"L3 \u00b7 Ch 1",latin:"triginta",parts:"",en:"thirty",hook:"The <b>-ginta</b> ending is Latin's '-ty'. <b>tri</b>- = three, so triginta = thirty.",deriv:["tri-","triangle"]},
+    {id:"quadraginta",tier:"number",pos:"numeral",level:"L3",set:"32",setName:"L3 \u00b7 Ch 1",latin:"quadraginta",parts:"",en:"forty",hook:"<b>quadr</b>- = four \u2192 forty. Quad bike, quadrangle.",deriv:["quad","quadrangle"]},
+    {id:"quinquaginta",tier:"number",pos:"numeral",level:"L3",set:"32",setName:"L3 \u00b7 Ch 1",latin:"quinquaginta",parts:"",en:"fifty",hook:"<b>quinque</b> (5) \u2192 fifty. A quintet is five.",deriv:["quintet"]},
+    {id:"sexaginta",tier:"number",pos:"numeral",level:"L3",set:"32",setName:"L3 \u00b7 Ch 1",latin:"sexaginta",parts:"",en:"sixty",hook:"<b>sex</b> (6) \u2192 sixty. A sextet, a sextant.",deriv:["sextet"]},
+    {id:"septuaginta",tier:"number",pos:"numeral",level:"L3",set:"32",setName:"L3 \u00b7 Ch 1",latin:"septuaginta",parts:"",en:"seventy",hook:"<b>septem</b> (7) \u2192 seventy. The <b>Septuagint</b>: 70 translators.",deriv:["Septuagint"]},
+    {id:"octoginta",tier:"number",pos:"numeral",level:"L3",set:"32",setName:"L3 \u00b7 Ch 1",latin:"octoginta",parts:"",en:"eighty",hook:"<b>octo</b> (8) \u2192 eighty. Octopus, octave.",deriv:["octo-","octave"]},
+    {id:"nonaginta",tier:"number",pos:"numeral",level:"L3",set:"32",setName:"L3 \u00b7 Ch 1",latin:"nonaginta",parts:"",en:"ninety",hook:"<b>novem</b> (9) \u2192 ninety. November was month nine.",deriv:["non-"]},
+    {id:"centum",tier:"number",pos:"numeral",level:"L3",set:"32",setName:"L3 \u00b7 Ch 1",latin:"centum",parts:"",en:"a hundred",hook:"A <b>cent</b>ury is 100 years; <b>per cent</b> = per hundred; a <b>centurion</b> led 100 men.",deriv:["century","per cent","centurion"]},
+    {id:"mille",tier:"number",pos:"numeral",level:"L3",set:"32",setName:"L3 \u00b7 Ch 1",latin:"mille",parts:"",en:"a thousand",hook:"A <b>millennium</b> is 1,000 years; a Roman <b>mile</b> was 1,000 paces.",deriv:["millennium","mile","million"]},
+    {id:"cogo",tier:"content",pos:"verb",level:"L3",set:"32",setName:"L3 \u00b7 Ch 1",latin:"cogo, cogere, coegi, coactum",parts:"(3)",en:"I compel, force",hook:"A <b>cogent</b> argument forces you to agree \u2014 cogo, I compel.",deriv:["cogent","coact"]},
+    {id:"interficio",tier:"content",pos:"verb",level:"L3",set:"32",setName:"L3 \u00b7 Ch 1",latin:"interficio, -ere, interfeci, interfectum",parts:"(M)",en:"I kill",hook:"<b>inter-</b> + <b>-fic-</b> (do, make): to 'do someone in' \u2014 to kill.",deriv:[]},
+    {id:"pello",tier:"content",pos:"verb",level:"L3",set:"32",setName:"L3 \u00b7 Ch 1",latin:"pello, -ere, pepuli, pulsum",parts:"(3)",en:"I drive",hook:"<b>Propel, expel, compel, repel</b> \u2014 all driving something. pello = I drive, push.",deriv:["propel","expel","repel"]},
+
+    {id:"annus",tier:"content",pos:"noun",level:"L3",set:"33",setName:"L3 \u00b7 Ch 2",latin:"annus, -i",parts:"(m)",en:"year",hook:"An <b>annual</b> event is once a year; <b>anniversary</b>; per <b>annum</b>.",deriv:["annual","anniversary"]},
+    {id:"custos",tier:"content",pos:"noun",level:"L3",set:"33",setName:"L3 \u00b7 Ch 2",latin:"custos, custodis",parts:"(m)",en:"guard",hook:"A custos keeps prisoners in <b>custody</b> \u2014 the guard.",deriv:["custody","custodian"]},
+    {id:"dies",tier:"content",pos:"noun",level:"L3",set:"33",setName:"L3 \u00b7 Ch 2",latin:"dies, diei",parts:"(m)",en:"day",hook:"A <b>diary</b> logs the day; <b>diurnal</b> = by day; <b>carpe diem</b>, seize the day.",deriv:["diary","diurnal"]},
+    {id:"fides",tier:"content",pos:"noun",level:"L3",set:"33",setName:"L3 \u00b7 Ch 2",latin:"fides, fidei",parts:"(f)",en:"trust, faith",hook:"<b>Fidelity</b> is faithfulness; '<b>bona fide</b>' = in good faith; <b>Fido</b> the loyal dog.",deriv:["fidelity","bona fide"]},
+    {id:"hora",tier:"content",pos:"noun",level:"L3",set:"33",setName:"L3 \u00b7 Ch 2",latin:"hora, horae",parts:"(f)",en:"hour",hook:"<b>hora</b> \u2192 hour; a <b>horoscope</b> reads the hours.",deriv:["hour","horoscope"]},
+    {id:"res",tier:"content",pos:"noun",level:"L3",set:"33",setName:"L3 \u00b7 Ch 2",latin:"res, rei",parts:"(f)",en:"thing, matter, affair",hook:"'<b>Re:</b>' on an email = regarding the matter; a <b>republic</b> = res publica, 'the public thing'.",deriv:["re:","republic"]},
+    {id:"spes",tier:"content",pos:"noun",level:"L3",set:"33",setName:"L3 \u00b7 Ch 2",latin:"spes, spei",parts:"(f)",en:"hope",hook:"To de<b>spair</b> is to lose all spes (hope).",deriv:["despair"]},
+    {id:"tempestas",tier:"content",pos:"noun",level:"L3",set:"33",setName:"L3 \u00b7 Ch 2",latin:"tempestas, -atis",parts:"(f)",en:"storm, weather",hook:"A <b>tempest</b> is a violent storm; <b>tempestuous</b>.",deriv:["tempest","tempestuous"]},
+    {id:"custodio",tier:"content",pos:"verb",level:"L3",set:"33",setName:"L3 \u00b7 Ch 2",latin:"custodio, -ire",parts:"(4)",en:"I guard",hook:"Same root as custos: to keep in <b>custody</b>, to guard.",deriv:["custody"]},
+    {id:"persuadeo",tier:"content",pos:"verb",level:"L3",set:"33",setName:"L3 \u00b7 Ch 2",latin:"persuadeo, -ere",parts:"(2) + dat",en:"I persuade",hook:"To <b>persuade</b>: per- (thoroughly) + suadeo (urge) \u2014 urge thoroughly.",deriv:["persuade","persuasion"]},
+    {id:"peto",tier:"content",pos:"verb",level:"L3",set:"33",setName:"L3 \u00b7 Ch 2",latin:"peto, petere, petivi, petitum",parts:"(3)",en:"I seek, make for, ask",hook:"A <b>petition</b> asks for something; <b>appetite</b> seeks food; <b>compete</b>.",deriv:["petition","appetite"]},
+
+    {id:"animal",tier:"content",pos:"noun",level:"L3",set:"34",setName:"L3 \u00b7 Ch 3",latin:"animal, animalis",parts:"(n)",en:"animal",hook:"<b>animal</b> \u2014 same word; from <b>anima</b> (breath, soul): a breathing thing. <b>animate</b>.",deriv:["animal","animate"]},
+    {id:"labor",tier:"content",pos:"noun",level:"L3",set:"34",setName:"L3 \u00b7 Ch 3",latin:"labor, laboris",parts:"(m)",en:"work, task, labour",hook:"<b>Labour</b> = hard work; a <b>laborious</b> task; <b>elaborate</b>.",deriv:["labour","laborious"]},
+    {id:"nox",tier:"content",pos:"noun",level:"L3",set:"34",setName:"L3 \u00b7 Ch 3",latin:"nox, noctis",parts:"(f)",en:"night",hook:"<b>Nocturnal</b> creatures prowl by nox \u2014 at night. <b>Equinox</b>.",deriv:["nocturnal","equinox"]},
+    {id:"opus",tier:"content",pos:"noun",level:"L3",set:"34",setName:"L3 \u00b7 Ch 3",latin:"opus, operis",parts:"(n)",en:"work",hook:"An <b>opus</b> is a great work; an <b>operation</b>; <b>cooperate</b> = work together.",deriv:["opus","operation","cooperate"]},
+    {id:"princeps",tier:"content",pos:"noun",level:"L3",set:"34",setName:"L3 \u00b7 Ch 3",latin:"princeps, principis",parts:"(c)",en:"chief, leader",hook:"The <b>prince</b> is the chief; the <b>principal</b> is the chief one.",deriv:["prince","principal"]},
+    {id:"celer",tier:"content",pos:"adjective",level:"L3",set:"34",setName:"L3 \u00b7 Ch 3",latin:"celer, celeris, celere",parts:"",en:"swift, quick",hook:"<b>Accelerate</b> = speed up; <b>celerity</b> = swiftness.",deriv:["accelerate","celerity"]},
+    {id:"relinquo",tier:"content",pos:"verb",level:"L3",set:"34",setName:"L3 \u00b7 Ch 3",latin:"relinquo, -ere, reliqui, relictum",parts:"(3)",en:"I leave, abandon",hook:"To <b>relinquish</b> is to give up/leave; a <b>relic</b> is left behind; <b>derelict</b>.",deriv:["relinquish","relic","derelict"]},
+    {id:"dum",tier:"function",pos:"conjunction",level:"L3",set:"34",setName:"L3 \u00b7 Ch 3",latin:"dum",parts:"",en:"while",usage:"dum cantat, laborat \u2014 WHILE he sings, he works",deriv:[]},
+    {id:"nec",tier:"function",pos:"conjunction",level:"L3",set:"34",setName:"L3 \u00b7 Ch 3",latin:"nec / neque",parts:"",en:"and not, nor",usage:"nec puer nec puella \u2014 NEITHER the boy NOR the girl",deriv:[]},
+
+    {id:"adeo",tier:"content",pos:"verb",level:"L3",set:"35",setName:"L3 \u00b7 Ch 4",latin:"adeo, adire, adii, aditum",parts:"(irr)",en:"I approach",hook:"<b>ad</b>- (to) + <b>eo</b> (I go) = I go towards, I approach.",deriv:[]},
+    {id:"contendo",tier:"content",pos:"verb",level:"L3",set:"35",setName:"L3 \u00b7 Ch 4",latin:"contendo, -ere, contendi, contentum",parts:"(3)",en:"I hurry, march, strive",hook:"To <b>contend</b> is to strive and struggle; <b>contention</b>.",deriv:["contend","contention"]},
+    {id:"convenio",tier:"content",pos:"verb",level:"L3",set:"35",setName:"L3 \u00b7 Ch 4",latin:"convenio, -ire, conveni, conventum",parts:"(4)",en:"I meet, come together",hook:"To <b>convene</b> is to come together; a <b>convention</b>, a <b>convent</b>.",deriv:["convene","convention"]},
+    {id:"gens",tier:"content",pos:"noun",level:"L3",set:"35",setName:"L3 \u00b7 Ch 4",latin:"gens, gentis",parts:"(f)",en:"people, race, tribe",hook:"A <b>gentile</b> is one of the other peoples; <b>genealogy</b>, <b>generation</b>.",deriv:["gentile","genealogy"]},
+    {id:"somnus",tier:"content",pos:"noun",level:"L3",set:"35",setName:"L3 \u00b7 Ch 4",latin:"somnus, -i",parts:"(m)",en:"sleep",hook:"<b>Insomnia</b> is no sleep; <b>somnolent</b> = sleepy; a <b>somnambulist</b> sleepwalks.",deriv:["insomnia","somnolent"]},
+    {id:"telum",tier:"content",pos:"noun",level:"L3",set:"35",setName:"L3 \u00b7 Ch 4",latin:"telum, -i",parts:"(n)",en:"spear, missile, weapon",hook:"Think <b>tele</b>- (far): a hurled telum flies far \u2014 a spear or missile.",deriv:[]},
+    {id:"interea",tier:"function",pos:"adverb",level:"L3",set:"35",setName:"L3 \u00b7 Ch 4",latin:"interea",parts:"",en:"meanwhile",usage:"interea Caesar manebat \u2014 MEANWHILE Caesar waited",deriv:[]},
+    {id:"lente",tier:"content",pos:"adverb",level:"L3",set:"35",setName:"L3 \u00b7 Ch 4",latin:"lente",parts:"",en:"slowly",hook:"<b>Lento</b> in music means slowly \u2014 a slow tempo.",deriv:["lento"]},
+    {id:"paene",tier:"content",pos:"adverb",level:"L3",set:"35",setName:"L3 \u00b7 Ch 4",latin:"paene",parts:"",en:"almost",hook:"A <b>peninsula</b> is paene + insula \u2014 'almost an island'.",deriv:["peninsula"]},
+    {id:"qui",tier:"function",pos:"pronoun",level:"L3",set:"35",setName:"L3 \u00b7 Ch 4",latin:"qui, quae, quod",parts:"",en:"who, which",usage:"vir qui venit \u2014 the man WHO comes (relative pronoun; learn the table too)",deriv:[]},
+
+    {id:"alius",tier:"content",pos:"adjective",level:"L3",set:"36",setName:"L3 \u00b7 Ch 5",latin:"alius, alia, aliud",parts:"",en:"other, another",hook:"An <b>alias</b> is another name; an <b>alien</b> is from another place.",deriv:["alias","alien"]},
+    {id:"idem",tier:"content",pos:"pronoun",level:"L3",set:"36",setName:"L3 \u00b7 Ch 5",latin:"idem, eadem, idem",parts:"",en:"the same",hook:"<b>Identical</b> = the same; '<b>idem</b>' in footnotes means 'the same source'.",deriv:["identical","idem"]},
+    {id:"ipse",tier:"content",pos:"pronoun",level:"L3",set:"36",setName:"L3 \u00b7 Ch 5",latin:"ipse, ipsa, ipsum",parts:"",en:"-self, himself",hook:"'<b>ipso facto</b>' = by the fact itself; 'ipse dixit' = he himself said it.",deriv:["ipso facto"]},
+    {id:"fero",tier:"content",pos:"verb",level:"L3",set:"36",setName:"L3 \u00b7 Ch 5",latin:"fero, ferre, tuli, latum",parts:"(irr)",en:"I carry, bear, bring",hook:"<b>Transfer</b> = carry across; <b>fertile</b> land bears crops; <b>refer</b>. (Odd parts: tuli, latum.)",deriv:["transfer","fertile","refer"]},
+    {id:"iuvo",tier:"content",pos:"verb",level:"L3",set:"36",setName:"L3 \u00b7 Ch 5",latin:"iuvo, iuvare, iuvi, iutum",parts:"",en:"I help",hook:"An <b>adjutant</b> helps an officer; an <b>adjuvant</b> aids a vaccine.",deriv:["adjutant","adjuvant"]},
+
+    {id:"praemium",tier:"content",pos:"noun",level:"L3",set:"37",setName:"L3 \u00b7 Ch 6\u20137",latin:"praemium, -i",parts:"(n)",en:"reward, prize",hook:"A <b>premium</b> is a reward or bonus \u2014 the prize.",deriv:["premium"]},
+    {id:"superbus",tier:"content",pos:"adjective",level:"L3",set:"37",setName:"L3 \u00b7 Ch 6\u20137",latin:"superbus, -a, -um",parts:"",en:"proud",hook:"<b>Superb</b> comes from it; Tarquin the Proud was Tarquinius <b>Superbus</b>.",deriv:["superb"]},
+    {id:"totus",tier:"content",pos:"adjective",level:"L3",set:"37",setName:"L3 \u00b7 Ch 6\u20137",latin:"totus, -a, -um",parts:"",en:"whole, all",hook:"The <b>total</b> is the whole; '<b>in toto</b>' = entirely; totality.",deriv:["total","in toto"]},
+    {id:"nolo",tier:"content",pos:"verb",level:"L3",set:"37",setName:"L3 \u00b7 Ch 6\u20137",latin:"nolo, nolle, nolui",parts:"(irr)",en:"I am unwilling, do not want",hook:"<b>non</b> + <b>volo</b> = I do NOT want. 'nolo contendere' = I do not wish to contest.",deriv:["nolo contendere"]},
+    {id:"volo",tier:"content",pos:"verb",level:"L3",set:"37",setName:"L3 \u00b7 Ch 6\u20137",latin:"volo, velle, volui",parts:"(irr)",en:"I want, wish, am willing",hook:"<b>Voluntary</b> / <b>volition</b> = of your own will; <b>benevolent</b> = wishing well.",deriv:["voluntary","volition","benevolent"]},
+    {id:"impero",tier:"content",pos:"verb",level:"L3",set:"37",setName:"L3 \u00b7 Ch 6\u20137",latin:"impero, -are",parts:"(1) + dat",en:"I order, command",hook:"An <b>emperor</b> (imperator) gives orders; an <b>imperative</b> is a command.",deriv:["emperor","imperative"]},
+    {id:"aut",tier:"function",pos:"conjunction",level:"L3",set:"37",setName:"L3 \u00b7 Ch 6\u20137",latin:"aut",parts:"",en:"or",usage:"aut Caesar aut nihil \u2014 EITHER Caesar OR nothing",deriv:[]},
+    {id:"ne",tier:"function",pos:"conjunction",level:"L3",set:"37",setName:"L3 \u00b7 Ch 6\u20137",latin:"ne",parts:"",en:"lest, in order that... not",usage:"fugit ne capiatur \u2014 he flees LEST he be caught",deriv:[]},
+    {id:"ut",tier:"function",pos:"conjunction",level:"L3",set:"37",setName:"L3 \u00b7 Ch 6\u20137",latin:"ut",parts:"(+ subjunctive)",en:"to, in order to",usage:"venit ut pugnet \u2014 he comes IN ORDER TO fight",deriv:[]},
+
+    {id:"clamor",tier:"content",pos:"noun",level:"L2",set:"22",setName:"L2 \u00b7 Ch 1",latin:"clamor, clamoris",parts:"(m)",en:"shout",hook:"To <b>clamour</b> is to shout; a <b>clamorous</b> crowd; <b>proclaim</b>.",deriv:["clamour","proclaim"]},
+    {id:"comes",tier:"content",pos:"noun",level:"L2",set:"22",setName:"L2 \u00b7 Ch 1",latin:"comes, comitis",parts:"(c)",en:"companion",hook:"A <b>concomitant</b> thing travels alongside another; a comes is a companion.",deriv:["concomitant"]},
+    {id:"coniunx",tier:"content",pos:"noun",level:"L2",set:"22",setName:"L2 \u00b7 Ch 1",latin:"coniunx, coniugis",parts:"(c)",en:"husband, wife, spouse",hook:"<b>Conjugal</b> means 'of marriage'; to <b>conjugate</b> is to join together \u2014 a spouse is joined to you.",deriv:["conjugal","conjugate"]},
+    {id:"corpus",tier:"content",pos:"noun",level:"L2",set:"22",setName:"L2 \u00b7 Ch 1",latin:"corpus, corporis",parts:"(n)",en:"body",hook:"A <b>corpse</b> is a dead body; <b>corporal</b>, <b>corporation</b> (a body of people).",deriv:["corpse","corporation"]},
+    {id:"dux",tier:"content",pos:"noun",level:"L2",set:"22",setName:"L2 \u00b7 Ch 1",latin:"dux, ducis",parts:"(m)",en:"leader, guide",hook:"A <b>duke</b> leads; <b>conduct</b>, Il <b>Duce</b>. dux = leader.",deriv:["duke","conduct"]},
+    {id:"flumen",tier:"content",pos:"noun",level:"L2",set:"22",setName:"L2 \u00b7 Ch 1",latin:"flumen, fluminis",parts:"(n)",en:"river",hook:"A <b>flume</b> flows; <b>fluvial</b>, <b>fluent</b>. A river flows.",deriv:["flume","fluent"]},
+    {id:"homo",tier:"content",pos:"noun",level:"L2",set:"22",setName:"L2 \u00b7 Ch 1",latin:"homo, hominis",parts:"(c)",en:"man, human being",hook:"<b>Homo sapiens</b>; <b>homicide</b> = killing a person; <b>human</b>.",deriv:["homo sapiens","homicide"]},
+    {id:"iter",tier:"content",pos:"noun",level:"L2",set:"22",setName:"L2 \u00b7 Ch 1",latin:"iter, itineris",parts:"(n)",en:"journey, march",hook:"An <b>itinerary</b> plans a journey; an <b>itinerant</b> traveller.",deriv:["itinerary","itinerant"]},
+    {id:"lux",tier:"content",pos:"noun",level:"L2",set:"22",setName:"L2 \u00b7 Ch 1",latin:"lux, lucis",parts:"(f)",en:"light",hook:"<b>Lucid</b>, <b>translucent</b>, <b>Lucifer</b> (light-bringer). lux = light.",deriv:["lucid","translucent"]},
+    {id:"miles",tier:"content",pos:"noun",level:"L2",set:"22",setName:"L2 \u00b7 Ch 1",latin:"miles, militis",parts:"(m)",en:"soldier",hook:"The <b>military</b>, a <b>militia</b> \u2014 every miles is a soldier.",deriv:["military","militia"]},
+    {id:"mulier",tier:"content",pos:"noun",level:"L2",set:"22",setName:"L2 \u00b7 Ch 1",latin:"mulier, mulieris",parts:"(f)",en:"woman",hook:"Say 'MULL-ee-er': picture a woman <b>mulling</b> something over. mulier = woman.",deriv:[]},
+    {id:"nomen",tier:"content",pos:"noun",level:"L2",set:"22",setName:"L2 \u00b7 Ch 1",latin:"nomen, nominis",parts:"(n)",en:"name",hook:"A <b>nominee</b> is named; <b>nominate</b>, <b>noun</b>. nomen = name.",deriv:["nominate","noun"]},
+    {id:"parens",tier:"content",pos:"noun",level:"L2",set:"22",setName:"L2 \u00b7 Ch 1",latin:"parens, parentis",parts:"(c)",en:"parent",hook:"A <b>parent</b> \u2014 same word; <b>parental</b>.",deriv:["parent","parental"]},
+    {id:"rex",tier:"content",pos:"noun",level:"L2",set:"22",setName:"L2 \u00b7 Ch 1",latin:"rex, regis",parts:"(m)",en:"king",hook:"T-<b>Rex</b>, king of the dinosaurs; <b>regal</b>, <b>regent</b>.",deriv:["regal","Rex"]},
+    {id:"uxor",tier:"content",pos:"noun",level:"L2",set:"22",setName:"L2 \u00b7 Ch 1",latin:"uxor, uxoris",parts:"(f)",en:"wife",hook:"<b>Uxorious</b> means excessively devoted to one's wife! uxor = wife.",deriv:["uxorious"]},
+
+    {id:"civis",tier:"content",pos:"noun",level:"L2",set:"23",setName:"L2 \u00b7 Ch 2",latin:"civis, civis",parts:"(c)",en:"citizen",hook:"<b>Civic</b> duty, a <b>civilian</b>, <b>civilisation</b>. civis = citizen.",deriv:["civic","civilian"]},
+    {id:"hostis",tier:"content",pos:"noun",level:"L2",set:"23",setName:"L2 \u00b7 Ch 2",latin:"hostis, hostis",parts:"(c)",en:"enemy",hook:"<b>Hostile</b>, <b>hostility</b> \u2014 the hostis is the enemy.",deriv:["hostile","hostility"]},
+    {id:"iuvenis",tier:"content",pos:"noun",level:"L2",set:"23",setName:"L2 \u00b7 Ch 2",latin:"iuvenis, iuvenis",parts:"(m)",en:"youth, young man",hook:"<b>Juvenile</b>; to <b>rejuvenate</b> is to make young again.",deriv:["juvenile","rejuvenate"]},
+    {id:"mare",tier:"content",pos:"noun",level:"L2",set:"23",setName:"L2 \u00b7 Ch 2",latin:"mare, maris",parts:"(n)",en:"sea",hook:"<b>Marine</b>, <b>maritime</b>, <b>submarine</b>. mare = sea.",deriv:["marine","maritime"]},
+    {id:"mons",tier:"content",pos:"noun",level:"L2",set:"23",setName:"L2 \u00b7 Ch 2",latin:"mons, montis",parts:"(m)",en:"mountain",hook:"<b>Mountain</b>, <b>mount</b>, <b>mountaineer</b>. mons = mountain.",deriv:["mountain","mount"]},
+    {id:"navis",tier:"content",pos:"noun",level:"L2",set:"23",setName:"L2 \u00b7 Ch 2",latin:"navis, navis",parts:"(f)",en:"ship",hook:"<b>Navy</b>, <b>naval</b>, <b>navigate</b>; a church <b>nave</b> is ship-shaped. navis = ship.",deriv:["navy","navigate"]},
+    {id:"senex",tier:"content",pos:"noun",level:"L2",set:"23",setName:"L2 \u00b7 Ch 2",latin:"senex, senis",parts:"(m)",en:"old man",hook:"<b>Senior</b>, <b>senile</b>, the <b>senate</b> (council of elders). senex = old man.",deriv:["senior","senate"]},
+    {id:"urbs",tier:"content",pos:"noun",level:"L2",set:"23",setName:"L2 \u00b7 Ch 2",latin:"urbs, urbis",parts:"(f)",en:"city",hook:"<b>Urban</b>, <b>suburb</b>, <b>urbane</b>. urbs = city.",deriv:["urban","suburb"]},
+    {id:"carus",tier:"content",pos:"adjective",level:"L2",set:"23",setName:"L2 \u00b7 Ch 2",latin:"carus, -a, -um",parts:"",en:"dear",hook:"You <b>care</b> for what is dear; Italian 'caro/cara' = dear. carus = dear.",deriv:["care"]},
+    {id:"ceteri",tier:"content",pos:"adjective",level:"L2",set:"23",setName:"L2 \u00b7 Ch 2",latin:"ceteri, -ae, -a",parts:"(pl)",en:"the rest, others",hook:"<b>Et cetera</b> (etc.) = 'and the rest'. ceteri = the others.",deriv:["et cetera"]},
+    {id:"longus",tier:"content",pos:"adjective",level:"L2",set:"23",setName:"L2 \u00b7 Ch 2",latin:"longus, -a, -um",parts:"",en:"long",hook:"<b>Long</b>, <b>longitude</b>, <b>elongate</b>, <b>prolong</b>. longus = long.",deriv:["longitude","elongate"]},
+    {id:"medius",tier:"content",pos:"adjective",level:"L2",set:"23",setName:"L2 \u00b7 Ch 2",latin:"medius, -a, -um",parts:"",en:"middle (of)",hook:"<b>Medium</b>, <b>median</b>, <b>Mediterranean</b> (middle of the earth). medius = middle.",deriv:["medium","Mediterranean"]},
+    {id:"appropinquo",tier:"content",pos:"verb",level:"L2",set:"23",setName:"L2 \u00b7 Ch 2",latin:"appropinquo, -are",parts:"(1)",en:"I approach",hook:"ad + <b>prope</b> (near) \u2192 to draw near; <b>propinquity</b> = nearness.",deriv:["propinquity"]},
+    {id:"erro",tier:"content",pos:"verb",level:"L2",set:"23",setName:"L2 \u00b7 Ch 2",latin:"erro, -are",parts:"(1)",en:"I wander, err",hook:"An <b>error</b> is a wandering off course; <b>erratic</b>, <b>erroneous</b>.",deriv:["error","erratic"]},
+    {id:"exspecto",tier:"content",pos:"verb",level:"L2",set:"23",setName:"L2 \u00b7 Ch 2",latin:"exspecto, -are",parts:"(1)",en:"I wait for, expect",hook:"To <b>expect</b>; a <b>spectator</b> watches and waits. exspecto = I wait for.",deriv:["expect","spectator"]},
+
+    {id:"accipio",tier:"content",pos:"verb",level:"L2",set:"24",setName:"L2 \u00b7 Ch 3",latin:"accipio, -ere, accepi, acceptum",parts:"(M)",en:"I receive, accept",hook:"To <b>accept</b>; the <b>recipient</b>; a <b>reception</b>. accipio = I receive.",deriv:["accept","reception"]},
+    {id:"conspicio",tier:"content",pos:"verb",level:"L2",set:"24",setName:"L2 \u00b7 Ch 3",latin:"conspicio, -ere, conspexi, conspectum",parts:"(M)",en:"I catch sight of",hook:"<b>Conspicuous</b> = easily seen; <b>inspect</b>, <b>spectacles</b>. conspicio = I catch sight of.",deriv:["conspicuous","inspect"]},
+    {id:"effugio",tier:"content",pos:"verb",level:"L2",set:"24",setName:"L2 \u00b7 Ch 3",latin:"effugio, -ere, effugi",parts:"(M)",en:"I escape, flee from",hook:"ex + <b>fugio</b> (flee) \u2192 to flee out, escape. A <b>fugitive</b>.",deriv:["fugitive"]},
+    {id:"fugio",tier:"content",pos:"verb",level:"L2",set:"24",setName:"L2 \u00b7 Ch 3",latin:"fugio, -ere, fugi",parts:"(M)",en:"I flee",hook:"A <b>fugitive</b> flees; a <b>refugee</b> flees to safety. fugio = I flee.",deriv:["fugitive","refugee"]},
+    {id:"mortuus",tier:"content",pos:"adjective",level:"L2",set:"24",setName:"L2 \u00b7 Ch 3",latin:"mortuus, -a, -um",parts:"",en:"dead",hook:"<b>Mortal</b>, <b>mortuary</b>, rigor <b>mortis</b>, <b>mortgage</b> ('death-pledge'). mortuus = dead.",deriv:["mortal","mortuary"]},
+    {id:"pauci",tier:"content",pos:"adjective",level:"L2",set:"24",setName:"L2 \u00b7 Ch 3",latin:"pauci, -ae, -a",parts:"(pl)",en:"few",hook:"<b>Paucity</b> = a scarcity, a fewness. pauci = few.",deriv:["paucity"]},
+    {id:"solus",tier:"content",pos:"adjective",level:"L2",set:"24",setName:"L2 \u00b7 Ch 3",latin:"solus, -a, -um",parts:"",en:"alone",hook:"<b>Solo</b>, <b>solitary</b>, <b>sole</b>, <b>desolate</b>. solus = alone.",deriv:["solo","solitary"]},
+    {id:"vivus",tier:"content",pos:"adjective",level:"L2",set:"24",setName:"L2 \u00b7 Ch 3",latin:"vivus, -a, -um",parts:"",en:"alive",hook:"<b>Vivid</b>, <b>survive</b>, <b>revive</b>, <b>vivacious</b>. vivus = alive.",deriv:["vivid","survive","revive"]},
+    {id:"nonne",tier:"function",pos:"particle",level:"L2",set:"24",setName:"L2 \u00b7 Ch 3",latin:"nonne?",parts:"",en:"surely...? (expects 'yes')",usage:"nonne venis? \u2014 surely you are coming? (expecting 'yes')",deriv:[]},
+    {id:"num",tier:"function",pos:"particle",level:"L2",set:"24",setName:"L2 \u00b7 Ch 3",latin:"num?",parts:"",en:"surely... not? (expects 'no')",usage:"num venis? \u2014 surely you are not coming? (expecting 'no')",deriv:[]},
+    {id:"nemo",tier:"content",pos:"pronoun",level:"L2",set:"24",setName:"L2 \u00b7 Ch 3",latin:"nemo, nemin-",parts:"(c)",en:"no-one",hook:"<b>ne</b> + <b>homo</b> = 'not a man' \u2192 no-one. Captain <b>Nemo</b> was 'No-one'!",deriv:["Nemo"]},
+    {id:"nihil",tier:"content",pos:"pronoun",level:"L2",set:"24",setName:"L2 \u00b7 Ch 3",latin:"nihil",parts:"",en:"nothing",hook:"<b>Nihilism</b> = belief in nothing; to <b>annihilate</b> = reduce to nothing.",deriv:["nihilism","annihilate"]},
+    {id:"virtus",tier:"content",pos:"noun",level:"L2",set:"24",setName:"L2 \u00b7 Ch 3",latin:"virtus, virtutis",parts:"(f)",en:"courage",hook:"<b>Virtue</b>; from <b>vir</b> (man) \u2014 it takes virtus (courage) to do right.",deriv:["virtue"]},
+    {id:"vox",tier:"content",pos:"noun",level:"L2",set:"24",setName:"L2 \u00b7 Ch 3",latin:"vox, vocis",parts:"(f)",en:"voice",hook:"<b>Vocal</b>, <b>vocabulary</b>, <b>vociferous</b>. vox = voice.",deriv:["vocal","vocabulary"]},
+    {id:"vulnus",tier:"content",pos:"noun",level:"L2",set:"24",setName:"L2 \u00b7 Ch 3",latin:"vulnus, vulneris",parts:"(n)",en:"wound",hook:"<b>Vulnerable</b> = able to be wounded. vulnus = wound.",deriv:["vulnerable"]},
+
+    {id:"advenio",tier:"content",pos:"verb",level:"L2",set:"25",setName:"L2 \u00b7 Ch 4",latin:"advenio, -ire, adveni, adventum",parts:"(4)",en:"I come to, arrive",hook:"ad (to) + <b>venio</b> (come) \u2192 arrive. <b>Advent</b> = the coming.",deriv:["advent"]},
+    {id:"invenio",tier:"content",pos:"verb",level:"L2",set:"25",setName:"L2 \u00b7 Ch 4",latin:"invenio, -ire, inveni, inventum",parts:"(4)",en:"I find",hook:"in + <b>venio</b> (come) \u2192 come upon, find. <b>Invent</b>, <b>inventory</b>.",deriv:["invent","inventory"]},
+    {id:"trado",tier:"content",pos:"verb",level:"L2",set:"25",setName:"L2 \u00b7 Ch 4",latin:"trado, -ere, tradidi, traditum",parts:"(3)",en:"I hand over, hand down",hook:"<b>Tradition</b> is handed down; a <b>traitor</b> hands you over; <b>trade</b>.",deriv:["tradition","traitor","trade"]},
+    {id:"vinco",tier:"content",pos:"verb",level:"L2",set:"25",setName:"L2 \u00b7 Ch 4",latin:"vinco, -ere, vici, victum",parts:"(3)",en:"I conquer",hook:"<b>Invincible</b> = unconquerable; <b>victor</b>, <b>convince</b>. vinco = I conquer.",deriv:["invincible","victor","convince"]},
+    {id:"undecim",tier:"number",pos:"numeral",level:"L2",set:"25",setName:"L2 \u00b7 Ch 4",latin:"undecim",parts:"",en:"eleven",hook:"<b>un</b>(us) + <b>decem</b> = 'one-ten' = eleven.",deriv:[]},
+    {id:"duodecim",tier:"number",pos:"numeral",level:"L2",set:"25",setName:"L2 \u00b7 Ch 4",latin:"duodecim",parts:"",en:"twelve",hook:"<b>duo</b> + <b>decem</b> = 'two-ten' = twelve. A <b>dozen</b>; <b>duodecimal</b>.",deriv:["dozen","duodecimal"]},
+    {id:"tredecim",tier:"number",pos:"numeral",level:"L2",set:"25",setName:"L2 \u00b7 Ch 4",latin:"tredecim",parts:"",en:"thirteen",hook:"<b>tre</b>(s) + <b>decim</b> = 'three-ten' = thirteen.",deriv:[]},
+    {id:"quattuordecim",tier:"number",pos:"numeral",level:"L2",set:"25",setName:"L2 \u00b7 Ch 4",latin:"quattuordecim",parts:"",en:"fourteen",hook:"<b>quattuor</b> + <b>decim</b> = 'four-ten' = fourteen.",deriv:[]},
+    {id:"quindecim",tier:"number",pos:"numeral",level:"L2",set:"25",setName:"L2 \u00b7 Ch 4",latin:"quindecim",parts:"",en:"fifteen",hook:"<b>quin</b>(que) + <b>decim</b> = 'five-ten' = fifteen.",deriv:[]},
+    {id:"sedecim",tier:"number",pos:"numeral",level:"L2",set:"25",setName:"L2 \u00b7 Ch 4",latin:"sedecim",parts:"",en:"sixteen",hook:"<b>se</b>(x) + <b>decim</b> = 'six-ten' = sixteen.",deriv:[]},
+    {id:"septendecim",tier:"number",pos:"numeral",level:"L2",set:"25",setName:"L2 \u00b7 Ch 4",latin:"septendecim",parts:"",en:"seventeen",hook:"<b>septen</b>(septem) + <b>decim</b> = 'seven-ten' = seventeen.",deriv:[]},
+    {id:"duodeviginti",tier:"number",pos:"numeral",level:"L2",set:"25",setName:"L2 \u00b7 Ch 4",latin:"duodeviginti",parts:"",en:"eighteen",hook:"Literally 'two-from-twenty' (duo-de-viginti) = 18. Romans counted down near 20.",deriv:[]},
+    {id:"undeviginti",tier:"number",pos:"numeral",level:"L2",set:"25",setName:"L2 \u00b7 Ch 4",latin:"undeviginti",parts:"",en:"nineteen",hook:"'One-from-twenty' (un-de-viginti) = 19.",deriv:[]},
+    {id:"viginti",tier:"number",pos:"numeral",level:"L2",set:"25",setName:"L2 \u00b7 Ch 4",latin:"viginti",parts:"",en:"twenty",hook:"Twenty; <b>vigesimal</b> = counting in twenties.",deriv:["vigesimal"]},
+    {id:"quamquam",tier:"function",pos:"conjunction",level:"L2",set:"25",setName:"L2 \u00b7 Ch 4",latin:"quamquam",parts:"",en:"although",usage:"quamquam fessus est, laborat \u2014 ALTHOUGH he is tired, he works",deriv:[]},
+
+    {id:"que",tier:"function",pos:"conjunction",level:"L2",set:"26",setName:"L2 \u00b7 Ch 5",latin:"-que",parts:"",en:"and (joined on the end)",usage:"senatus populus<b>que</b> \u2014 the senate AND the people (SPQR)",deriv:["SPQR"]},
+    {id:"arma",tier:"content",pos:"noun",level:"L2",set:"26",setName:"L2 \u00b7 Ch 5",latin:"arma, -orum",parts:"(n.pl)",en:"weapons, arms",hook:"An <b>army</b> bears arms; <b>armour</b>, <b>armament</b>, <b>disarm</b>. arma = weapons.",deriv:["army","armour"]},
+    {id:"autem",tier:"function",pos:"conjunction",level:"L2",set:"26",setName:"L2 \u00b7 Ch 5",latin:"autem",parts:"",en:"however, but, moreover",usage:"ego autem maneo \u2014 I, HOWEVER, am staying",deriv:[]},
+    {id:"copiae",tier:"content",pos:"noun",level:"L2",set:"26",setName:"L2 \u00b7 Ch 5",latin:"copiae, -arum",parts:"(f.pl)",en:"forces, troops",hook:"<b>Copious</b> = plentiful; in the plural, copiae = a plenty of men, i.e. troops.",deriv:["copious"]},
+    {id:"donum",tier:"content",pos:"noun",level:"L2",set:"26",setName:"L2 \u00b7 Ch 5",latin:"donum, -i",parts:"(n)",en:"gift",hook:"To <b>donate</b> is to give a gift; a <b>donor</b>, a <b>donation</b>. donum = gift.",deriv:["donate","donor"]},
+    {id:"etet",tier:"function",pos:"conjunction",level:"L2",set:"26",setName:"L2 \u00b7 Ch 5",latin:"et ... et ...",parts:"",en:"both ... and ...",usage:"et puer et puella \u2014 BOTH the boy AND the girl",deriv:[]},
+    {id:"frater",tier:"content",pos:"noun",level:"L2",set:"26",setName:"L2 \u00b7 Ch 5",latin:"frater, fratris",parts:"(m)",en:"brother",hook:"<b>Fraternal</b>, a <b>fraternity</b>, a <b>friar</b>. frater = brother.",deriv:["fraternal","fraternity"]},
+    {id:"graecus",tier:"content",pos:"adjective",level:"L2",set:"26",setName:"L2 \u00b7 Ch 5",latin:"Graecus, -a, -um",parts:"",en:"Greek",hook:"<b>Greek</b>; <b>Graeco</b>-Roman. Graecus = Greek.",deriv:["Greek","Graeco-"]},
+    {id:"liberi",tier:"content",pos:"noun",level:"L2",set:"26",setName:"L2 \u00b7 Ch 5",latin:"liberi, -orum",parts:"(m.pl)",en:"children",hook:"The 'free-born' of the household were the children \u2014 think <b>liberty</b>. (Not liber, a book!)",deriv:[]},
+    {id:"mater",tier:"content",pos:"noun",level:"L2",set:"26",setName:"L2 \u00b7 Ch 5",latin:"mater, matris",parts:"(f)",en:"mother",hook:"<b>Maternal</b>, <b>maternity</b>, <b>matriarch</b>, <b>matron</b>. mater = mother.",deriv:["maternal","matriarch"]},
+    {id:"mora",tier:"content",pos:"noun",level:"L2",set:"26",setName:"L2 \u00b7 Ch 5",latin:"mora, -ae",parts:"(f)",en:"delay",hook:"A <b>moratorium</b> is an official delay or pause. mora = delay.",deriv:["moratorium"]},
+    {id:"mors",tier:"content",pos:"noun",level:"L2",set:"26",setName:"L2 \u00b7 Ch 5",latin:"mors, mortis",parts:"(f)",en:"death",hook:"<b>Mortal</b>, <b>mortuary</b>, <b>mortician</b>, rigor <b>mortis</b>. mors = death.",deriv:["mortal","mortician"]},
+    {id:"pars",tier:"content",pos:"noun",level:"L2",set:"26",setName:"L2 \u00b7 Ch 5",latin:"pars, partis",parts:"(f)",en:"part, piece",hook:"A <b>part</b>; <b>partial</b>, <b>particle</b>, <b>portion</b>, a<b>part</b>. pars = part.",deriv:["part","partial","particle"]},
+    {id:"pater",tier:"content",pos:"noun",level:"L2",set:"26",setName:"L2 \u00b7 Ch 5",latin:"pater, patris",parts:"(m)",en:"father",hook:"<b>Paternal</b>, <b>paternity</b>, <b>patriarch</b>, <b>patron</b>. pater = father.",deriv:["paternal","patriarch"]},
+    {id:"soror",tier:"content",pos:"noun",level:"L2",set:"26",setName:"L2 \u00b7 Ch 5",latin:"soror, sororis",parts:"(f)",en:"sister",hook:"A <b>sorority</b> is a sisterhood; <b>sororal</b>. soror = sister.",deriv:["sorority"]},
+
+    {id:"ante",tier:"prefix",pos:"preposition",level:"L2",set:"27",setName:"L2 \u00b7 Ch 6",latin:"ante",parts:"+ acc",en:"before",hook:"An <b>antecedent</b> goes before; <b>antenatal</b>; 'a.m.' = ante meridiem. ante = before.",deriv:["antecedent","antenatal"]},
+    {id:"circum",tier:"prefix",pos:"preposition",level:"L2",set:"27",setName:"L2 \u00b7 Ch 6",latin:"circum",parts:"+ acc",en:"around",hook:"The <b>circumference</b> goes around; <b>circumnavigate</b>. circum = around.",deriv:["circumference","circumnavigate"]},
+    {id:"inter",tier:"prefix",pos:"preposition",level:"L2",set:"27",setName:"L2 \u00b7 Ch 6",latin:"inter",parts:"+ acc",en:"between, among",hook:"The <b>internet</b> links between; an <b>intersection</b>. inter = between.",deriv:["internet","intersection"]},
+    {id:"post",tier:"prefix",pos:"preposition",level:"L2",set:"27",setName:"L2 \u00b7 Ch 6",latin:"post",parts:"+ acc",en:"after",hook:"<b>Postpone</b> = put after; 'p.m.' = post meridiem; a <b>postscript</b> (P.S.). post = after.",deriv:["postpone","postscript"]},
+    {id:"pro",tier:"prefix",pos:"preposition",level:"L2",set:"27",setName:"L2 \u00b7 Ch 6",latin:"pro",parts:"+ abl",en:"for, on behalf of, in front of",hook:"To be <b>pro</b> something is to be for it; a <b>proponent</b>; <b>pro bono</b> (for the good).",deriv:["pro","pro bono"]},
+    {id:"propter",tier:"prefix",pos:"preposition",level:"L2",set:"27",setName:"L2 \u00b7 Ch 6",latin:"propter",parts:"+ acc",en:"on account of, because of",hook:"'post hoc, <b>propter</b> hoc' = 'after this, therefore on account of this'. propter = because of.",deriv:["propter hoc"]},
+    {id:"sine",tier:"prefix",pos:"preposition",level:"L2",set:"27",setName:"L2 \u00b7 Ch 6",latin:"sine",parts:"+ abl",en:"without",hook:"A <b>sinecure</b> is a post 'without' duties (sine cura, without care). sine = without.",deriv:["sinecure"]},
+    {id:"sub",tier:"prefix",pos:"preposition",level:"L2",set:"27",setName:"L2 \u00b7 Ch 6",latin:"sub",parts:"+ abl",en:"under, beneath",hook:"A <b>submarine</b> goes under; a <b>subway</b>, to <b>submerge</b>. sub = under.",deriv:["submarine","subway"]},
+    {id:"super",tier:"prefix",pos:"preposition",level:"L2",set:"27",setName:"L2 \u00b7 Ch 6",latin:"super",parts:"+ acc",en:"over, above",hook:"<b>Superman</b> flies over; <b>superior</b>, <b>supervise</b>. super = over, above.",deriv:["superior","supervise"]},
+    {id:"colligo",tier:"content",pos:"verb",level:"L2",set:"27",setName:"L2 \u00b7 Ch 6",latin:"colligo, -ere, collegi, collectum",parts:"(3)",en:"I collect, gather",hook:"To <b>collect</b>; a <b>collection</b>. col- (together) + lego (gather).",deriv:["collect","collection"]},
+    {id:"debeo",tier:"content",pos:"verb",level:"L2",set:"27",setName:"L2 \u00b7 Ch 6",latin:"debeo, -ere, debui, debitum",parts:"(2)",en:"I owe, ought",hook:"A <b>debt</b> is what you owe; <b>debit</b>, <b>debtor</b>. debeo = I owe, ought.",deriv:["debt","debit"]},
+    {id:"defendo",tier:"content",pos:"verb",level:"L2",set:"27",setName:"L2 \u00b7 Ch 6",latin:"defendo, -ere, defendi, defensum",parts:"(3)",en:"I defend",hook:"To <b>defend</b>; <b>defence</b>, <b>defensive</b>, a <b>fender</b>. defendo = I defend.",deriv:["defend","defence"]},
+    {id:"gero",tier:"content",pos:"verb",level:"L2",set:"27",setName:"L2 \u00b7 Ch 6",latin:"gero, -ere, gessi, gestum",parts:"(3)",en:"I carry on, wage (war), wear",hook:"<b>Belligerent</b> = waging war; <b>gestation</b> = carrying; a <b>gesture</b>. gero = I carry on.",deriv:["belligerent","gestation"]},
+    {id:"servo",tier:"content",pos:"verb",level:"L2",set:"27",setName:"L2 \u00b7 Ch 6",latin:"servo, -are",parts:"(1)",en:"I save, preserve",hook:"To <b>preserve</b>, <b>conserve</b>, a <b>reservoir</b>. servo = I save, keep. (Not servio, I serve!)",deriv:["preserve","conserve"]},
+    {id:"vulnero",tier:"content",pos:"verb",level:"L2",set:"27",setName:"L2 \u00b7 Ch 6",latin:"vulnero, -are",parts:"(1)",en:"I wound",hook:"<b>Vulnerable</b> = able to be wounded. vulnero = I wound.",deriv:["vulnerable"]},
+
+    {id:"bonus",tier:"content",pos:"adjective",level:"L2",set:"28",setName:"L2 \u00b7 Ch 7",latin:"bonus, melior, optimus",parts:"",en:"good, better, best",hook:"A <b>bonus</b> is a good thing; <b>optimum</b>/optimal = the best; to <b>ameliorate</b> = make better.",deriv:["bonus","optimum","ameliorate"]},
+    {id:"malus",tier:"content",pos:"adjective",level:"L2",set:"28",setName:"L2 \u00b7 Ch 7",latin:"malus, peior, pessimus",parts:"",en:"bad, worse, worst",hook:"<b>Malice</b>, <b>malevolent</b> = bad; a <b>pessimist</b> expects the worst; <b>pejorative</b> = a worse, insulting word.",deriv:["malice","pessimist","pejorative"]},
+    {id:"magnus",tier:"content",pos:"adjective",level:"L2",set:"28",setName:"L2 \u00b7 Ch 7",latin:"magnus, maior, maximus",parts:"",en:"big, bigger, biggest",hook:"<b>Magnify</b>, <b>magnitude</b> = big; <b>maximum</b> = biggest; <b>major</b>/mayor = the bigger.",deriv:["magnify","maximum","major"]},
+    {id:"parvus",tier:"content",pos:"adjective",level:"L2",set:"28",setName:"L2 \u00b7 Ch 7",latin:"parvus, minor, minimus",parts:"",en:"small, smaller, smallest",hook:"<b>Minor</b> = smaller; <b>minimum</b>/minimal = smallest. parvus = small.",deriv:["minor","minimum","minimal"]},
+    {id:"multus",tier:"content",pos:"adjective",level:"L2",set:"28",setName:"L2 \u00b7 Ch 7",latin:"multus, plus, plurimus",parts:"",en:"much/many, more, most",hook:"<b>Multiple</b>, <b>multitude</b> = many; <b>plus</b> = more; <b>plural</b>/plurality = most.",deriv:["multiple","plus","plural"]},
+
+    {id:"libero",tier:"content",pos:"verb",level:"L2",set:"29",setName:"L2 \u00b7 Ch 8",latin:"libero, -are",parts:"(1)",en:"I free, set free",hook:"To <b>liberate</b>; <b>liberty</b>, <b>liberal</b>. libero = I set free.",deriv:["liberate","liberty"]},
+    {id:"narro",tier:"content",pos:"verb",level:"L2",set:"29",setName:"L2 \u00b7 Ch 8",latin:"narro, -are",parts:"(1)",en:"I tell (a story)",hook:"To <b>narrate</b>; a <b>narrator</b>, a <b>narrative</b>. narro = I tell.",deriv:["narrate","narrative"]},
+    {id:"celeriter",tier:"content",pos:"adverb",level:"L2",set:"29",setName:"L2 \u00b7 Ch 8",latin:"celeriter",parts:"",en:"quickly",hook:"<b>Accelerate</b> = speed up; <b>celerity</b> = swiftness. celeriter = quickly.",deriv:["accelerate","celerity"]},
+    {id:"cras",tier:"content",pos:"adverb",level:"L2",set:"29",setName:"L2 \u00b7 Ch 8",latin:"cras",parts:"",en:"tomorrow",hook:"To <b>procrastinate</b> is to put it off till tomorrow (cras). cras = tomorrow.",deriv:["procrastinate"]},
+    {id:"forte",tier:"content",pos:"adverb",level:"L2",set:"29",setName:"L2 \u00b7 Ch 8",latin:"forte",parts:"",en:"by chance",hook:"<b>Fortuitous</b> = happening by chance; <b>fortune</b>. forte = by chance.",deriv:["fortuitous","fortune"]},
+    {id:"frustra",tier:"content",pos:"adverb",level:"L2",set:"29",setName:"L2 \u00b7 Ch 8",latin:"frustra",parts:"",en:"in vain",hook:"To <b>frustrate</b> = bring to nothing; efforts in vain. frustra = in vain.",deriv:["frustrate"]},
+    {id:"heri",tier:"content",pos:"adverb",level:"L2",set:"29",setName:"L2 \u00b7 Ch 8",latin:"heri",parts:"",en:"yesterday",hook:"Learn the triad: <b>heri, hodie, cras</b> = yesterday, today, tomorrow.",deriv:[]},
+    {id:"nunc",tier:"content",pos:"adverb",level:"L2",set:"29",setName:"L2 \u00b7 Ch 8",latin:"nunc",parts:"",en:"now",hook:"nunc = now. 'nunc pro tunc' (law) = 'now for then'.",deriv:[]},
+    {id:"postea",tier:"content",pos:"adverb",level:"L2",set:"29",setName:"L2 \u00b7 Ch 8",latin:"postea",parts:"",en:"afterwards",hook:"<b>post</b> (after) + ea \u2192 afterwards. Think 'post-' = after.",deriv:[]},
+    {id:"quam",tier:"function",pos:"adverb",level:"L2",set:"29",setName:"L2 \u00b7 Ch 8",latin:"quam",parts:"",en:"how, than",usage:"maior quam ego \u2014 bigger THAN I",deriv:[]},
+    {id:"quoque",tier:"function",pos:"adverb",level:"L2",set:"29",setName:"L2 \u00b7 Ch 8",latin:"quoque",parts:"",en:"also, too",usage:"ego quoque venio \u2014 I also come ('tu quoque' = you too)",deriv:[]},
+    {id:"tum",tier:"function",pos:"adverb",level:"L2",set:"29",setName:"L2 \u00b7 Ch 8",latin:"tum",parts:"",en:"then, next",usage:"tum Caesar dixit \u2014 THEN Caesar spoke",deriv:[]},
+    {id:"antequam",tier:"function",pos:"conjunction",level:"L2",set:"29",setName:"L2 \u00b7 Ch 8",latin:"antequam",parts:"",en:"before",usage:"antequam venit \u2014 BEFORE he comes (ante + quam)",deriv:[]},
+    {id:"nam",tier:"function",pos:"conjunction",level:"L2",set:"29",setName:"L2 \u00b7 Ch 8",latin:"nam",parts:"",en:"for, because",usage:"manet, nam fessus est \u2014 he stays, FOR he is tired",deriv:[]},
+    {id:"postquam",tier:"function",pos:"conjunction",level:"L2",set:"29",setName:"L2 \u00b7 Ch 8",latin:"postquam",parts:"",en:"after",usage:"postquam venit \u2014 AFTER he came (post + quam)",deriv:[]},
+    {id:"hodie",tier:"content",pos:"adverb",level:"L2",set:"29",setName:"L2 \u00b7 Ch 8",latin:"hodie",parts:"",en:"today",hook:"hodie = today (from 'hoc die', on this day). <b>Hodiernal</b> = of today.",deriv:["hodiernal"]},
+
+    {id:"audax",tier:"content",pos:"adjective",level:"L2",set:"30",setName:"L2 \u00b7 Ch 9",latin:"audax, audacis",parts:"",en:"bold, rash",hook:"<b>Audacious</b> = bold and daring; <b>audacity</b>. audax = bold.",deriv:["audacious","audacity"]},
+    {id:"crudelis",tier:"content",pos:"adjective",level:"L2",set:"30",setName:"L2 \u00b7 Ch 9",latin:"crudelis, crudele",parts:"",en:"cruel",hook:"<b>Cruel</b> comes straight from it; <b>crude</b>. crudelis = cruel.",deriv:["cruel","crude"]},
+    {id:"difficilis",tier:"content",pos:"adjective",level:"L2",set:"30",setName:"L2 \u00b7 Ch 9",latin:"difficilis, difficile",parts:"",en:"difficult",hook:"<b>Difficult</b> \u2014 same word; <b>difficulty</b>. (dis- + facilis, 'not easy'.)",deriv:["difficult"]},
+    {id:"facilis",tier:"content",pos:"adjective",level:"L2",set:"30",setName:"L2 \u00b7 Ch 9",latin:"facilis, facile",parts:"",en:"easy",hook:"<b>Facile</b> = easy; to <b>facilitate</b> = make easy; a <b>facility</b>. facilis = easy.",deriv:["facile","facilitate"]},
+    {id:"felix",tier:"content",pos:"adjective",level:"L2",set:"30",setName:"L2 \u00b7 Ch 9",latin:"felix, felicis",parts:"",en:"lucky, happy",hook:"<b>Felicity</b> = happiness; <b>felicitations</b>; Felix the (lucky) cat. felix = lucky, happy.",deriv:["felicity","felicitations"]},
+    {id:"fortis",tier:"content",pos:"adjective",level:"L2",set:"30",setName:"L2 \u00b7 Ch 9",latin:"fortis, forte",parts:"",en:"brave, strong",hook:"<b>Fortitude</b>; a <b>fort</b> is strong; one's <b>forte</b> is a strength. fortis = brave, strong.",deriv:["fortitude","fort"]},
+    {id:"ingens",tier:"content",pos:"adjective",level:"L2",set:"30",setName:"L2 \u00b7 Ch 9",latin:"ingens, ingentis",parts:"",en:"huge",hook:"Picture a huge engine \u2014 'in-GENS' \u2014 enormous. ingens = huge.",deriv:[]},
+    {id:"nobilis",tier:"content",pos:"adjective",level:"L2",set:"30",setName:"L2 \u00b7 Ch 9",latin:"nobilis, nobile",parts:"",en:"noble, famous",hook:"<b>Noble</b>, <b>nobility</b>. nobilis = noble, well-known.",deriv:["noble","nobility"]},
+    {id:"omnis",tier:"content",pos:"adjective",level:"L2",set:"30",setName:"L2 \u00b7 Ch 9",latin:"omnis, omne",parts:"",en:"every; (pl.) all",hook:"<b>Omniscient</b> (all-knowing), <b>omnivore</b> (eats all), <b>omnipotent</b>. omnis = all, every.",deriv:["omniscient","omnivore"]},
+    {id:"sapiens",tier:"content",pos:"adjective",level:"L2",set:"30",setName:"L2 \u00b7 Ch 9",latin:"sapiens, sapientis",parts:"",en:"wise",hook:"<b>Homo sapiens</b> = 'wise man'; <b>sapient</b>, <b>sage</b>. sapiens = wise.",deriv:["sapient","Homo sapiens"]},
+    {id:"tristis",tier:"content",pos:"adjective",level:"L2",set:"30",setName:"L2 \u00b7 Ch 9",latin:"tristis, triste",parts:"",en:"sad",hook:"<b>Triste</b> is French for sad; <b>Tristan</b>, 'born in sorrow'. tristis = sad.",deriv:["triste"]},
+    {id:"hic",tier:"function",pos:"pronoun",level:"L2",set:"30",setName:"L2 \u00b7 Ch 9",latin:"hic, haec, hoc",parts:"",en:"this (these)",usage:"hic vir \u2014 THIS man (hic, haec, hoc)",deriv:[]},
+    {id:"ille",tier:"function",pos:"pronoun",level:"L2",set:"30",setName:"L2 \u00b7 Ch 9",latin:"ille, illa, illud",parts:"",en:"that (those)",usage:"ille vir \u2014 THAT man (gives French le/la, 'the')",deriv:[]},
+    {id:"is",tier:"function",pos:"pronoun",level:"L2",set:"30",setName:"L2 \u00b7 Ch 9",latin:"is, ea, id",parts:"",en:"he, she, it; that",usage:"is venit \u2014 HE comes; ea = she; id = it",deriv:[]},
+    {id:"se",tier:"function",pos:"pronoun",level:"L2",set:"30",setName:"L2 \u00b7 Ch 9",latin:"se",parts:"",en:"himself, herself, itself, themselves",usage:"se lavat \u2014 he washes HIMSELF (reflexive)",deriv:[]},
+
+    {id:"eo",tier:"content",pos:"verb",level:"L2",set:"31",setName:"L2 \u00b7 Ch 10",latin:"eo, ire, ii/ivi, itum",parts:"(irr)",en:"I go",hook:"The root of the -eo verbs: <b>exit</b> (he goes out), <b>transit</b>, <b>ambition</b> (a going-about). eo = I go.",deriv:["exit","transit"]},
+    {id:"exeo",tier:"content",pos:"verb",level:"L2",set:"31",setName:"L2 \u00b7 Ch 10",latin:"exeo, exire, exii, exitum",parts:"(irr)",en:"I go out",hook:"ex (out) + eo (go) = go out. An <b>exit</b>.",deriv:["exit"]},
+    {id:"ineo",tier:"content",pos:"verb",level:"L2",set:"31",setName:"L2 \u00b7 Ch 10",latin:"ineo, inire, inii, initum",parts:"(irr)",en:"I go into, enter, begin",hook:"in (into) + eo (go) = enter, begin. <b>Initiate</b>, <b>initial</b>.",deriv:["initiate","initial"]},
+    {id:"inquit",tier:"function",pos:"verb",level:"L2",set:"31",setName:"L2 \u00b7 Ch 10",latin:"inquit / inquiunt",parts:"",en:"he/she says, they say",usage:"'veni,' inquit \u2014 'I came,' HE SAYS (drops into quoted speech)",deriv:[]},
+    {id:"noli",tier:"function",pos:"verb",level:"L2",set:"31",setName:"L2 \u00b7 Ch 10",latin:"noli / nolite (+ infin.)",parts:"",en:"don't ...!",usage:"noli currere! \u2014 DON'T run! ('noli me tangere' = don't touch me)",deriv:[]},
+    {id:"nuntio",tier:"content",pos:"verb",level:"L2",set:"31",setName:"L2 \u00b7 Ch 10",latin:"nuntio, -are",parts:"(1)",en:"I announce, tell",hook:"To <b>announce</b>; a papal <b>nuncio</b> (messenger); <b>pronounce</b>, <b>denounce</b>.",deriv:["announce","pronounce"]},
+    {id:"occido",tier:"content",pos:"verb",level:"L2",set:"31",setName:"L2 \u00b7 Ch 10",latin:"occido, -ere, occidi, occisum",parts:"(3)",en:"I kill",hook:"ob + caedo (strike) \u2192 strike down, kill. The '-cide' in homi<b>cide</b> is the same root.",deriv:["-cide (homicide)"]},
+    {id:"occupo",tier:"content",pos:"verb",level:"L2",set:"31",setName:"L2 \u00b7 Ch 10",latin:"occupo, -are",parts:"(1)",en:"I seize, occupy",hook:"To <b>occupy</b>; an <b>occupation</b>. occupo = I seize, occupy.",deriv:["occupy","occupation"]},
+    {id:"pereo",tier:"content",pos:"verb",level:"L2",set:"31",setName:"L2 \u00b7 Ch 10",latin:"pereo, perire, perii, peritum",parts:"(irr)",en:"I perish",hook:"per (away) + eo (go) \u2192 go away to nothing. <b>Perish</b>.",deriv:["perish"]},
+    {id:"possum",tier:"content",pos:"verb",level:"L2",set:"31",setName:"L2 \u00b7 Ch 10",latin:"possum, posse, potui",parts:"(irr)",en:"I am able, can",hook:"<b>Possible</b>, <b>potent</b>, <b>potential</b> \u2014 all about being able. possum = I can.",deriv:["possible","potent"]},
+    {id:"redeo",tier:"content",pos:"verb",level:"L2",set:"31",setName:"L2 \u00b7 Ch 10",latin:"redeo, redire, redii, reditum",parts:"(irr)",en:"I go back, return",hook:"red- (back) + eo (go) = go back, return.",deriv:[]},
+    {id:"reduco",tier:"content",pos:"verb",level:"L2",set:"31",setName:"L2 \u00b7 Ch 10",latin:"reduco, -ere, reduxi, reductum",parts:"(3)",en:"I lead back",hook:"re (back) + duco (lead) = lead back. To <b>reduce</b> is to lead back/down.",deriv:["reduce"]},
+    {id:"ruo",tier:"content",pos:"verb",level:"L2",set:"31",setName:"L2 \u00b7 Ch 10",latin:"ruo, -ere, rui, rutum",parts:"(3)",en:"I rush",hook:"To rush headlong; a <b>ruin</b> is a rushing-down collapse. ruo = I rush.",deriv:["ruin"]},
+    {id:"saluto",tier:"content",pos:"verb",level:"L2",set:"31",setName:"L2 \u00b7 Ch 10",latin:"saluto, -are",parts:"(1)",en:"I greet",hook:"To <b>salute</b>; a <b>salutation</b>. saluto = I greet.",deriv:["salute","salutation"]},
+    {id:"transeo",tier:"content",pos:"verb",level:"L2",set:"31",setName:"L2 \u00b7 Ch 10",latin:"transeo, transire, transii, transitum",parts:"(irr)",en:"I go across, cross",hook:"trans (across) + eo (go) = cross. <b>Transit</b>, <b>transient</b>.",deriv:["transit","transient"]},
+
+    {id:"ambulo",tier:"content",pos:"verb",level:"L1",set:"1",setName:"L1 \u00b7 Ch 1",latin:"ambulo, -are",parts:"(1)",en:"I walk",hook:"To <b>amble</b>; an <b>ambulance</b> (once a walking hospital); a <b>perambulator</b> (pram). ambulo = I walk.",deriv:["amble","ambulance","perambulator"]},
+    {id:"canto",tier:"content",pos:"verb",level:"L1",set:"1",setName:"L1 \u00b7 Ch 1",latin:"canto, -are",parts:"(1)",en:"I sing",hook:"To <b>chant</b>; a <b>cantata</b>; the <b>cantor</b> who leads the singing. canto = I sing.",deriv:["chant","cantata","cantor"]},
+    {id:"do",tier:"content",pos:"verb",level:"L1",set:"1",setName:"L1 \u00b7 Ch 1",latin:"do, dare, dedi, datum",parts:"(1)",en:"I give",hook:"<b>Data</b> = 'things given'; <b>add</b> (ad + do); <b>edit</b> (give out). (Irregular short-a: dare, dedi.)",deriv:["data","add","edit"]},
+    {id:"festino",tier:"content",pos:"verb",level:"L1",set:"1",setName:"L1 \u00b7 Ch 1",latin:"festino, -are",parts:"(1)",en:"I hurry",hook:"'festina lente' = 'make haste slowly' (Augustus's motto). festino = I hurry.",deriv:["festina lente"]},
+    {id:"pugno",tier:"content",pos:"verb",level:"L1",set:"1",setName:"L1 \u00b7 Ch 1",latin:"pugno, -are",parts:"(1)",en:"I fight",hook:"<b>Pugnacious</b> = eager to fight; a <b>pugilist</b> (boxer); <b>repugnant</b>. pugno = I fight.",deriv:["pugnacious","pugilist"]},
+    {id:"sto",tier:"content",pos:"verb",level:"L1",set:"1",setName:"L1 \u00b7 Ch 1",latin:"sto, stare, steti, statum",parts:"(1)",en:"I stand",hook:"<b>Statue</b>, <b>stationary</b>, <b>stable</b>, <b>status</b> \u2014 all standing. sto = I stand.",deriv:["statue","stationary","status"]},
+    {id:"voco",tier:"content",pos:"verb",level:"L1",set:"1",setName:"L1 \u00b7 Ch 1",latin:"voco, -are",parts:"(1)",en:"I call",hook:"A <b>vocation</b> is a calling; <b>invoke</b>, <b>revoke</b>, <b>vocal</b>. voco = I call.",deriv:["vocation","invoke","revoke"]},
+    {id:"non",tier:"function",pos:"adverb",level:"L1",set:"1",setName:"L1 \u00b7 Ch 1",latin:"non",parts:"",en:"not",usage:"non venio \u2014 I do NOT come ('non-' in nonsense, non-stop)",deriv:["non-"]},
+    {id:"et",tier:"function",pos:"conjunction",level:"L1",set:"1",setName:"L1 \u00b7 Ch 1",latin:"et",parts:"",en:"and",usage:"puer et puella \u2014 the boy AND the girl ('et cetera' = and the rest)",deriv:["et cetera"]},
+    {id:"sed",tier:"function",pos:"conjunction",level:"L1",set:"1",setName:"L1 \u00b7 Ch 1",latin:"sed",parts:"",en:"but",usage:"parvus sed fortis \u2014 small BUT brave",deriv:[]},
+
+    {id:"aedifico",tier:"content",pos:"verb",level:"L1",set:"2",setName:"L1 \u00b7 Ch 2",latin:"aedifico, -are",parts:"(1)",en:"I build",hook:"An <b>edifice</b> is a grand building; to <b>edify</b> = build up. aedifico = I build.",deriv:["edifice","edify"]},
+    {id:"amo",tier:"content",pos:"verb",level:"L1",set:"2",setName:"L1 \u00b7 Ch 2",latin:"amo, -are",parts:"(1)",en:"I love",hook:"<b>Amorous</b>; an <b>amateur</b> does it for love; <b>amiable</b>. amo = I love.",deriv:["amorous","amateur","amiable"]},
+    {id:"clamo",tier:"content",pos:"verb",level:"L1",set:"2",setName:"L1 \u00b7 Ch 2",latin:"clamo, -are",parts:"(1)",en:"I shout",hook:"To <b>exclaim</b>, <b>proclaim</b>, <b>clamour</b>. clamo = I shout.",deriv:["exclaim","proclaim","clamour"]},
+    {id:"intro",tier:"content",pos:"verb",level:"L1",set:"2",setName:"L1 \u00b7 Ch 2",latin:"intro, -are",parts:"(1)",en:"I enter",hook:"To <b>introduce</b> = lead in; an <b>entrance</b>; intro- = inward. intro = I enter.",deriv:["introduce","entrance"]},
+    {id:"laboro",tier:"content",pos:"verb",level:"L1",set:"2",setName:"L1 \u00b7 Ch 2",latin:"laboro, -are",parts:"(1)",en:"I work",hook:"To <b>labour</b>; <b>laborious</b>, <b>collaborate</b> (work together), <b>elaborate</b>. laboro = I work.",deriv:["labour","collaborate","elaborate"]},
+    {id:"laudo",tier:"content",pos:"verb",level:"L1",set:"2",setName:"L1 \u00b7 Ch 2",latin:"laudo, -are",parts:"(1)",en:"I praise",hook:"To <b>laud</b>; <b>applaud</b>, <b>laudable</b>, a <b>laudatory</b> review. laudo = I praise.",deriv:["laud","applaud","laudable"]},
+    {id:"navigo",tier:"content",pos:"verb",level:"L1",set:"2",setName:"L1 \u00b7 Ch 2",latin:"navigo, -are",parts:"(1)",en:"I sail",hook:"To <b>navigate</b>; the <b>navy</b>, <b>naval</b>. navigo = I sail.",deriv:["navigate","navy"]},
+    {id:"oppugno",tier:"content",pos:"verb",level:"L1",set:"2",setName:"L1 \u00b7 Ch 2",latin:"oppugno, -are",parts:"(1)",en:"I attack",hook:"ob (against) + <b>pugno</b> (fight) \u2192 attack, assault. (cf. pugnacious.)",deriv:[]},
+    {id:"porto",tier:"content",pos:"verb",level:"L1",set:"2",setName:"L1 \u00b7 Ch 2",latin:"porto, -are",parts:"(1)",en:"I carry",hook:"To <b>transport</b> (carry across); a <b>porter</b>, <b>portable</b>, <b>export</b>. porto = I carry.",deriv:["transport","portable","export"]},
+    {id:"supero",tier:"content",pos:"verb",level:"L1",set:"2",setName:"L1 \u00b7 Ch 2",latin:"supero, -are",parts:"(1)",en:"I overcome, conquer",hook:"To be <b>superior</b>, to <b>surpass</b>; <b>insuperable</b> (cannot be overcome). supero = I overcome.",deriv:["superior","insuperable"]},
+
+    {id:"deinde",tier:"function",pos:"adverb",level:"L1",set:"3",setName:"L1 \u00b7 Ch 3",latin:"deinde",parts:"",en:"then, next",usage:"primum legit, deinde scribit \u2014 first he reads, THEN he writes",deriv:[]},
+    {id:"diu",tier:"content",pos:"adverb",level:"L1",set:"3",setName:"L1 \u00b7 Ch 3",latin:"diu",parts:"",en:"for a long time",hook:"diu = for a long time (cf. <b>diuturnal</b>, long-lasting).",deriv:[]},
+    {id:"fortiter",tier:"content",pos:"adverb",level:"L1",set:"3",setName:"L1 \u00b7 Ch 3",latin:"fortiter",parts:"",en:"bravely",hook:"From <b>fortis</b> (brave) \u2014 <b>fortitude</b>. The -iter ending makes the adverb: fortiter = bravely.",deriv:["fortitude"]},
+    {id:"saepe",tier:"content",pos:"adverb",level:"L1",set:"3",setName:"L1 \u00b7 Ch 3",latin:"saepe",parts:"",en:"often",hook:"Sound-peg 'SY-peh': you 'sigh' often. saepe = often. (No English cousin \u2014 drill it.)",deriv:[]},
+    {id:"statim",tier:"content",pos:"adverb",level:"L1",set:"3",setName:"L1 \u00b7 Ch 3",latin:"statim",parts:"",en:"at once, immediately",hook:"In hospitals '<b>STAT</b>!' means 'at once' \u2014 straight from statim. statim = immediately.",deriv:["stat (medical)"]},
+    {id:"subito",tier:"content",pos:"adverb",level:"L1",set:"3",setName:"L1 \u00b7 Ch 3",latin:"subito",parts:"",en:"suddenly",hook:"In music '<b>subito</b>' means suddenly (e.g. subito piano). subito = suddenly.",deriv:["subito (music)"]},
+    {id:"tandem",tier:"content",pos:"adverb",level:"L1",set:"3",setName:"L1 \u00b7 Ch 3",latin:"tandem",parts:"",en:"at last, finally",hook:"A <b>tandem</b> bicycle is a Latin pun on it ('at length'!). tandem = at last.",deriv:["tandem"]},
+    {id:"neco",tier:"content",pos:"verb",level:"L1",set:"3",setName:"L1 \u00b7 Ch 3",latin:"neco, -are",parts:"(1)",en:"I kill",hook:"<b>Internecine</b> = mutually destructive; <b>pernicious</b> = deadly. neco = I kill.",deriv:["internecine","pernicious"]},
+    {id:"paro",tier:"content",pos:"verb",level:"L1",set:"3",setName:"L1 \u00b7 Ch 3",latin:"paro, -are",parts:"(1)",en:"I prepare",hook:"To <b>prepare</b>; an <b>apparatus</b>, to <b>repair</b>. paro = I prepare.",deriv:["prepare","apparatus","repair"]},
+    {id:"specto",tier:"content",pos:"verb",level:"L1",set:"3",setName:"L1 \u00b7 Ch 3",latin:"specto, -are",parts:"(1)",en:"I watch, look at",hook:"A <b>spectator</b> watches; a <b>spectacle</b>, <b>inspect</b>, <b>spectacles</b>. specto = I watch.",deriv:["spectator","spectacle","inspect"]},
+
+    {id:"agricola",tier:"content",pos:"noun",level:"L1",set:"4",setName:"L1 \u00b7 Ch 4",latin:"agricola, -ae",parts:"(m)",en:"farmer",hook:"<b>Agriculture</b> = farming (ager, field + colo, cultivate). An agricola is a farmer.",deriv:["agriculture"]},
+    {id:"ancilla",tier:"content",pos:"noun",level:"L1",set:"4",setName:"L1 \u00b7 Ch 4",latin:"ancilla, -ae",parts:"(f)",en:"slave-girl, maid",hook:"<b>Ancillary</b> = in a serving/supporting role. An ancilla is a maidservant.",deriv:["ancillary"]},
+    {id:"dea",tier:"content",pos:"noun",level:"L1",set:"4",setName:"L1 \u00b7 Ch 4",latin:"dea, -ae",parts:"(f)",en:"goddess",hook:"A <b>deity</b>; to <b>deify</b>; <b>divine</b>. dea = goddess (deus = god).",deriv:["deity","deify"]},
+    {id:"femina",tier:"content",pos:"noun",level:"L1",set:"4",setName:"L1 \u00b7 Ch 4",latin:"femina, -ae",parts:"(f)",en:"woman",hook:"<b>Feminine</b>, <b>female</b>, <b>feminist</b>. femina = woman.",deriv:["feminine","female"]},
+    {id:"filia",tier:"content",pos:"noun",level:"L1",set:"4",setName:"L1 \u00b7 Ch 4",latin:"filia, -ae",parts:"(f)",en:"daughter",hook:"<b>Filial</b> = of a son or daughter; to <b>affiliate</b>. filia = daughter (filius = son).",deriv:["filial","affiliate"]},
+    {id:"incola",tier:"content",pos:"noun",level:"L1",set:"4",setName:"L1 \u00b7 Ch 4",latin:"incola, -ae",parts:"(m)",en:"native, inhabitant",hook:"in + colo (dwell) \u2192 a dweller, inhabitant. (cf. <b>colony</b>.)",deriv:["colony"]},
+    {id:"nauta",tier:"content",pos:"noun",level:"L1",set:"4",setName:"L1 \u00b7 Ch 4",latin:"nauta, -ae",parts:"(m)",en:"sailor",hook:"<b>Nautical</b>; an <b>astronaut</b> (star-sailor); <b>nausea</b> (seasickness!). nauta = sailor.",deriv:["nautical","astronaut","nausea"]},
+    {id:"poeta",tier:"content",pos:"noun",level:"L1",set:"4",setName:"L1 \u00b7 Ch 4",latin:"poeta, -ae",parts:"(m)",en:"poet",hook:"A <b>poet</b>; <b>poetry</b>, <b>poetic</b>. poeta = poet.",deriv:["poet","poetry"]},
+    {id:"puella",tier:"content",pos:"noun",level:"L1",set:"4",setName:"L1 \u00b7 Ch 4",latin:"puella, -ae",parts:"(f)",en:"girl",hook:"Say 'poo-ELL-a': picture a girl named Ella. puella = girl.",deriv:[]},
+    {id:"regina",tier:"content",pos:"noun",level:"L1",set:"4",setName:"L1 \u00b7 Ch 4",latin:"regina, -ae",parts:"(f)",en:"queen",hook:"<b>Regal</b>; a <b>regent</b>; <b>Regina</b> as a name means queen. regina = queen (rex = king).",deriv:["regal","Regina"]},
+
+    {id:"aqua",tier:"content",pos:"noun",level:"L1",set:"5",setName:"L1 \u00b7 Ch 5",latin:"aqua, -ae",parts:"(f)",en:"water",hook:"An <b>aquarium</b>, <b>aquatic</b>, an <b>aqueduct</b> (water-channel). aqua = water.",deriv:["aquarium","aquatic","aqueduct"]},
+    {id:"fera",tier:"content",pos:"noun",level:"L1",set:"5",setName:"L1 \u00b7 Ch 5",latin:"fera, -ae",parts:"(f)",en:"wild beast",hook:"<b>Feral</b> = gone wild; <b>ferocious</b>. fera = wild beast.",deriv:["feral","ferocious"]},
+    {id:"hasta",tier:"content",pos:"noun",level:"L1",set:"5",setName:"L1 \u00b7 Ch 5",latin:"hasta, -ae",parts:"(f)",en:"spear",hook:"A <b>hastate</b> leaf is spear-shaped. hasta = spear.",deriv:["hastate"]},
+    {id:"insula",tier:"content",pos:"noun",level:"L1",set:"5",setName:"L1 \u00b7 Ch 5",latin:"insula, -ae",parts:"(f)",en:"island",hook:"<b>Insular</b> (island-like), to <b>insulate</b> (cut off), a <b>peninsula</b>. insula = island.",deriv:["insular","insulate","peninsula"]},
+    {id:"patria",tier:"content",pos:"noun",level:"L1",set:"5",setName:"L1 \u00b7 Ch 5",latin:"patria, -ae",parts:"(f)",en:"land, country",hook:"A <b>patriot</b> loves the homeland; <b>expatriate</b>. patria = fatherland (from pater).",deriv:["patriot","expatriate"]},
+    {id:"sagitta",tier:"content",pos:"noun",level:"L1",set:"5",setName:"L1 \u00b7 Ch 5",latin:"sagitta, -ae",parts:"(f)",en:"arrow",hook:"<b>Sagittarius</b> the archer; a <b>sagittal</b> line runs like an arrow. sagitta = arrow.",deriv:["Sagittarius","sagittal"]},
+    {id:"silva",tier:"content",pos:"noun",level:"L1",set:"5",setName:"L1 \u00b7 Ch 5",latin:"silva, -ae",parts:"(f)",en:"wood, forest",hook:"<b>Sylvan</b> = of the woods; <b>Pennsylvania</b> = 'Penn's woods'. silva = wood.",deriv:["sylvan","Pennsylvania"]},
+    {id:"terra",tier:"content",pos:"noun",level:"L1",set:"5",setName:"L1 \u00b7 Ch 5",latin:"terra, -ae",parts:"(f)",en:"land, ground",hook:"<b>Terrain</b>, <b>territory</b>, <b>terrace</b>, <b>terrestrial</b>, Medi<b>terra</b>nean. terra = land.",deriv:["terrain","territory","terrestrial"]},
+    {id:"villa",tier:"content",pos:"noun",level:"L1",set:"5",setName:"L1 \u00b7 Ch 5",latin:"villa, -ae",parts:"(f)",en:"house",hook:"A <b>villa</b>; a <b>village</b>, a <b>villager</b>. villa = country house.",deriv:["villa","village"]},
+    {id:"habito",tier:"content",pos:"verb",level:"L1",set:"5",setName:"L1 \u00b7 Ch 5",latin:"habito, -are",parts:"(1)",en:"I live in, dwell",hook:"To <b>inhabit</b>; a <b>habitat</b>; <b>habitation</b>. habito = I live in.",deriv:["inhabit","habitat"]},
+
+    {id:"deleo",tier:"content",pos:"verb",level:"L1",set:"6",setName:"L1 \u00b7 Ch 6",latin:"deleo, -ere, delevi, deletum",parts:"(2)",en:"I destroy",hook:"To <b>delete</b> is to wipe out; <b>indelible</b> = cannot be deleted. deleo = I destroy.",deriv:["delete","indelible"]},
+    {id:"habeo",tier:"content",pos:"verb",level:"L1",set:"6",setName:"L1 \u00b7 Ch 6",latin:"habeo, -ere, habui, habitum",parts:"(2)",en:"I have",hook:"A <b>habit</b> is what you 'have'; <b>inhabit</b>, <b>exhibit</b> (hold out). habeo = I have.",deriv:["habit","exhibit"]},
+    {id:"iubeo",tier:"content",pos:"verb",level:"L1",set:"6",setName:"L1 \u00b7 Ch 6",latin:"iubeo, -ere, iussi, iussum",parts:"(2)",en:"I order",hook:"The <b>jussive</b> mood gives commands. iubeo = I order (perfect iussi).",deriv:["jussive"]},
+    {id:"maneo",tier:"content",pos:"verb",level:"L1",set:"6",setName:"L1 \u00b7 Ch 6",latin:"maneo, -ere, mansi, mansum",parts:"(2)",en:"I remain, stay",hook:"A <b>mansion</b> is where you stay; <b>permanent</b> (staying through), <b>remain</b>. maneo = I stay.",deriv:["mansion","permanent","remain"]},
+    {id:"moneo",tier:"content",pos:"verb",level:"L1",set:"6",setName:"L1 \u00b7 Ch 6",latin:"moneo, -ere, monui, monitum",parts:"(2)",en:"I warn",hook:"To <b>admonish</b>; a <b>monitor</b> warns; a <b>monument</b> (a reminder); <b>premonition</b>. moneo = I warn.",deriv:["admonish","monitor","premonition"]},
+    {id:"respondeo",tier:"content",pos:"verb",level:"L1",set:"6",setName:"L1 \u00b7 Ch 6",latin:"respondeo, -ere, respondi, responsum",parts:"(2)",en:"I reply, answer",hook:"To <b>respond</b>; a <b>response</b>, <b>responsible</b>, <b>correspond</b>. respondeo = I reply.",deriv:["respond","response"]},
+    {id:"teneo",tier:"content",pos:"verb",level:"L1",set:"6",setName:"L1 \u00b7 Ch 6",latin:"teneo, -ere, tenui, tentum",parts:"(2)",en:"I hold",hook:"A <b>tenant</b> holds property; <b>tenacious</b>, <b>retain</b>, <b>maintain</b>. teneo = I hold.",deriv:["tenant","tenacious","retain"]},
+    {id:"terreo",tier:"content",pos:"verb",level:"L1",set:"6",setName:"L1 \u00b7 Ch 6",latin:"terreo, -ere, terrui, territum",parts:"(2)",en:"I frighten",hook:"To <b>terrify</b>; <b>terror</b>, <b>terrible</b>, <b>deter</b> (frighten off). terreo = I frighten.",deriv:["terrify","terror","deter"]},
+    {id:"timeo",tier:"content",pos:"verb",level:"L1",set:"6",setName:"L1 \u00b7 Ch 6",latin:"timeo, -ere, timui",parts:"(2)",en:"I am afraid, fear",hook:"A <b>timid</b> person fears everything; <b>timorous</b>. timeo = I am afraid.",deriv:["timid","timorous"]},
+    {id:"video",tier:"content",pos:"verb",level:"L1",set:"6",setName:"L1 \u00b7 Ch 6",latin:"video, -ere, vidi, visum",parts:"(2)",en:"I see",hook:"A <b>video</b> is what you see; <b>vision</b>, <b>visible</b>, <b>evident</b>, <b>provide</b> (see ahead). video = I see.",deriv:["video","vision","evident"]},
+
+    {id:"neq",tier:"function",pos:"particle",level:"L1",set:"7",setName:"L1 \u00b7 Ch 7",latin:"-ne?",parts:"",en:"(tags on a question)",usage:"venisne? \u2014 ARE you coming? (-ne hooks onto the first word)",deriv:[]},
+    {id:"cur",tier:"function",pos:"adverb",level:"L1",set:"7",setName:"L1 \u00b7 Ch 7",latin:"cur?",parts:"",en:"why?",usage:"cur venis? \u2014 WHY are you coming?",deriv:[]},
+    {id:"quid",tier:"function",pos:"pronoun",level:"L1",set:"7",setName:"L1 \u00b7 Ch 7",latin:"quid?",parts:"",en:"what?",usage:"quid facis? \u2014 WHAT are you doing? ('quid pro quo' = something for something)",deriv:["quid pro quo"]},
+    {id:"quis",tier:"function",pos:"pronoun",level:"L1",set:"7",setName:"L1 \u00b7 Ch 7",latin:"quis?",parts:"",en:"who?",usage:"quis es? \u2014 WHO are you?",deriv:[]},
+    {id:"ubi",tier:"function",pos:"adverb",level:"L1",set:"7",setName:"L1 \u00b7 Ch 7",latin:"ubi?",parts:"",en:"where?",usage:"ubi est? \u2014 WHERE is he? ('ubiquitous' = everywhere)",deriv:["ubiquitous"]},
+    {id:"cena",tier:"content",pos:"noun",level:"L1",set:"7",setName:"L1 \u00b7 Ch 7",latin:"cena, -ae",parts:"(f)",en:"meal, dinner",hook:"The <b>cenacle</b> was the room of the Last Supper. cena = the main meal, dinner.",deriv:["cenacle"]},
+    {id:"epistula",tier:"content",pos:"noun",level:"L1",set:"7",setName:"L1 \u00b7 Ch 7",latin:"epistula, -ae",parts:"(f)",en:"letter",hook:"An <b>epistle</b> is a letter (the Epistles of St Paul); <b>epistolary</b>. epistula = letter.",deriv:["epistle","epistolary"]},
+    {id:"fabula",tier:"content",pos:"noun",level:"L1",set:"7",setName:"L1 \u00b7 Ch 7",latin:"fabula, -ae",parts:"(f)",en:"story",hook:"A <b>fable</b> is a story; <b>fabulous</b> (story-like), <b>confabulate</b>. fabula = story.",deriv:["fable","fabulous"]},
+    {id:"vacca",tier:"content",pos:"noun",level:"L1",set:"7",setName:"L1 \u00b7 Ch 7",latin:"vacca, -ae",parts:"(f)",en:"cow",hook:"A <b>vaccine</b> \u2014 the very first was made from cowpox, from vacca! vacca = cow.",deriv:["vaccine"]},
+
+    {id:"bibo",tier:"content",pos:"verb",level:"L1",set:"8",setName:"L1 \u00b7 Ch 8",latin:"bibo, -ere, bibi, bibitum",parts:"(3)",en:"I drink",hook:"To <b>imbibe</b>; <b>bibulous</b> (fond of drink); a <b>bib</b> catches the drink! bibo = I drink.",deriv:["imbibe","bibulous","bib"]},
+    {id:"consumo",tier:"content",pos:"verb",level:"L1",set:"8",setName:"L1 \u00b7 Ch 8",latin:"consumo, -ere, consumpsi, consumptum",parts:"(3)",en:"I eat, consume",hook:"To <b>consume</b>; <b>consumption</b>, a <b>consumer</b>. consumo = I eat up.",deriv:["consume","consumer"]},
+    {id:"curro",tier:"content",pos:"verb",level:"L1",set:"8",setName:"L1 \u00b7 Ch 8",latin:"curro, currere, cucurri, cursum",parts:"(3)",en:"I run",hook:"A <b>current</b> (running water), a <b>courier</b>, a <b>cursor</b>, to <b>recur</b>. curro = I run.",deriv:["current","courier","cursor"]},
+    {id:"dico",tier:"content",pos:"verb",level:"L1",set:"8",setName:"L1 \u00b7 Ch 8",latin:"dico, -ere, dixi, dictum",parts:"(3)",en:"I say, speak",hook:"To <b>dictate</b>; a <b>dictionary</b>, to <b>predict</b>, a <b>verdict</b>. dico = I say.",deriv:["dictate","dictionary","predict"]},
+    {id:"discedo",tier:"content",pos:"verb",level:"L1",set:"8",setName:"L1 \u00b7 Ch 8",latin:"discedo, -ere, discessi, discessum",parts:"(3)",en:"I go away, leave",hook:"dis (apart) + cedo (go) \u2192 depart. cf. <b>secede</b>, <b>recede</b>.",deriv:["secede","recede"]},
+    {id:"duco",tier:"content",pos:"verb",level:"L1",set:"8",setName:"L1 \u00b7 Ch 8",latin:"duco, -ere, duxi, ductum",parts:"(3)",en:"I lead",hook:"A <b>duke</b> leads; <b>conduct</b>, <b>educate</b> (lead out), <b>aqueduct</b> (leads water). duco = I lead.",deriv:["conduct","educate","aqueduct"]},
+    {id:"mitto",tier:"content",pos:"verb",level:"L1",set:"8",setName:"L1 \u00b7 Ch 8",latin:"mitto, -ere, misi, missum",parts:"(3)",en:"I send",hook:"A <b>missile</b>, to <b>transmit</b>, <b>admit</b>, <b>dismiss</b>, a <b>mission</b>. mitto = I send.",deriv:["missile","transmit","mission"]},
+    {id:"ostendo",tier:"content",pos:"verb",level:"L1",set:"8",setName:"L1 \u00b7 Ch 8",latin:"ostendo, -ere, ostendi, ostentum",parts:"(3)",en:"I show",hook:"<b>Ostensibly</b> = on the face of it; <b>ostentatious</b> = showy. ostendo = I show.",deriv:["ostensible","ostentatious"]},
+    {id:"rego",tier:"content",pos:"verb",level:"L1",set:"8",setName:"L1 \u00b7 Ch 8",latin:"rego, -ere, rexi, rectum",parts:"(3)",en:"I rule",hook:"A <b>regent</b>, a <b>regime</b>, <b>regular</b>, <b>rectify</b> (set straight). rego = I rule.",deriv:["regent","regime","rectify"]},
+    {id:"scribo",tier:"content",pos:"verb",level:"L1",set:"8",setName:"L1 \u00b7 Ch 8",latin:"scribo, -ere, scripsi, scriptum",parts:"(3)",en:"I write",hook:"A <b>scribe</b>; to <b>describe</b>, a <b>manuscript</b>, <b>scripture</b>. scribo = I write.",deriv:["scribe","manuscript","describe"]},
+
+    {id:"audio",tier:"content",pos:"verb",level:"L1",set:"9",setName:"L1 \u00b7 Ch 9",latin:"audio, -ire",parts:"(4)",en:"I hear, listen",hook:"<b>Audio</b> is sound to hear; an <b>audience</b>, <b>audible</b>, an <b>auditorium</b>. audio = I hear.",deriv:["audio","audience","audible"]},
+    {id:"dormio",tier:"content",pos:"verb",level:"L1",set:"9",setName:"L1 \u00b7 Ch 9",latin:"dormio, -ire",parts:"(4)",en:"I sleep",hook:"A <b>dormitory</b> is for sleeping; <b>dormant</b>, a <b>dormouse</b> (sleepy mouse). dormio = I sleep.",deriv:["dormitory","dormant","dormouse"]},
+    {id:"punio",tier:"content",pos:"verb",level:"L1",set:"9",setName:"L1 \u00b7 Ch 9",latin:"punio, -ire",parts:"(4)",en:"I punish",hook:"To <b>punish</b>; <b>punitive</b>, <b>impunity</b> (without punishment). punio = I punish.",deriv:["punish","punitive","impunity"]},
+    {id:"venio",tier:"content",pos:"verb",level:"L1",set:"9",setName:"L1 \u00b7 Ch 9",latin:"venio, -ire, veni, ventum",parts:"(4)",en:"I come",hook:"<b>Advent</b>, <b>convene</b>, <b>invent</b>, a <b>venue</b>, <b>intervene</b>. venio = I come.",deriv:["advent","convene","venue"]},
+    {id:"ira",tier:"content",pos:"noun",level:"L1",set:"9",setName:"L1 \u00b7 Ch 9",latin:"ira, -ae",parts:"(f)",en:"anger",hook:"<b>Irate</b> = angry; <b>irascible</b>, <b>ire</b>. ira = anger.",deriv:["irate","ire","irascible"]},
+    {id:"pecunia",tier:"content",pos:"noun",level:"L1",set:"9",setName:"L1 \u00b7 Ch 9",latin:"pecunia, -ae",parts:"(f)",en:"money",hook:"<b>Pecuniary</b> = to do with money; <b>impecunious</b> = penniless. (From pecus, cattle = early wealth.)",deriv:["pecuniary","impecunious"]},
+    {id:"turba",tier:"content",pos:"noun",level:"L1",set:"9",setName:"L1 \u00b7 Ch 9",latin:"turba, -ae",parts:"(f)",en:"crowd",hook:"To <b>disturb</b> is to stir up a crowd; <b>turbulent</b>, a <b>turbine</b>, <b>perturb</b>. turba = crowd.",deriv:["disturb","turbulent","perturb"]},
+    {id:"unda",tier:"content",pos:"noun",level:"L1",set:"9",setName:"L1 \u00b7 Ch 9",latin:"unda, -ae",parts:"(f)",en:"wave",hook:"To <b>undulate</b> (move in waves); <b>inundate</b> (flood over), <b>abundant</b>, <b>redundant</b>. unda = wave.",deriv:["undulate","inundate","abundant"]},
+    {id:"rogo",tier:"content",pos:"verb",level:"L1",set:"9",setName:"L1 \u00b7 Ch 9",latin:"rogo, -are",parts:"(1)",en:"I ask",hook:"To <b>interrogate</b> (question); <b>derogatory</b>, <b>arrogant</b> (asking too much). rogo = I ask.",deriv:["interrogate","derogatory","arrogant"]},
+
+    {id:"ab",tier:"prefix",pos:"preposition",level:"L1",set:"10",setName:"L1 \u00b7 Ch 10",latin:"a / ab",parts:"+ abl",en:"from, away from",hook:"<b>Absent</b> (away), <b>abnormal</b> (away from normal), <b>abduct</b> (lead away). a/ab = from.",deriv:["absent","abduct"]},
+    {id:"cum",tier:"prefix",pos:"preposition",level:"L1",set:"10",setName:"L1 \u00b7 Ch 10",latin:"cum",parts:"+ abl",en:"with",hook:"<b>Combine</b>, <b>collect</b>, <b>connect</b>, <b>company</b> (com- = with). cum = with.",deriv:["combine","company","co-"]},
+    {id:"ex",tier:"prefix",pos:"preposition",level:"L1",set:"10",setName:"L1 \u00b7 Ch 10",latin:"e / ex",parts:"+ abl",en:"out of",hook:"<b>Exit</b> (goes out), <b>exclude</b>, <b>export</b>, <b>extract</b> (drag out). e/ex = out of.",deriv:["exit","exclude","extract"]},
+    {id:"in_abl",tier:"prefix",pos:"preposition",level:"L1",set:"10",setName:"L1 \u00b7 Ch 10",latin:"in (+ abl)",parts:"+ abl",en:"in, on",hook:"<b>Include</b>, <b>inscribe</b>, <b>import</b>. in + ablative = in, on (position).",deriv:["include","inscribe"]},
+    {id:"de",tier:"prefix",pos:"preposition",level:"L1",set:"10",setName:"L1 \u00b7 Ch 10",latin:"de",parts:"+ abl",en:"about, down from, concerning",hook:"<b>Descend</b> (climb down), <b>deduct</b>, <b>demote</b> (move down). de = down from, about.",deriv:["descend","deduct","demote"]},
+    {id:"ad",tier:"prefix",pos:"preposition",level:"L1",set:"10",setName:"L1 \u00b7 Ch 10",latin:"ad",parts:"+ acc",en:"to, towards",hook:"<b>Advance</b>, <b>adhere</b> (stick to), <b>admit</b>, <b>advert</b> (turn towards). ad = to, towards.",deriv:["advance","adhere","admit"]},
+    {id:"contra",tier:"prefix",pos:"preposition",level:"L1",set:"10",setName:"L1 \u00b7 Ch 10",latin:"contra",parts:"+ acc",en:"against",hook:"<b>Contrary</b>, <b>contradict</b> (speak against), <b>counter</b>, <b>contraband</b>. contra = against.",deriv:["contrary","contradict","counter"]},
+    {id:"in_acc",tier:"prefix",pos:"preposition",level:"L1",set:"10",setName:"L1 \u00b7 Ch 10",latin:"in (+ acc)",parts:"+ acc",en:"into, onto",hook:"<b>Invade</b> (go into), <b>insert</b>, <b>inject</b>, <b>import</b>. in + accusative = into, onto (motion).",deriv:["invade","inject","insert"]},
+    {id:"per",tier:"prefix",pos:"preposition",level:"L1",set:"10",setName:"L1 \u00b7 Ch 10",latin:"per",parts:"+ acc",en:"through",hook:"<b>Perforate</b> (pierce through), a <b>periscope</b>, <b>permeate</b>, <b>perspire</b>. per = through.",deriv:["perforate","permeate","periscope"]},
+    {id:"trans",tier:"prefix",pos:"preposition",level:"L1",set:"10",setName:"L1 \u00b7 Ch 10",latin:"trans",parts:"+ acc",en:"across",hook:"<b>Transport</b> (carry across), <b>transatlantic</b>, <b>transfer</b>, <b>transparent</b>. trans = across.",deriv:["transport","transatlantic","transfer"]},
+
+    {id:"bene",tier:"content",pos:"adverb",level:"L1",set:"11",setName:"L1 \u00b7 Ch 11",latin:"bene",parts:"",en:"well",hook:"A <b>benefit</b>, <b>benevolent</b> (wishing well), a <b>benediction</b> (speaking well). bene = well.",deriv:["benefit","benevolent","benediction"]},
+    {id:"constituo",tier:"content",pos:"verb",level:"L1",set:"11",setName:"L1 \u00b7 Ch 11",latin:"constituo, -ere, constitui, constitutum",parts:"(3)",en:"I decide, establish",hook:"To <b>constitute</b>; a <b>constitution</b> sets things up; an <b>institute</b>. constituo = I decide.",deriv:["constitute","constitution","institute"]},
+    {id:"hic_adv",tier:"function",pos:"adverb",level:"L1",set:"11",setName:"L1 \u00b7 Ch 11",latin:"hic",parts:"",en:"here",usage:"hic maneo \u2014 I stay HERE (the adverb 'here'; not hic 'this')",deriv:[]},
+    {id:"ibi",tier:"function",pos:"adverb",level:"L1",set:"11",setName:"L1 \u00b7 Ch 11",latin:"ibi",parts:"",en:"there",usage:"ibi sedet \u2014 he sits THERE ('ibid.' = ibidem, 'in the same place')",deriv:["ibid."]},
+    {id:"lego",tier:"content",pos:"verb",level:"L1",set:"11",setName:"L1 \u00b7 Ch 11",latin:"lego, -ere, legi, lectum",parts:"(3)",en:"I read, choose, gather",hook:"A <b>lecture</b>, <b>legible</b>, to <b>elect</b> (choose out), <b>collect</b>, <b>select</b>. lego = I read, choose.",deriv:["legible","lecture","elect"]},
+    {id:"ludo",tier:"content",pos:"verb",level:"L1",set:"11",setName:"L1 \u00b7 Ch 11",latin:"ludo, -ere, lusi, lusum",parts:"(3)",en:"I play",hook:"<b>Ludicrous</b> (playful, absurd); an <b>interlude</b> (play between), a <b>prelude</b>, to <b>allude</b>. ludo = I play.",deriv:["ludicrous","interlude","prelude"]},
+    {id:"moveo",tier:"content",pos:"verb",level:"L1",set:"11",setName:"L1 \u00b7 Ch 11",latin:"moveo, -ere, movi, motum",parts:"(2)",en:"I move",hook:"<b>Motion</b>, a <b>motor</b>, to <b>remove</b>, an <b>emotion</b> (a moved feeling). moveo = I move.",deriv:["motion","motor","remove"]},
+    {id:"pono",tier:"content",pos:"verb",level:"L1",set:"11",setName:"L1 \u00b7 Ch 11",latin:"pono, -ere, posui, positum",parts:"(3)",en:"I put, place",hook:"A <b>position</b>, a <b>deposit</b>, to <b>compose</b>, <b>postpone</b>, an <b>opponent</b>. pono = I place.",deriv:["position","deposit","compose"]},
+    {id:"rideo",tier:"content",pos:"verb",level:"L1",set:"11",setName:"L1 \u00b7 Ch 11",latin:"rideo, -ere, risi, risum",parts:"(2)",en:"I laugh",hook:"<b>Ridiculous</b> (laughable); to <b>deride</b> (laugh at), <b>derision</b>. rideo = I laugh.",deriv:["ridiculous","deride","derision"]},
+    {id:"quod",tier:"function",pos:"conjunction",level:"L1",set:"11",setName:"L1 \u00b7 Ch 11",latin:"quod",parts:"",en:"because",usage:"manet quod fessus est \u2014 he stays BECAUSE he is tired",deriv:[]},
+
+    {id:"amicus",tier:"content",pos:"noun",level:"L1",set:"12",setName:"L1 \u00b7 Ch 12",latin:"amicus, -i",parts:"(m)",en:"friend",hook:"<b>Amicable</b> (friendly); an <b>amigo</b>; <b>amity</b>. amicus = friend (from amo, love).",deriv:["amicable","amity"]},
+    {id:"cibus",tier:"content",pos:"noun",level:"L1",set:"12",setName:"L1 \u00b7 Ch 12",latin:"cibus, -i",parts:"(m)",en:"food",hook:"A <b>ciborium</b> holds the sacred bread. Sound-peg 'SEE-bus': a bus full of food. cibus = food.",deriv:["ciborium"]},
+    {id:"deus",tier:"content",pos:"noun",level:"L1",set:"12",setName:"L1 \u00b7 Ch 12",latin:"deus, -i",parts:"(m)",en:"god",hook:"A <b>deity</b>; to <b>deify</b>; '<b>deus</b> ex machina'. deus = god (dea = goddess).",deriv:["deity","deify"]},
+    {id:"dominus",tier:"content",pos:"noun",level:"L1",set:"12",setName:"L1 \u00b7 Ch 12",latin:"dominus, -i",parts:"(m)",en:"master, lord",hook:"To <b>dominate</b>; a <b>dominion</b>; <b>dominant</b>; the name <b>Dominic</b>. dominus = master, lord.",deriv:["dominate","dominion","dominant"]},
+    {id:"equus",tier:"content",pos:"noun",level:"L1",set:"12",setName:"L1 \u00b7 Ch 12",latin:"equus, -i",parts:"(m)",en:"horse",hook:"<b>Equestrian</b> (horse-riding); <b>equine</b>. equus = horse.",deriv:["equestrian","equine"]},
+    {id:"locus",tier:"content",pos:"noun",level:"L1",set:"12",setName:"L1 \u00b7 Ch 12",latin:"locus, -i",parts:"(m)",en:"place",hook:"A <b>location</b>; <b>local</b>, to <b>locate</b>, to <b>dislocate</b>. locus = place.",deriv:["location","local","locate"]},
+    {id:"murus",tier:"content",pos:"noun",level:"L1",set:"12",setName:"L1 \u00b7 Ch 12",latin:"murus, -i",parts:"(m)",en:"wall",hook:"A <b>mural</b> is painted on a wall; to <b>immure</b> = wall in. murus = wall.",deriv:["mural","immure"]},
+    {id:"servus",tier:"content",pos:"noun",level:"L1",set:"12",setName:"L1 \u00b7 Ch 12",latin:"servus, -i",parts:"(m)",en:"slave",hook:"A <b>servant</b>; <b>servile</b>, <b>service</b>. servus = slave. (Careful: servo = I save!)",deriv:["servant","servile"]},
+    {id:"ventus",tier:"content",pos:"noun",level:"L1",set:"12",setName:"L1 \u00b7 Ch 12",latin:"ventus, -i",parts:"(m)",en:"wind",hook:"To <b>ventilate</b> (let wind through); a <b>vent</b>, a <b>ventilator</b>. ventus = wind.",deriv:["ventilate","vent"]},
+    {id:"itaque",tier:"function",pos:"conjunction",level:"L1",set:"12",setName:"L1 \u00b7 Ch 12",latin:"itaque",parts:"",en:"therefore, and so",usage:"fessus est; itaque manet \u2014 he is tired; THEREFORE he stays",deriv:[]},
+
+    {id:"ager",tier:"content",pos:"noun",level:"L1",set:"13",setName:"L1 \u00b7 Ch 13",latin:"ager, agri",parts:"(m)",en:"field, territory",hook:"<b>Agriculture</b> (field-cultivation); an <b>acre</b>. ager = field.",deriv:["agriculture","acre"]},
+    {id:"filius",tier:"content",pos:"noun",level:"L1",set:"13",setName:"L1 \u00b7 Ch 13",latin:"filius, -ii",parts:"(m)",en:"son",hook:"<b>Filial</b>; to <b>affiliate</b>. filius = son (filia = daughter).",deriv:["filial","affiliate"]},
+    {id:"gladius",tier:"content",pos:"noun",level:"L1",set:"13",setName:"L1 \u00b7 Ch 13",latin:"gladius, -ii",parts:"(m)",en:"sword",hook:"A <b>gladiator</b> fights with a gladius; a <b>gladiolus</b> is the 'little sword' flower! gladius = sword.",deriv:["gladiator","gladiolus"]},
+    {id:"liber",tier:"content",pos:"noun",level:"L1",set:"13",setName:"L1 \u00b7 Ch 13",latin:"liber, libri",parts:"(m)",en:"book",hook:"A <b>library</b> holds books; a <b>libretto</b> (little book). liber = book. (Not liber = free!)",deriv:["library","libretto"]},
+    {id:"magister",tier:"content",pos:"noun",level:"L1",set:"13",setName:"L1 \u00b7 Ch 13",latin:"magister, -tri",parts:"(m)",en:"master, teacher",hook:"A <b>magistrate</b>; <b>master</b>, <b>maestro</b>, <b>magisterial</b>. magister = teacher.",deriv:["magistrate","master","maestro"]},
+    {id:"nuntius",tier:"content",pos:"noun",level:"L1",set:"13",setName:"L1 \u00b7 Ch 13",latin:"nuntius, -ii",parts:"(m)",en:"messenger",hook:"To <b>announce</b>; a papal <b>nuncio</b> (envoy), to <b>pronounce</b>. nuntius = messenger.",deriv:["announce","nuncio"]},
+    {id:"puer",tier:"content",pos:"noun",level:"L1",set:"13",setName:"L1 \u00b7 Ch 13",latin:"puer, pueri",parts:"(m)",en:"boy",hook:"<b>Puerile</b> = boyish, childish; <b>puerility</b>. puer = boy.",deriv:["puerile"]},
+    {id:"socius",tier:"content",pos:"noun",level:"L1",set:"13",setName:"L1 \u00b7 Ch 13",latin:"socius, -ii",parts:"(m)",en:"ally, companion",hook:"<b>Social</b>, a <b>society</b>, to <b>associate</b>, <b>sociable</b>. socius = ally, companion.",deriv:["social","society","associate"]},
+    {id:"vir",tier:"content",pos:"noun",level:"L1",set:"13",setName:"L1 \u00b7 Ch 13",latin:"vir, viri",parts:"(m)",en:"man",hook:"<b>Virile</b> (manly); <b>virtue</b> (manliness, courage); a <b>triumvirate</b> (three men). vir = man.",deriv:["virile","virtue","triumvirate"]},
+    {id:"prope",tier:"prefix",pos:"preposition",level:"L1",set:"13",setName:"L1 \u00b7 Ch 13",latin:"prope",parts:"+ acc",en:"near",hook:"To <b>approach</b> (ad + prope, draw near); <b>propinquity</b> = nearness. prope = near.",deriv:["approach","propinquity"]},
+
+    {id:"etiam",tier:"function",pos:"adverb",level:"L1",set:"14",setName:"L1 \u00b7 Ch 14",latin:"etiam",parts:"",en:"even, also",usage:"etiam pueri sciunt \u2014 EVEN the boys know",deriv:[]},
+    {id:"iam",tier:"function",pos:"adverb",level:"L1",set:"14",setName:"L1 \u00b7 Ch 14",latin:"iam",parts:"",en:"now, already",usage:"iam venit \u2014 he has come ALREADY",deriv:[]},
+    {id:"igitur",tier:"function",pos:"conjunction",level:"L1",set:"14",setName:"L1 \u00b7 Ch 14",latin:"igitur",parts:"",en:"therefore, and so",usage:"fessus est, igitur dormit \u2014 he is tired, THEREFORE he sleeps",deriv:[]},
+    {id:"iterum",tier:"content",pos:"adverb",level:"L1",set:"14",setName:"L1 \u00b7 Ch 14",latin:"iterum",parts:"",en:"again",hook:"To <b>reiterate</b> = to say again; to <b>iterate</b>. iterum = again.",deriv:["reiterate","iterate"]},
+    {id:"magnopere",tier:"content",pos:"adverb",level:"L1",set:"14",setName:"L1 \u00b7 Ch 14",latin:"magnopere",parts:"",en:"greatly",hook:"From <b>magnus</b> (great) + opere \u2192 greatly. magnopere = greatly.",deriv:[]},
+    {id:"mox",tier:"content",pos:"adverb",level:"L1",set:"14",setName:"L1 \u00b7 Ch 14",latin:"mox",parts:"",en:"soon",hook:"Sound-peg: 'mox' \u2014 mock-ups soon become real. mox = soon. (No English cousin \u2014 drill it.)",deriv:[]},
+    {id:"numquam",tier:"function",pos:"adverb",level:"L1",set:"14",setName:"L1 \u00b7 Ch 14",latin:"numquam",parts:"",en:"never",usage:"numquam dormit \u2014 he NEVER sleeps (num + quam)",deriv:[]},
+    {id:"olim",tier:"function",pos:"adverb",level:"L1",set:"14",setName:"L1 \u00b7 Ch 14",latin:"olim",parts:"",en:"once, at some time",usage:"olim erat rex \u2014 ONCE there was a king",deriv:[]},
+    {id:"semper",tier:"content",pos:"adverb",level:"L1",set:"14",setName:"L1 \u00b7 Ch 14",latin:"semper",parts:"",en:"always",hook:"'<b>Semper</b> fidelis' (always faithful, the US Marines); <b>sempiternal</b> (everlasting). semper = always.",deriv:["semper fidelis","sempiternal"]},
+    {id:"sic",tier:"function",pos:"adverb",level:"L1",set:"14",setName:"L1 \u00b7 Ch 14",latin:"sic",parts:"",en:"thus, in this way",usage:"sic dixit \u2014 THUS he spoke ('[sic]' in a quote = 'so it was written')",deriv:["[sic]"]},
+
+    {id:"aurum",tier:"content",pos:"noun",level:"L1",set:"15",setName:"L1 \u00b7 Ch 15",latin:"aurum, -i",parts:"(n)",en:"gold",hook:"<b>Au</b> is gold's symbol on the periodic table, straight from aurum; <b>aureate</b>. aurum = gold.",deriv:["Au (gold)","aureate"]},
+    {id:"auxilium",tier:"content",pos:"noun",level:"L1",set:"15",setName:"L1 \u00b7 Ch 15",latin:"auxilium, -ii",parts:"(n)",en:"help",hook:"<b>Auxiliary</b> = giving support; <b>auxiliaries</b> were helper troops. auxilium = help.",deriv:["auxiliary"]},
+    {id:"bellum",tier:"content",pos:"noun",level:"L1",set:"15",setName:"L1 \u00b7 Ch 15",latin:"bellum, -i",parts:"(n)",en:"war",hook:"<b>Antebellum</b> (before the war), <b>belligerent</b> (waging war), a <b>rebel</b>. bellum = war.",deriv:["antebellum","belligerent","rebel"]},
+    {id:"caelum",tier:"content",pos:"noun",level:"L1",set:"15",setName:"L1 \u00b7 Ch 15",latin:"caelum, -i",parts:"(n)",en:"sky, heaven",hook:"<b>Celestial</b> = of the sky/heavens; a <b>ceiling</b> is a room's 'sky'. caelum = sky, heaven.",deriv:["celestial","ceiling"]},
+    {id:"oppidum",tier:"content",pos:"noun",level:"L1",set:"15",setName:"L1 \u00b7 Ch 15",latin:"oppidum, -i",parts:"(n)",en:"town",hook:"An <b>oppidan</b> is a town-dweller (the term Eton uses for non-boarders). oppidum = town.",deriv:["oppidan"]},
+    {id:"periculum",tier:"content",pos:"noun",level:"L1",set:"15",setName:"L1 \u00b7 Ch 15",latin:"periculum, -i",parts:"(n)",en:"danger",hook:"<b>Perilous</b> = dangerous; <b>peril</b>, to <b>imperil</b>. periculum = danger.",deriv:["peril","perilous"]},
+    {id:"scutum",tier:"content",pos:"noun",level:"L1",set:"15",setName:"L1 \u00b7 Ch 15",latin:"scutum, -i",parts:"(n)",en:"shield",hook:"A <b>scute</b> is a protective bony plate (on turtles and crocodiles). scutum = shield.",deriv:["scute"]},
+    {id:"templum",tier:"content",pos:"noun",level:"L1",set:"15",setName:"L1 \u00b7 Ch 15",latin:"templum, -i",parts:"(n)",en:"temple",hook:"A <b>temple</b>; to <b>contemplate</b> (originally to mark out a sacred space to observe). templum = temple.",deriv:["temple","contemplate"]},
+    {id:"verbum",tier:"content",pos:"noun",level:"L1",set:"15",setName:"L1 \u00b7 Ch 15",latin:"verbum, -i",parts:"(n)",en:"word",hook:"A <b>verb</b>; <b>verbal</b>, <b>verbatim</b> (word-for-word), a <b>proverb</b>. verbum = word.",deriv:["verb","verbal","verbatim"]},
+    {id:"vinum",tier:"content",pos:"noun",level:"L1",set:"15",setName:"L1 \u00b7 Ch 15",latin:"vinum, -i",parts:"(n)",en:"wine",hook:"A <b>vine</b>, a <b>vineyard</b>, <b>vintage</b>, <b>vinegar</b> (sour wine). vinum = wine.",deriv:["vine","vintage","vinegar"]},
+
+    {id:"unus",tier:"number",pos:"numeral",level:"L1",set:"16",setName:"L1 \u00b7 Ch 16",latin:"unus",parts:"",en:"one",hook:"A <b>unit</b>, to <b>unite</b>, <b>unique</b>, a <b>union</b>, the <b>universe</b>. unus = one.",deriv:["unit","unique","union"]},
+    {id:"duo",tier:"number",pos:"numeral",level:"L1",set:"16",setName:"L1 \u00b7 Ch 16",latin:"duo",parts:"",en:"two",hook:"A <b>duet</b>, a <b>duo</b>, <b>dual</b>, to <b>duplicate</b>. duo = two.",deriv:["duet","dual","duplicate"]},
+    {id:"tres",tier:"number",pos:"numeral",level:"L1",set:"16",setName:"L1 \u00b7 Ch 16",latin:"tres",parts:"",en:"three",hook:"A <b>trio</b>, <b>triple</b>, a <b>trident</b> (three teeth), a <b>triangle</b>. tres = three.",deriv:["trio","triple","trident"]},
+    {id:"quattuor",tier:"number",pos:"numeral",level:"L1",set:"16",setName:"L1 \u00b7 Ch 16",latin:"quattuor",parts:"",en:"four",hook:"A <b>quartet</b>, a <b>quarter</b>, a <b>quadruped</b> (four feet). quattuor = four.",deriv:["quartet","quarter","quadruped"]},
+    {id:"quinque",tier:"number",pos:"numeral",level:"L1",set:"16",setName:"L1 \u00b7 Ch 16",latin:"quinque",parts:"",en:"five",hook:"A <b>quintet</b>, <b>quintuplets</b>, the <b>quintessence</b> (fifth essence). quinque = five.",deriv:["quintet","quintuplet"]},
+    {id:"sex",tier:"number",pos:"numeral",level:"L1",set:"16",setName:"L1 \u00b7 Ch 16",latin:"sex",parts:"",en:"six",hook:"A <b>sextet</b>, a <b>sextant</b>, <b>sextuplets</b>. sex = six.",deriv:["sextet","sextant"]},
+    {id:"septem",tier:"number",pos:"numeral",level:"L1",set:"16",setName:"L1 \u00b7 Ch 16",latin:"septem",parts:"",en:"seven",hook:"<b>September</b> (the old 7th month); a <b>septet</b>. septem = seven.",deriv:["September","septet"]},
+    {id:"octo",tier:"number",pos:"numeral",level:"L1",set:"16",setName:"L1 \u00b7 Ch 16",latin:"octo",parts:"",en:"eight",hook:"An <b>octopus</b> (8 arms), <b>October</b> (old 8th month), an <b>octagon</b>, an <b>octave</b>. octo = eight.",deriv:["octopus","October","octagon"]},
+    {id:"novem",tier:"number",pos:"numeral",level:"L1",set:"16",setName:"L1 \u00b7 Ch 16",latin:"novem",parts:"",en:"nine",hook:"<b>November</b> (the old 9th month); a <b>novena</b> (nine days of prayer). novem = nine.",deriv:["November","novena"]},
+    {id:"decem",tier:"number",pos:"numeral",level:"L1",set:"16",setName:"L1 \u00b7 Ch 16",latin:"decem",parts:"",en:"ten",hook:"<b>December</b> (old 10th month), a <b>decade</b>, <b>decimal</b>, a <b>decathlon</b>. decem = ten.",deriv:["December","decade","decimal"]},
+
+    {id:"altus",tier:"content",pos:"adjective",level:"L1",set:"17",setName:"L1 \u00b7 Ch 17",latin:"altus, -a, -um",parts:"",en:"high, deep",hook:"<b>Altitude</b> (height); <b>alto</b> (a high voice); to <b>exalt</b> (raise high). altus = high, deep.",deriv:["altitude","alto","exalt"]},
+    {id:"clarus",tier:"content",pos:"adjective",level:"L1",set:"17",setName:"L1 \u00b7 Ch 17",latin:"clarus, -a, -um",parts:"",en:"famous, clear",hook:"<b>Clarity</b>, to <b>declare</b>, <b>clarify</b>, a <b>clarion</b> call. clarus = clear, famous.",deriv:["clarity","declare","clarify"]},
+    {id:"fessus",tier:"content",pos:"adjective",level:"L1",set:"17",setName:"L1 \u00b7 Ch 17",latin:"fessus, -a, -um",parts:"",en:"tired",hook:"Sound-peg: making a 'fuss' is tiring. fessus = tired. (No English cousin \u2014 drill it.)",deriv:[]},
+    {id:"iratus",tier:"content",pos:"adjective",level:"L1",set:"17",setName:"L1 \u00b7 Ch 17",latin:"iratus, -a, -um",parts:"",en:"angry",hook:"<b>Irate</b> = angry; <b>irascible</b>, <b>ire</b>. iratus = angry (from ira, anger).",deriv:["irate","ire"]},
+    {id:"laetus",tier:"content",pos:"adjective",level:"L1",set:"17",setName:"L1 \u00b7 Ch 17",latin:"laetus, -a, -um",parts:"",en:"happy, joyful",hook:"The name <b>Letitia</b> means joy/gladness \u2014 from laetitia. laetus = happy, joyful.",deriv:["Letitia"]},
+    {id:"meus",tier:"function",pos:"adjective",level:"L1",set:"17",setName:"L1 \u00b7 Ch 17",latin:"meus, -a, -um",parts:"",en:"my",usage:"liber meus \u2014 MY book ('mea culpa' = through my fault)",deriv:["mea culpa"]},
+
+    {id:"notus",tier:"content",pos:"adjective",level:"L1",set:"18",setName:"L1 \u00b7 Ch 18",latin:"notus, -a, -um",parts:"",en:"well known, famous",hook:"<b>Notable</b>, <b>notorious</b> (famous for bad reasons), to <b>notify</b>. notus = well known (from nosco, know).",deriv:["notable","notorious"]},
+    {id:"novus",tier:"content",pos:"adjective",level:"L1",set:"18",setName:"L1 \u00b7 Ch 18",latin:"novus, -a, -um",parts:"",en:"new",hook:"A <b>novel</b> (new), a <b>novice</b>, to <b>innovate</b>, to <b>renovate</b>. novus = new.",deriv:["novel","novice","innovate"]},
+    {id:"perterritus",tier:"content",pos:"adjective",level:"L1",set:"18",setName:"L1 \u00b7 Ch 18",latin:"perterritus, -a, -um",parts:"",en:"terrified",hook:"per (thoroughly) + territus (frightened) \u2192 terrified. (cf. terreo, terror.)",deriv:["terror"]},
+    {id:"romanus",tier:"content",pos:"adjective",level:"L1",set:"18",setName:"L1 \u00b7 Ch 18",latin:"Romanus, -a, -um",parts:"",en:"Roman",hook:"<b>Roman</b>; the <b>Romance</b> languages descend from Roman Latin. Romanus = Roman.",deriv:["Roman","Romance"]},
+    {id:"saevus",tier:"content",pos:"adjective",level:"L1",set:"18",setName:"L1 \u00b7 Ch 18",latin:"saevus, -a, -um",parts:"",en:"savage, cruel",hook:"Sound-peg: a 'SAVE-us' beast spares no one. saevus = savage, cruel. (Drill it.)",deriv:[]},
+    {id:"suus",tier:"function",pos:"adjective",level:"L1",set:"18",setName:"L1 \u00b7 Ch 18",latin:"suus, -a, -um",parts:"",en:"his/her/its/their own",usage:"librum suum legit \u2014 he reads HIS OWN book (reflexive)",deriv:[]},
+    {id:"tutus",tier:"content",pos:"adjective",level:"L1",set:"18",setName:"L1 \u00b7 Ch 18",latin:"tutus, -a, -um",parts:"",en:"safe",hook:"A <b>tutor</b> is a protector/guardian; <b>tutelage</b>, <b>tuition</b>. tutus = safe, protected.",deriv:["tutor","tutelage"]},
+    {id:"tuus",tier:"function",pos:"adjective",level:"L1",set:"18",setName:"L1 \u00b7 Ch 18",latin:"tuus, -a, -um",parts:"",en:"your (sing.)",usage:"liber tuus \u2014 YOUR book (one person's)",deriv:[]},
+    {id:"validus",tier:"content",pos:"adjective",level:"L1",set:"18",setName:"L1 \u00b7 Ch 18",latin:"validus, -a, -um",parts:"",en:"strong",hook:"<b>Valid</b> (strong, sound); <b>invalid</b>, to <b>validate</b>, <b>valiant</b>. validus = strong (from valeo, be strong).",deriv:["valid","valiant","validate"]},
+
+    {id:"miser",tier:"content",pos:"adjective",level:"L1",set:"19",setName:"L1 \u00b7 Ch 19",latin:"miser, -era, -erum",parts:"",en:"wretched, miserable",hook:"<b>Miserable</b>, <b>misery</b>, a <b>miser</b> (wretched hoarder), to <b>commiserate</b>. miser = wretched.",deriv:["miserable","misery","commiserate"]},
+    {id:"noster",tier:"function",pos:"adjective",level:"L1",set:"19",setName:"L1 \u00b7 Ch 19",latin:"noster, -ra, -rum",parts:"",en:"our",usage:"patria nostra \u2014 OUR country ('Pater Noster' = Our Father)",deriv:["Pater Noster"]},
+    {id:"pulcher",tier:"content",pos:"adjective",level:"L1",set:"19",setName:"L1 \u00b7 Ch 19",latin:"pulcher, -ra, -rum",parts:"",en:"beautiful",hook:"<b>Pulchritude</b> = beauty (a glorious word to drop in an essay!). pulcher = beautiful.",deriv:["pulchritude"]},
+    {id:"sacer",tier:"content",pos:"adjective",level:"L1",set:"19",setName:"L1 \u00b7 Ch 19",latin:"sacer, -ra, -rum",parts:"",en:"sacred",hook:"<b>Sacred</b>, a <b>sacrifice</b>, a <b>sacrament</b>, to <b>consecrate</b>, <b>sacrilege</b>. sacer = sacred.",deriv:["sacred","sacrifice","consecrate"]},
+    {id:"vester",tier:"function",pos:"adjective",level:"L1",set:"19",setName:"L1 \u00b7 Ch 19",latin:"vester, -ra, -rum",parts:"",en:"your (pl.)",usage:"patria vestra \u2014 YOUR country (more than one of you)",deriv:[]},
+    {id:"ego",tier:"content",pos:"pronoun",level:"L1",set:"19",setName:"L1 \u00b7 Ch 19",latin:"ego",parts:"",en:"I, me",hook:"The <b>ego</b> is the 'I' of psychology; an <b>egotist</b>, <b>egocentric</b>. ego = I, me.",deriv:["ego","egotist"]},
+    {id:"nos",tier:"function",pos:"pronoun",level:"L1",set:"19",setName:"L1 \u00b7 Ch 19",latin:"nos",parts:"",en:"we, us",usage:"nos Romani \u2014 WE Romans",deriv:[]},
+    {id:"tu",tier:"function",pos:"pronoun",level:"L1",set:"19",setName:"L1 \u00b7 Ch 19",latin:"tu",parts:"",en:"you (sing.)",usage:"tu quoque \u2014 YOU too ('et tu, Brute!')",deriv:["et tu, Brute"]},
+    {id:"vos",tier:"function",pos:"pronoun",level:"L1",set:"19",setName:"L1 \u00b7 Ch 19",latin:"vos",parts:"",en:"you (pl.)",usage:"vos omnes \u2014 all of YOU",deriv:[]},
+    {id:"proelium",tier:"content",pos:"noun",level:"L1",set:"19",setName:"L1 \u00b7 Ch 19",latin:"proelium, -i",parts:"(n)",en:"battle",hook:"Sound-peg 'PRY-lium': prying open the enemy line in battle. proelium = battle. (Drill it.)",deriv:[]},
+
+    {id:"absum",tier:"content",pos:"verb",level:"L1",set:"20",setName:"L1 \u00b7 Ch 20",latin:"absum, abesse, afui",parts:"(irr)",en:"I am absent, away",hook:"ab (away) + sum (I am) \u2192 I am away. <b>Absent</b>, <b>absence</b>. absum = I am away.",deriv:["absent","absence"]},
+    {id:"adsum",tier:"content",pos:"verb",level:"L1",set:"20",setName:"L1 \u00b7 Ch 20",latin:"adsum, adesse, adfui",parts:"(irr)",en:"I am present",hook:"ad (at) + sum (I am) \u2192 I am here. (Answer the register: 'adsum!') adsum = I am present.",deriv:[]},
+    {id:"capio",tier:"content",pos:"verb",level:"L1",set:"20",setName:"L1 \u00b7 Ch 20",latin:"capio, -ere, cepi, captum",parts:"(M)",en:"I take, capture",hook:"To <b>capture</b>; a <b>captive</b>, <b>capable</b>, to <b>accept</b>, a <b>recipe</b> (literally 'take!'). capio = I take.",deriv:["capture","captive","capable"]},
+    {id:"cupio",tier:"content",pos:"verb",level:"L1",set:"20",setName:"L1 \u00b7 Ch 20",latin:"cupio, -ere, cupivi, cupitum",parts:"(M)",en:"I desire, want",hook:"<b>Cupidity</b> = greed; <b>Cupid</b>, god of desire; <b>concupiscence</b>. cupio = I desire.",deriv:["cupidity","Cupid"]},
+    {id:"facio",tier:"content",pos:"verb",level:"L1",set:"20",setName:"L1 \u00b7 Ch 20",latin:"facio, -ere, feci, factum",parts:"(M)",en:"I do, make",hook:"A <b>factory</b>, to <b>manufacture</b>, a <b>fact</b>, an <b>effect</b>, <b>fiction</b>. facio = I do, make.",deriv:["factory","manufacture","fact"]},
+    {id:"iacio",tier:"content",pos:"verb",level:"L1",set:"20",setName:"L1 \u00b7 Ch 20",latin:"iacio, -ere, ieci, iactum",parts:"(M)",en:"I throw",hook:"To <b>eject</b>, <b>inject</b>, <b>project</b>, <b>reject</b>; a <b>trajectory</b>. iacio = I throw.",deriv:["eject","project","trajectory"]},
+    {id:"sum",tier:"content",pos:"verb",level:"L1",set:"20",setName:"L1 \u00b7 Ch 20",latin:"sum, esse, fui",parts:"(irr)",en:"I am",hook:"The verb 'to be': <b>essence</b>, <b>present</b>, <b>absent</b> all grow from esse. (cogito ergo sum.) sum = I am.",deriv:["essence"]},
+    {id:"tamen",tier:"function",pos:"conjunction",level:"L1",set:"20",setName:"L1 \u00b7 Ch 20",latin:"tamen",parts:"",en:"however, but",usage:"fessus est; manet tamen \u2014 he is tired; he stays HOWEVER",deriv:[]},
+    {id:"ubi_conj",tier:"function",pos:"conjunction",level:"L1",set:"20",setName:"L1 \u00b7 Ch 20",latin:"ubi",parts:"",en:"when, where",usage:"ubi venit, gaudemus \u2014 WHEN he comes, we rejoice (here ubi = when/where)",deriv:[]},
+    {id:"via",tier:"content",pos:"noun",level:"L1",set:"20",setName:"L1 \u00b7 Ch 20",latin:"via, -ae",parts:"(f)",en:"road, way, street",hook:"A <b>viaduct</b> carries a road; <b>via</b> (by way of), to <b>deviate</b> (off the road), <b>trivial</b> (a three-road junction). via = road.",deriv:["viaduct","via","deviate"]},
+
+    {id:"primus",tier:"number",pos:"numeral",level:"L1",set:"21",setName:"L1 \u00b7 Ch 21",latin:"primus, -a, -um",parts:"",en:"first",hook:"<b>Prime</b>, <b>primary</b>, <b>primitive</b>, <b>premier</b>, a <b>prince</b> (first-taker). primus = first.",deriv:["prime","primary","premier"]},
+    {id:"secundus",tier:"number",pos:"numeral",level:"L1",set:"21",setName:"L1 \u00b7 Ch 21",latin:"secundus, -a, -um",parts:"",en:"second",hook:"<b>Second</b>, <b>secondary</b> (also means 'following', as a fair wind). secundus = second.",deriv:["second","secondary"]},
+    {id:"tertius",tier:"number",pos:"numeral",level:"L1",set:"21",setName:"L1 \u00b7 Ch 21",latin:"tertius, -a, -um",parts:"",en:"third",hook:"<b>Tertiary</b> (third level, after primary and secondary). tertius = third.",deriv:["tertiary"]},
+    {id:"quartus",tier:"number",pos:"numeral",level:"L1",set:"21",setName:"L1 \u00b7 Ch 21",latin:"quartus, -a, -um",parts:"",en:"fourth",hook:"A <b>quarter</b> (a fourth); a <b>quart</b>, a <b>quarto</b>. quartus = fourth.",deriv:["quarter","quart"]},
+    {id:"quintus",tier:"number",pos:"numeral",level:"L1",set:"21",setName:"L1 \u00b7 Ch 21",latin:"quintus, -a, -um",parts:"",en:"fifth",hook:"The <b>quintessence</b> = the 'fifth essence', a perfect distillation. quintus = fifth.",deriv:["quintessence"]},
+    {id:"sextus",tier:"number",pos:"numeral",level:"L1",set:"21",setName:"L1 \u00b7 Ch 21",latin:"sextus, -a, -um",parts:"",en:"sixth",hook:"The Roman name <b>Sextus</b> was often given to a sixth child. sextus = sixth.",deriv:["Sextus"]},
+    {id:"septimus",tier:"number",pos:"numeral",level:"L1",set:"21",setName:"L1 \u00b7 Ch 21",latin:"septimus, -a, -um",parts:"",en:"seventh",hook:"From <b>septem</b> (seven); the name <b>Septimus</b> = seventh child. septimus = seventh.",deriv:["Septimus"]},
+    {id:"octavus",tier:"number",pos:"numeral",level:"L1",set:"21",setName:"L1 \u00b7 Ch 21",latin:"octavus, -a, -um",parts:"",en:"eighth",hook:"An <b>octave</b> is the eighth note; <b>Octavian</b>/Octavia (eighth child). octavus = eighth.",deriv:["octave","Octavian"]},
+    {id:"nonus",tier:"number",pos:"numeral",level:"L1",set:"21",setName:"L1 \u00b7 Ch 21",latin:"nonus, -a, -um",parts:"",en:"ninth",hook:"<b>Noon</b> comes from 'nona hora', the ninth hour! Also 'nones'. nonus = ninth.",deriv:["noon","nones"]},
+    {id:"decimus",tier:"number",pos:"numeral",level:"L1",set:"21",setName:"L1 \u00b7 Ch 21",latin:"decimus, -a, -um",parts:"",en:"tenth",hook:"To <b>decimate</b> = to kill every tenth man (a Roman punishment!); <b>decimal</b>. decimus = tenth.",deriv:["decimate","decimal"]},
+
+    {id:"captivus",tier:"content",pos:"noun",level:"L1",set:"21A",setName:"L1 \u00b7 Ch 21A",latin:"captivus, -i",parts:"(m)",en:"captive, prisoner",hook:"A <b>captive</b>; <b>captivity</b>, to <b>captivate</b>. captivus = prisoner (from capio, take).",deriv:["captive","captivate"]},
+    {id:"hortus",tier:"content",pos:"noun",level:"L1",set:"21A",setName:"L1 \u00b7 Ch 21A",latin:"hortus, -i",parts:"(m)",en:"garden",hook:"<b>Horticulture</b> = gardening; <b>horticultural</b>. hortus = garden.",deriv:["horticulture"]},
+    {id:"libertus",tier:"content",pos:"noun",level:"L1",set:"21A",setName:"L1 \u00b7 Ch 21A",latin:"libertus, -i",parts:"(m)",en:"freedman",hook:"A freed slave \u2014 think <b>liberty</b>, <b>liberate</b> (from liber, free). libertus = freedman.",deriv:["liberty"]},
+    {id:"maritus",tier:"content",pos:"noun",level:"L1",set:"21A",setName:"L1 \u00b7 Ch 21A",latin:"maritus, -i",parts:"(m)",en:"husband",hook:"<b>Marital</b> = of marriage; to <b>marry</b>. maritus = husband.",deriv:["marital","marry"]},
+    {id:"consilium",tier:"content",pos:"noun",level:"L1",set:"21A",setName:"L1 \u00b7 Ch 21A",latin:"consilium, -ii",parts:"(n)",en:"plan, advice",hook:"To take <b>counsel</b>; a <b>council</b>, to <b>consult</b>. consilium = plan, advice.",deriv:["counsel","council","consult"]},
+    {id:"forum",tier:"content",pos:"noun",level:"L1",set:"21A",setName:"L1 \u00b7 Ch 21A",latin:"forum, -i",parts:"(n)",en:"forum, marketplace",hook:"A <b>forum</b> (still used for public debate); <b>forensic</b> = of the forum/law-court. forum = marketplace.",deriv:["forum","forensic"]},
+    {id:"roma",tier:"content",pos:"noun",level:"L1",set:"21A",setName:"L1 \u00b7 Ch 21A",latin:"Roma, -ae",parts:"(f)",en:"Rome",hook:"<b>Rome</b>; <b>Roman</b>, <b>Romance</b> languages. Roma = Rome.",deriv:["Rome","Roman"]},
+    {id:"graecia",tier:"content",pos:"noun",level:"L1",set:"21A",setName:"L1 \u00b7 Ch 21A",latin:"Graecia, -ae",parts:"(f)",en:"Greece",hook:"<b>Greece</b>; <b>Graeco</b>-Roman. Graecia = Greece.",deriv:["Greece","Graeco-"]},
+    {id:"troia",tier:"content",pos:"noun",level:"L1",set:"21A",setName:"L1 \u00b7 Ch 21A",latin:"Troia, -ae",parts:"(f)",en:"Troy",hook:"<b>Troy</b>; the <b>Trojan</b> horse \u2014 and a computer <b>Trojan</b> hides inside like the wooden horse! Troia = Troy.",deriv:["Troy","Trojan"]},
+    {id:"troianus",tier:"content",pos:"adjective",level:"L1",set:"21A",setName:"L1 \u00b7 Ch 21A",latin:"Troianus, -a, -um",parts:"",en:"Trojan",hook:"<b>Trojan</b> \u2014 the Trojan War, the Trojan horse. Troianus = Trojan.",deriv:["Trojan"]},
+
+    {id:"exercitus",tier:"content",pos:"noun",level:"CAS",set:"38",setName:"CAS \u00b7 Ch 1",latin:"exercitus, -us",parts:"(m)",en:"army",hook:"An army drills and <b>exercises</b> (from exerceo, to train). exercitus = army.",deriv:["exercise"]},
+    {id:"portus",tier:"content",pos:"noun",level:"CAS",set:"38",setName:"CAS \u00b7 Ch 1",latin:"portus, -us",parts:"(m)",en:"port, harbour",hook:"A <b>port</b>; a <b>porthole</b>; <b>opportunity</b> (ob + portus, a favourable harbour wind!). portus = port.",deriv:["port","opportunity"]},
+    {id:"gradus",tier:"content",pos:"noun",level:"CAS",set:"38",setName:"CAS \u00b7 Ch 1",latin:"gradus, -us",parts:"(m)",en:"step",hook:"A <b>grade</b>, to <b>progress</b> (step forward), a <b>gradual</b> slope, a <b>gradient</b>. gradus = step.",deriv:["grade","progress","gradient"]},
+    {id:"manus",tier:"content",pos:"noun",level:"CAS",set:"38",setName:"CAS \u00b7 Ch 1",latin:"manus, -us",parts:"(f)",en:"hand",hook:"<b>Manual</b> (by hand), <b>manufacture</b>, a <b>manuscript</b>, to <b>manage</b>, a <b>manicure</b>. manus = hand. (4th decl, feminine.)",deriv:["manual","manufacture","manuscript"]},
+    {id:"domus",tier:"content",pos:"noun",level:"CAS",set:"38",setName:"CAS \u00b7 Ch 1",latin:"domus, -us",parts:"(f)",en:"home, house",hook:"<b>Domestic</b> (of the home); a <b>dome</b>, a <b>domicile</b>, a <b>domain</b>. domus = home.",deriv:["domestic","domicile"]},
+    {id:"ago",tier:"content",pos:"verb",level:"CAS",set:"38",setName:"CAS \u00b7 Ch 1",latin:"ago, -ere, egi, actum",parts:"(3)",en:"I do, drive, lead",hook:"To <b>act</b>; an <b>agent</b>, an <b>agenda</b> (things to be done), to <b>agitate</b>. ago = I do, drive.",deriv:["act","agent","agenda"]},
+    {id:"cado",tier:"content",pos:"verb",level:"CAS",set:"38",setName:"CAS \u00b7 Ch 1",latin:"cado, -ere, cecidi, casum",parts:"(3)",en:"I fall",hook:"A <b>cadence</b> (a falling rhythm), a <b>cascade</b>, an <b>accident</b> (a befalling), <b>decay</b>. cado = I fall.",deriv:["cadence","cascade","accident"]},
+    {id:"cedo",tier:"content",pos:"verb",level:"CAS",set:"38",setName:"CAS \u00b7 Ch 1",latin:"cedo, -ere, cessi, cessum",parts:"(3)",en:"I give in, yield",hook:"To <b>cede</b>, <b>concede</b>, <b>recede</b>, <b>proceed</b>, gain <b>access</b>. cedo = I yield, go.",deriv:["cede","concede","proceed"]},
+    {id:"celo",tier:"content",pos:"verb",level:"CAS",set:"38",setName:"CAS \u00b7 Ch 1",latin:"celo, -are",parts:"(1)",en:"I hide",hook:"To <b>conceal</b>; the <b>occult</b> is the 'hidden'. celo = I hide.",deriv:["conceal"]},
+    {id:"nego",tier:"content",pos:"verb",level:"CAS",set:"38",setName:"CAS \u00b7 Ch 1",latin:"nego, -are",parts:"(1)",en:"I deny, say... not",hook:"To <b>negate</b>; <b>negative</b>, to <b>renege</b>, to <b>deny</b>. nego = I say no, deny.",deriv:["negate","negative","deny"]},
+
+    {id:"ars",tier:"content",pos:"noun",level:"CAS",set:"39",setName:"CAS \u00b7 Ch 2",latin:"ars, artis",parts:"(f)",en:"art, skill",hook:"<b>Art</b>, an <b>artist</b>, an <b>artisan</b>, <b>artful</b>, an <b>artefact</b>. ars = art, skill.",deriv:["art","artist","artefact"]},
+    {id:"arx",tier:"content",pos:"noun",level:"CAS",set:"39",setName:"CAS \u00b7 Ch 2",latin:"arx, arcis",parts:"(f)",en:"citadel",hook:"Sound-peg: 'arks' kept safe on the high citadel. arx = citadel, stronghold. (Drill it.)",deriv:[]},
+    {id:"campus",tier:"content",pos:"noun",level:"CAS",set:"39",setName:"CAS \u00b7 Ch 2",latin:"campus, -i",parts:"(m)",en:"plain, field",hook:"A <b>campus</b> (open ground), a <b>camp</b>, a <b>campaign</b>, a <b>champion</b> (one who fought in the field). campus = plain.",deriv:["campus","camp","campaign"]},
+    {id:"castra",tier:"content",pos:"noun",level:"CAS",set:"39",setName:"CAS \u00b7 Ch 2",latin:"castra, -orum",parts:"(n.pl)",en:"camp",hook:"A <b>castle</b>; English '-caster/-chester' towns (Lancaster, Manchester) were Roman camps! castra = camp.",deriv:["castle","-chester"]},
+    {id:"cognosco",tier:"content",pos:"verb",level:"CAS",set:"39",setName:"CAS \u00b7 Ch 2",latin:"cognosco, -ere, cognovi, cognitum",parts:"(3)",en:"I get to know, learn",hook:"To <b>recognise</b>; <b>cognition</b>, <b>incognito</b> (not known), to <b>diagnose</b>. cognosco = I get to know.",deriv:["recognise","cognition","incognito"]},
+    {id:"pareo",tier:"content",pos:"verb",level:"CAS",set:"39",setName:"CAS \u00b7 Ch 2",latin:"pareo, -ere, parui",parts:"(2) + dat",en:"I obey",hook:"Sound-peg 'pa-RAY-oh': a good soldier pays heed and obeys. pareo = I obey (+ dative).",deriv:[]},
+    {id:"iaceo",tier:"content",pos:"verb",level:"CAS",set:"39",setName:"CAS \u00b7 Ch 2",latin:"iaceo, -ere, iacui",parts:"(2)",en:"I lie (down)",hook:"<b>Adjacent</b> = lying next to. iaceo = I lie down. (Easy to confuse with iacio, I throw!)",deriv:["adjacent"]},
+    {id:"puto",tier:"content",pos:"verb",level:"CAS",set:"39",setName:"CAS \u00b7 Ch 2",latin:"puto, -are",parts:"(1)",en:"I think",hook:"To <b>compute</b> (think out), a <b>computer</b>, a <b>dispute</b>, your <b>reputation</b> (what people think of you). puto = I think.",deriv:["compute","computer","reputation"]},
+    {id:"spero",tier:"content",pos:"verb",level:"CAS",set:"39",setName:"CAS \u00b7 Ch 2",latin:"spero, -are",parts:"(1)",en:"I hope",hook:"To <b>despair</b> is to lose hope (de + spero); to <b>prosper</b>. spero = I hope (cf. spes).",deriv:["despair","prosper"]},
+
+    {id:"conor",tier:"content",pos:"verb",level:"CAS",set:"40",setName:"CAS \u00b7 Ch 3",latin:"conor, conari, conatus sum",parts:"(dep.)",en:"I try",hook:"<b>Conation</b> = the will to strive. conor = I try. (Deponent: passive in form, active in meaning.)",deriv:["conation"]},
+    {id:"egredior",tier:"content",pos:"verb",level:"CAS",set:"40",setName:"CAS \u00b7 Ch 3",latin:"egredior, egredi, egressus sum",parts:"(dep.)",en:"I go out, leave",hook:"e (out) + gradior (step) \u2192 step out. An <b>egress</b> is an exit. (Deponent.)",deriv:["egress"]},
+    {id:"ingredior",tier:"content",pos:"verb",level:"CAS",set:"40",setName:"CAS \u00b7 Ch 3",latin:"ingredior, ingredi, ingressus sum",parts:"(dep.)",en:"I go in, enter",hook:"in + gradior (step) \u2192 step in. An <b>ingredient</b> goes in; <b>ingress</b>. (Deponent.)",deriv:["ingredient","ingress"]},
+    {id:"progredior",tier:"content",pos:"verb",level:"CAS",set:"40",setName:"CAS \u00b7 Ch 3",latin:"progredior, progredi, progressus sum",parts:"(dep.)",en:"I advance, go forwards",hook:"pro (forward) + gradior (step) \u2192 step forward. <b>Progress</b>, a <b>progression</b>. (Deponent.)",deriv:["progress","progression"]},
+    {id:"hortor",tier:"content",pos:"verb",level:"CAS",set:"40",setName:"CAS \u00b7 Ch 3",latin:"hortor, hortari, hortatus sum",parts:"(dep.)",en:"I encourage, urge",hook:"To <b>exhort</b> = to urge strongly; <b>hortatory</b>. hortor = I encourage. (Deponent.)",deriv:["exhort","hortatory"]},
+    {id:"loquor",tier:"content",pos:"verb",level:"CAS",set:"40",setName:"CAS \u00b7 Ch 3",latin:"loquor, loqui, locutus sum",parts:"(dep.)",en:"I speak",hook:"<b>Eloquent</b>, <b>loquacious</b> (chatty), a <b>soliloquy</b>, a <b>ventriloquist</b>. loquor = I speak. (Deponent.)",deriv:["eloquent","loquacious","soliloquy"]},
+    {id:"morior",tier:"content",pos:"verb",level:"CAS",set:"40",setName:"CAS \u00b7 Ch 3",latin:"morior, mori, mortuus sum",parts:"(dep.)",en:"I die",hook:"<b>Mortal</b>, <b>mortuary</b>, rigor <b>mortis</b>, <b>moribund</b> (dying). morior = I die. (Deponent: morior, mortuus sum.)",deriv:["mortal","moribund"]},
+    {id:"patior",tier:"content",pos:"verb",level:"CAS",set:"40",setName:"CAS \u00b7 Ch 3",latin:"patior, pati, passus sum",parts:"(dep.)",en:"I suffer, allow",hook:"A <b>patient</b> suffers; <b>passion</b> = suffering; <b>passive</b>, <b>compatible</b>. patior = I suffer. (Deponent: patior, passus sum.)",deriv:["patient","passion","passive"]},
+    {id:"proficiscor",tier:"content",pos:"verb",level:"CAS",set:"40",setName:"CAS \u00b7 Ch 3",latin:"proficiscor, proficisci, profectus sum",parts:"(dep.)",en:"I set out",hook:"pro (forward) + the root \u2192 set out, depart. proficiscor = I set out. (Deponent: ...profectus sum.)",deriv:[]},
+    {id:"sequor",tier:"content",pos:"verb",level:"CAS",set:"40",setName:"CAS \u00b7 Ch 3",latin:"sequor, sequi, secutus sum",parts:"(dep.)",en:"I follow",hook:"A <b>sequel</b>, a <b>sequence</b>, a <b>consequence</b>, a 'non <b>sequitur</b>' (it does not follow!). sequor = I follow. (Deponent.)",deriv:["sequel","sequence","non sequitur"]},
+
+    {id:"adventus",tier:"content",pos:"noun",level:"CAS",set:"41",setName:"CAS \u00b7 Ch 4",latin:"adventus, -us",parts:"(m)",en:"arrival",hook:"<b>Advent</b> = the coming/arrival; an <b>adventure</b>. adventus = arrival (from advenio).",deriv:["advent","adventure"]},
+    {id:"caput",tier:"content",pos:"noun",level:"CAS",set:"41",setName:"CAS \u00b7 Ch 4",latin:"caput, capitis",parts:"(n)",en:"head",hook:"A <b>capital</b> (head city/letter), a <b>captain</b>, to <b>decapitate</b>, <b>per capita</b> (per head). caput = head.",deriv:["capital","captain","decapitate"]},
+    {id:"clades",tier:"content",pos:"noun",level:"CAS",set:"41",setName:"CAS \u00b7 Ch 4",latin:"clades, cladis",parts:"(f)",en:"defeat, disaster",hook:"Say 'CLAH-dayss': the legion got clobbered \u2014 a crushing defeat. clades = disaster.",deriv:[]},
+    {id:"divitiae",tier:"content",pos:"noun",level:"CAS",set:"41",setName:"CAS \u00b7 Ch 4",latin:"divitiae, -arum",parts:"(f.pl)",en:"riches, wealth",hook:"In the Bible 'Dives' is the rich man (Latin for 'rich'). Sound-peg: 'divvy' up the riches. divitiae = wealth.",deriv:[]},
+    {id:"equites",tier:"content",pos:"noun",level:"CAS",set:"41",setName:"CAS \u00b7 Ch 4",latin:"equites, -itum",parts:"(m.pl)",en:"horsemen, cavalry",hook:"<b>Equestrian</b> horsemen, from equus (horse) \u2014 the equites were Rome's cavalry and knights. equites = cavalry.",deriv:["equestrian","equine"]},
+    {id:"doceo",tier:"content",pos:"verb",level:"CAS",set:"41",setName:"CAS \u00b7 Ch 4",latin:"doceo, -ere, docui, doctum",parts:"(2)",en:"I teach",hook:"A <b>doctor</b> (a learned teacher), a <b>doctrine</b>, a <b>document</b>, <b>docile</b> (teachable). doceo = I teach.",deriv:["doctor","doctrine","docile"]},
+    {id:"incendo",tier:"content",pos:"verb",level:"CAS",set:"41",setName:"CAS \u00b7 Ch 4",latin:"incendo, -ere, incendi, incensum",parts:"(3)",en:"I set on fire",hook:"An <b>incendiary</b> bomb; to be <b>incensed</b> (inflamed with anger); <b>incense</b> (burnt). incendo = I set on fire.",deriv:["incendiary","incense"]},
+    {id:"incipio",tier:"content",pos:"verb",level:"CAS",set:"41",setName:"CAS \u00b7 Ch 4",latin:"incipio, -ere, incepi, inceptum",parts:"(M)",en:"I begin",hook:"The <b>incipit</b> is the opening words; <b>inception</b>, <b>incipient</b>. incipio = I begin (in + capio).",deriv:["inception","incipient"]},
+    {id:"oro",tier:"content",pos:"verb",level:"CAS",set:"41",setName:"CAS \u00b7 Ch 4",latin:"oro, -are",parts:"(1)",en:"I beg, pray",hook:"An <b>oration</b>, an <b>orator</b>, an <b>oratory</b>, an <b>oracle</b>. oro = I beg, pray.",deriv:["oration","orator","oracle"]},
+    {id:"scio",tier:"content",pos:"verb",level:"CAS",set:"41",setName:"CAS \u00b7 Ch 4",latin:"scio, -ire, scivi, scitum",parts:"(4)",en:"I know",hook:"<b>Science</b> = knowledge; your <b>conscience</b>, <b>omniscient</b> (all-knowing), <b>prescient</b>. scio = I know.",deriv:["science","conscience","omniscient"]},
+
+    {id:"ignis",tier:"content",pos:"noun",level:"CAS",set:"42",setName:"CAS \u00b7 Ch 5",latin:"ignis, -is",parts:"(m)",en:"fire",hook:"To <b>ignite</b>; an <b>ignition</b>; <b>igneous</b> rock (formed by fire). ignis = fire.",deriv:["ignite","ignition","igneous"]},
+    {id:"ignotus",tier:"content",pos:"adjective",level:"CAS",set:"42",setName:"CAS \u00b7 Ch 5",latin:"ignotus, -a, -um",parts:"",en:"unknown",hook:"in (not) + notus (known) \u2192 unknown. cf. to <b>ignore</b>, <b>incognito</b>. ignotus = unknown.",deriv:["ignore"]},
+    {id:"incolumis",tier:"content",pos:"adjective",level:"CAS",set:"42",setName:"CAS \u00b7 Ch 5",latin:"incolumis, incolume",parts:"",en:"safe, unharmed",hook:"Sound-peg: a column left standing 'in-COLUMN-is' intact = safe. incolumis = safe, unharmed. (Drill it.)",deriv:[]},
+    {id:"inimicus",tier:"content",pos:"noun",level:"CAS",set:"42",setName:"CAS \u00b7 Ch 5",latin:"inimicus, -i",parts:"(m)",en:"enemy (personal)",hook:"in (not) + amicus (friend) \u2192 the un-friend, the enemy. <b>Inimical</b>; <b>enemy</b> itself. inimicus = enemy.",deriv:["inimical","enemy"]},
+    {id:"legatus",tier:"content",pos:"noun",level:"CAS",set:"42",setName:"CAS \u00b7 Ch 5",latin:"legatus, -i",parts:"(m)",en:"ambassador, envoy",hook:"A <b>legate</b>; a <b>delegate</b>, a <b>legation</b>. legatus = envoy (also a general).",deriv:["legate","delegate"]},
+    {id:"libenter",tier:"content",pos:"adverb",level:"CAS",set:"42",setName:"CAS \u00b7 Ch 5",latin:"libenter",parts:"",en:"willingly, gladly",hook:"<b>Ad lib</b> (ad libitum, 'at pleasure') \u2014 same root. libenter = willingly, gladly.",deriv:["ad lib"]},
+    {id:"litus",tier:"content",pos:"noun",level:"CAS",set:"42",setName:"CAS \u00b7 Ch 5",latin:"litus, litoris",parts:"(n)",en:"sea-shore, beach",hook:"<b>Littoral</b> = of the shore (the littoral zone). litus = sea-shore, beach.",deriv:["littoral"]},
+    {id:"moenia",tier:"content",pos:"noun",level:"CAS",set:"42",setName:"CAS \u00b7 Ch 5",latin:"moenia, -ium",parts:"(n.pl)",en:"town walls, fortifications",hook:"Related to munio (fortify) and <b>munitions</b>. moenia = the city walls.",deriv:["munitions"]},
+    {id:"sedeo",tier:"content",pos:"verb",level:"CAS",set:"42",setName:"CAS \u00b7 Ch 5",latin:"sedeo, -ere, sedi, sessum",parts:"(2)",en:"I sit",hook:"<b>Sedentary</b> (sitting), a <b>session</b>, <b>sediment</b> (settles), to <b>reside</b>, to <b>preside</b>. sedeo = I sit.",deriv:["sedentary","session","reside"]},
+    {id:"surgo",tier:"content",pos:"verb",level:"CAS",set:"42",setName:"CAS \u00b7 Ch 5",latin:"surgo, -ere, surrexi, surrectum",parts:"(3)",en:"I rise, get up",hook:"To <b>surge</b> upward; to <b>resurrect</b> (rise again); an <b>insurgent</b> (rises up). surgo = I rise.",deriv:["surge","resurrect","insurgent"]},
+
+    {id:"acies",tier:"content",pos:"noun",level:"CAS",set:"43",setName:"CAS \u00b7 Ch 6",latin:"acies, aciei",parts:"(f)",en:"battle-line",hook:"acies also means a sharp edge \u2014 cf. <b>acute</b>, <b>acid</b>. acies = the (keen) battle-line.",deriv:["acute","acid"]},
+    {id:"agmen",tier:"content",pos:"noun",level:"CAS",set:"43",setName:"CAS \u00b7 Ch 6",latin:"agmen, agminis",parts:"(n)",en:"column (of march)",hook:"From <b>ago</b> (drive, lead) \u2014 the army 'driven' along in a column. agmen = marching column.",deriv:[]},
+    {id:"dignus",tier:"content",pos:"adjective",level:"CAS",set:"43",setName:"CAS \u00b7 Ch 6",latin:"dignus, -a, -um",parts:"+ abl",en:"worthy (of)",hook:"<b>Dignity</b>, <b>dignified</b>, <b>indignant</b> (feeling unworthily treated), to <b>deign</b>. dignus = worthy.",deriv:["dignity","indignant","deign"]},
+    {id:"impetus",tier:"content",pos:"noun",level:"CAS",set:"43",setName:"CAS \u00b7 Ch 6",latin:"impetus, -us",parts:"(m)",en:"an attack, charge",hook:"<b>Impetus</b> (a driving force) \u2014 same word; <b>impetuous</b> (rushing in). impetus = a charge, attack.",deriv:["impetus","impetuous"]},
+    {id:"mos",tier:"content",pos:"noun",level:"CAS",set:"43",setName:"CAS \u00b7 Ch 6",latin:"mos, moris",parts:"(m)",en:"custom, fashion",hook:"<b>Moral</b>, <b>morals</b>, <b>mores</b> (a society's customs). mos = custom (plural mores).",deriv:["moral","mores"]},
+    {id:"nuper",tier:"content",pos:"adverb",level:"CAS",set:"43",setName:"CAS \u00b7 Ch 6",latin:"nuper",parts:"",en:"recently",hook:"Sound-peg: the 'newspaper' reports what happened nuper. nuper = recently, lately. (Drill it.)",deriv:[]},
+    {id:"signum",tier:"content",pos:"noun",level:"CAS",set:"43",setName:"CAS \u00b7 Ch 6",latin:"signum, -i",parts:"(n)",en:"sign, signal, standard",hook:"A <b>sign</b>, a <b>signal</b>, a <b>signature</b>, to <b>designate</b>, <b>insignia</b>. signum = sign, standard.",deriv:["sign","signal","signature"]},
+    {id:"tempus",tier:"content",pos:"noun",level:"CAS",set:"43",setName:"CAS \u00b7 Ch 6",latin:"tempus, temporis",parts:"(n)",en:"time",hook:"<b>Temporary</b>, <b>temporal</b>, <b>tempo</b>, <b>contemporary</b>; 'tempus fugit' = time flies. tempus = time.",deriv:["temporary","tempo","tempus fugit"]},
+    {id:"consilium_capio",tier:"content",pos:"phrase",level:"CAS",set:"43",setName:"CAS \u00b7 Ch 6",latin:"consilium capio",parts:"",en:"I adopt a plan, make a decision",hook:"consilium (plan) + capio (take) = 'I take a plan' \u2014 i.e. I decide. A set idiom: consilium capio.",deriv:[]},
+    {id:"instruo",tier:"content",pos:"verb",level:"CAS",set:"43",setName:"CAS \u00b7 Ch 6",latin:"instruo, -ere, instruxi, instructum",parts:"(3)",en:"I draw up, equip",hook:"To <b>instruct</b> (build knowledge in); an <b>instrument</b>, a <b>structure</b>, to <b>construct</b>. instruo = I draw up, equip.",deriv:["instruct","instrument","structure"]},
+  ];
+
+  const TIER_LABEL = {content:"Content word",number:"Number",prefix:"Preposition",function:"Function word"};
+  const LVL_ORDER = {L1:1,L2:2,L3:3,CAS:4};
+  const LVL_NAME = {L1:"Level 1",L2:"Level 2",L3:"Level 3",CAS:"Scholarship"};
+  const DAY = 86400000, INTERVAL = {1:1,2:3,3:7,4:14,5:30};
+
+  const store = (function(){
+    try{ const k="__verba_test__"; localStorage.setItem(k,"1"); localStorage.removeItem(k); return localStorage; }
+    catch(e){ const m={}; return {getItem:k=>k in m?m[k]:null,setItem:(k,v)=>{m[k]=String(v)},removeItem:k=>{delete m[k]}}; }
+  })();
+  const PKEY="verba-progress-v1";
+  function loadP(){ try{ return JSON.parse(store.getItem(PKEY))||{}; }catch(e){ return {}; } }
+  function saveP(){ try{ store.setItem(PKEY, JSON.stringify(progress)); }catch(e){} }
+  let progress = loadP();
+  function stateOf(id){ return progress[id] || {box:0, due:0}; }
+  function gradeCard(id, ok){ const s=stateOf(id); s.box = ok?Math.min((s.box||0)+1,5):1; s.due=Date.now()+INTERVAL[s.box]*DAY; progress[id]=s; saveP(); }
+
+  const $ = id=>document.getElementById(id);
+  const secStart=$("start"), secPlay=$("play"), secDone=$("done");
+  let scope={type:"all"}, dir="LE", queue=[], idx=0, reviewed=0;
+
+  function scopeChip(label,sc){
+    const b=document.createElement("button"); b.className="chip"; b.textContent=label;
+    b.dataset.scope=JSON.stringify(sc);
+    b.addEventListener("click",()=>{ scope=sc; highlightScope(); });
+    return b;
+  }
+  function highlightScope(){ document.querySelectorAll("#picker .chip").forEach(b=>b.setAttribute("aria-pressed", b.dataset.scope===JSON.stringify(scope)?"true":"false")); }
+  function renderPicker(){
+    const wrap=$("picker"); wrap.innerHTML="";
+    const all=document.createElement("div"); all.className="chips";
+    all.appendChild(scopeChip("Everything ("+DECK.length+")",{type:"all"}));
+    wrap.appendChild(all);
+    const levels=[...new Set(DECK.map(c=>c.level))].sort((a,b)=>LVL_ORDER[a]-LVL_ORDER[b]);
+    levels.forEach(lv=>{
+      const head=document.createElement("div"); head.className="pickhead"; head.textContent=LVL_NAME[lv]||lv; wrap.appendChild(head);
+      const row=document.createElement("div"); row.className="chips";
+      const lvCount=DECK.filter(c=>c.level===lv).length;
+      row.appendChild(scopeChip("All ("+lvCount+")",{type:"level",level:lv}));
+      const sets=[...new Set(DECK.filter(c=>c.level===lv).map(c=>c.set))].sort((a,b)=>(+a)-(+b));
+      sets.forEach(s=>{ const recs=DECK.filter(c=>c.set===s); row.appendChild(scopeChip((recs[0].setName||("VOCAB "+s))+" ("+recs.length+")",{type:"set",set:s})); });
+      wrap.appendChild(row);
+    });
+    highlightScope();
+  }
+  function inScope(c){ if(scope.type==="all")return true; if(scope.type==="level")return c.level===scope.level; if(scope.type==="set")return c.set===scope.set; return true; }
+  function pool(){ return DECK.filter(inScope); }
+
+  $("dirChips").addEventListener("click",e=>{const c=e.target.closest(".chip");if(!c)return;
+    dir=c.dataset.dir; document.querySelectorAll("#dirChips .chip").forEach(x=>x.setAttribute("aria-pressed",x===c?"true":"false"));});
+  $("playBtn").addEventListener("click",start);
+  $("againBtn").addEventListener("click",()=>{secDone.classList.add("hidden");secStart.classList.remove("hidden");});
+  $("quitLink").addEventListener("click",e=>{e.preventDefault();secPlay.classList.add("hidden");secStart.classList.remove("hidden");});
+  $("revealBtn").addEventListener("click",reveal);
+  $("dirToggle").addEventListener("click",()=>{dir=dir==="LE"?"EL":"LE";renderCard();});
+  $("gotitBtn").addEventListener("click",()=>grade(true));
+  $("missedBtn").addEventListener("click",()=>grade(false));
+
+  function start(){
+    const now=Date.now();
+    let due=pool().filter(c=>stateOf(c.id).due<=now);
+    if(due.length===0) due=pool().slice();
+    due.sort((a,b)=>(stateOf(a.id).box-stateOf(b.id).box)||(stateOf(a.id).due-stateOf(b.id).due));
+    queue=due.map(c=>c.id); idx=0; reviewed=0;
+    secStart.classList.add("hidden"); secDone.classList.add("hidden"); secPlay.classList.remove("hidden");
+    renderCard();
+  }
+  function card(){ return DECK.find(c=>c.id===queue[idx]); }
+
+  function renderCard(){
+    if(idx>=queue.length) return finish();
+    const c=card();
+    $("tierPill").className="tierpill "+c.tier; $("tierPill").textContent=TIER_LABEL[c.tier];
+    $("togo").textContent=queue.length-idx; $("bar").style.width=(idx/queue.length*100)+"%";
+    $("answer").classList.add("hidden"); $("gradeRow").classList.add("hidden"); $("revealBtn").classList.remove("hidden");
+    if(dir==="LE"){ $("cue").textContent="Recall the meaning"; $("front").textContent=c.latin.split(",")[0];
+      $("frontsub").textContent=(c.latin.includes(",")?c.latin:"")+(c.parts?"  "+c.parts:""); }
+    else{ $("cue").textContent="Recall the Latin"; $("front").textContent=c.en; $("frontsub").textContent=c.pos; }
+    $("answer").innerHTML="";
+  }
+  function reveal(){
+    const c=card(); $("revealBtn").classList.add("hidden");
+    let html=`<div class="mean">${dir==="LE"?c.en:c.latin.split(",")[0]}</div>`;
+    html+=`<div class="dict">${c.latin}${c.parts?" &middot; "+c.parts:""}${c.pos?" &middot; "+c.pos:""}</div>`;
+    if(c.tier==="function"&&c.usage){ html+=`<div class="box usebox"><span class="lbl">In a sentence</span>${c.usage}</div>`; }
+    else if(c.hook){ html+=`<div class="box hookbox"><span class="lbl">Hook</span>${c.hook}</div>`; }
+    if(c.deriv&&c.deriv.length){ html+=`<div class="derivrow"><span class="lbl">English from it</span>`+c.deriv.map(d=>`<span class="derivchip">${d}</span>`).join("")+`</div>`; }
+    $("answer").innerHTML=html; $("answer").classList.remove("hidden"); $("gradeRow").classList.remove("hidden");
+  }
+  function grade(ok){
+    const c=card(); gradeCard(c.id,ok); reviewed++;
+    if(!ok) queue.splice(Math.min(idx+4,queue.length),0,c.id);
+    idx++; $("bar").style.width=(idx/queue.length*100)+"%"; renderCard();
+  }
+  function finish(){
+    secPlay.classList.add("hidden"); secDone.classList.remove("hidden"); $("bar").style.width="100%";
+    $("doneGrade").textContent="EUGE!";
+    const live=(store===window.localStorage);
+    $("doneBlurb").innerHTML=`You worked through <b>${reviewed}</b> review${reviewed===1?"":"s"}. `+
+      (live?"The words you missed will resurface soon; the ones you nailed won't bother you for a while."
+           :"Once this is live on your site, your progress saves between sessions and the spacing kicks in.");
+  }
+
+  renderPicker();
+  $("startfoot").textContent = DECK.length + " words loaded \u00b7 more chapters coming";
+})();
+</script>
