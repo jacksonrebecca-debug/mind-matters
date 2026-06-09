@@ -1,450 +1,272 @@
-<!-- Acta: A Latin Perfect-Tense Game -->
+<!-- ACTA - a Latin verb trainer: present, imperfect, perfect + sum -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ACTA — The Perfect Tense</title>
+<title>ACTA - Latin Verbs</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&display=swap" rel="stylesheet">
 <style>
   :root{
-    --ink:#2b1b10;
-    --ink-soft:#5a4632;
-    --parch:#f3e6cc;
-    --parch-deep:#e7d4ad;
-    --gold:#b8860b;
-    --gold-bright:#d9a528;
-    --pompeii:#9e3b29;
-    --pompeii-deep:#7a2a1c;
-    --green:#4e6b3a;
-    --green-deep:#3a5129;
-    --line:rgba(43,27,16,.18);
-    --shadow:rgba(43,27,16,.35);
+    --ink:#2b1b10;--ink-soft:#5a4632;--parch:#f3e6cc;--parch-deep:#e7d4ad;
+    --gold:#b8860b;--gold-bright:#d9a528;--pompeii:#9e3b29;--pompeii-deep:#7a2a1c;
+    --green:#4e6b3a;--green-deep:#3a5129;--line:rgba(43,27,16,.18);--shadow:rgba(43,27,16,.35);--purple:#5b4a7a;
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{margin:0;height:100%}
-  body{
-    font-family:"Cormorant Garamond",Georgia,serif;
-    color:var(--ink);
-    background:
-      radial-gradient(120% 80% at 50% -10%, #fbf2dd 0%, var(--parch) 45%, var(--parch-deep) 100%);
-    background-attachment:fixed;
-    min-height:100%;
-    display:flex;justify-content:center;
-    padding:18px;
-  }
-  body::before{
-    content:"";position:fixed;inset:0;pointer-events:none;opacity:.5;mix-blend-mode:multiply;
+  body{font-family:"Cormorant Garamond",Georgia,serif;color:var(--ink);
+    background:radial-gradient(120% 80% at 50% -10%, #fbf2dd 0%, var(--parch) 45%, var(--parch-deep) 100%);
+    background-attachment:fixed;min-height:100%;display:flex;justify-content:center;padding:18px}
+  body::before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.5;mix-blend-mode:multiply;
     background-image:radial-gradient(circle at 20% 30%, rgba(120,80,30,.06) 0 2px, transparent 3px),
                      radial-gradient(circle at 70% 60%, rgba(120,80,30,.05) 0 2px, transparent 3px),
                      radial-gradient(circle at 45% 85%, rgba(120,80,30,.05) 0 2px, transparent 3px);
-    background-size:140px 140px, 180px 180px, 120px 120px;
-  }
+    background-size:140px 140px,180px 180px,120px 120px}
   .stage{width:100%;max-width:680px;z-index:1}
-  .scroll{
-    background:linear-gradient(180deg,#fbf3df,#f0e2c2);
-    border:1px solid var(--line);
-    border-radius:14px;
-    box-shadow:0 18px 40px -18px var(--shadow), inset 0 0 0 1px rgba(255,255,255,.4);
-    padding:26px 26px 30px;
-    position:relative;
-  }
-  .scroll::before,.scroll::after{
-    content:"";position:absolute;left:14px;right:14px;height:9px;
-    background:repeating-linear-gradient(90deg,var(--gold) 0 6px,transparent 6px 14px);
-    opacity:.5;
-  }
+  .scroll{background:linear-gradient(180deg,#fbf3df,#f0e2c2);border:1px solid var(--line);border-radius:14px;
+    box-shadow:0 18px 40px -18px var(--shadow), inset 0 0 0 1px rgba(255,255,255,.4);padding:26px 26px 30px;position:relative}
+  .scroll::before,.scroll::after{content:"";position:absolute;left:14px;right:14px;height:9px;
+    background:repeating-linear-gradient(90deg,var(--gold) 0 6px,transparent 6px 14px);opacity:.5}
   .scroll::before{top:11px}.scroll::after{bottom:11px}
-
-  h1{
-    font-family:"Cinzel",serif;font-weight:900;letter-spacing:.16em;
-    text-align:center;margin:.4em 0 .05em;color:var(--pompeii-deep);
-    font-size:clamp(28px,7vw,46px);text-shadow:0 1px 0 rgba(255,255,255,.5);
-  }
-  .tag{font-family:"Cinzel",serif;letter-spacing:.34em;text-transform:uppercase;
-       text-align:center;color:var(--gold);font-size:11px;margin-bottom:18px}
-  .lede{text-align:center;color:var(--ink-soft);font-size:18px;max-width:46ch;margin:0 auto 22px;line-height:1.45}
-  .lede b{color:var(--pompeii)}
-
-  .panel-title{font-family:"Cinzel",serif;letter-spacing:.12em;text-transform:uppercase;
-               font-size:13px;color:var(--ink-soft);text-align:center;margin:18px 0 10px}
-
-  .grid{display:grid;gap:12px}
-  .grid.two{grid-template-columns:1fr 1fr}
-  @media(max-width:520px){.grid.two{grid-template-columns:1fr}}
-
+  h1{font-family:"Cinzel",serif;font-weight:900;letter-spacing:.16em;text-align:center;margin:.4em 0 .05em;
+     color:var(--pompeii-deep);font-size:clamp(30px,7vw,48px);text-shadow:0 1px 0 rgba(255,255,255,.5)}
+  .tag{font-family:"Cinzel",serif;letter-spacing:.34em;text-transform:uppercase;text-align:center;color:var(--gold);font-size:11px;margin-bottom:16px}
+  .lede{text-align:center;color:var(--ink-soft);font-size:18px;max-width:48ch;margin:0 auto 18px;line-height:1.45}
+  .panel-title{font-family:"Cinzel",serif;letter-spacing:.12em;text-transform:uppercase;font-size:12px;color:var(--ink-soft);text-align:center;margin:16px 0 9px}
+  .chips{display:flex;flex-wrap:wrap;gap:9px;justify-content:center;margin-bottom:4px}
   button{font-family:inherit;cursor:pointer;border:none;color:inherit}
-  .card{
-    background:linear-gradient(180deg,#fff8e9,#f1e2bf);
-    border:1.5px solid var(--line);border-radius:11px;padding:16px 16px;
-    text-align:left;transition:transform .12s, box-shadow .12s, border-color .12s;
-    box-shadow:0 6px 14px -10px var(--shadow);
-  }
-  .card:hover{transform:translateY(-2px);box-shadow:0 12px 22px -12px var(--shadow);border-color:var(--gold)}
-  .card .k{font-family:"Cinzel",serif;font-weight:700;letter-spacing:.06em;color:var(--pompeii);font-size:18px;margin-bottom:3px}
-  .card .d{color:var(--ink-soft);font-size:16px;line-height:1.35}
-
-  .chips{display:flex;flex-wrap:wrap;gap:9px;justify-content:center;margin-bottom:6px}
-  .chip{
-    background:#f1e2bf;border:1.5px solid var(--line);border-radius:999px;
-    padding:8px 16px;font-size:16px;font-weight:600;color:var(--ink-soft);
-    transition:all .12s;
-  }
+  .chip{background:#f1e2bf;border:1.5px solid var(--line);border-radius:999px;padding:8px 15px;font-size:15px;font-weight:600;color:var(--ink-soft);transition:all .12s}
   .chip[aria-pressed="true"]{background:var(--green);border-color:var(--green-deep);color:#f7f0dc;box-shadow:0 6px 14px -8px var(--shadow)}
-
-  .play{
-    display:block;width:100%;margin:22px auto 4px;max-width:320px;
-    font-family:"Cinzel",serif;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
-    font-size:16px;color:#fbf3df;padding:15px;border-radius:11px;
-    background:linear-gradient(180deg,var(--pompeii),var(--pompeii-deep));
-    box-shadow:0 12px 22px -12px var(--pompeii-deep);transition:transform .12s, filter .12s;
-  }
+  .play{display:block;width:100%;margin:22px auto 4px;max-width:320px;font-family:"Cinzel",serif;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+    font-size:16px;color:#fbf3df;padding:15px;border-radius:11px;background:linear-gradient(180deg,var(--pompeii),var(--pompeii-deep));
+    box-shadow:0 12px 22px -12px var(--pompeii-deep);transition:transform .12s, filter .12s}
   .play:hover{transform:translateY(-2px);filter:brightness(1.07)}
-  .play:active{transform:translateY(0)}
-
-  /* HUD */
-  .hud{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:2px 4px 16px}
-  .hud .stat{font-family:"Cinzel",serif;font-size:13px;letter-spacing:.05em;color:var(--ink-soft)}
-  .hud .stat b{color:var(--pompeii);font-size:17px}
-  .progress{height:8px;background:#e3d3ac;border-radius:99px;overflow:hidden;margin:0 4px 18px;border:1px solid var(--line)}
+  .hud{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:2px 2px 14px;flex-wrap:wrap}
+  .hud .pill{font-family:"Cinzel",serif;font-size:11px;letter-spacing:.1em;text-transform:uppercase;padding:5px 12px;border-radius:999px;color:#fbf3df;background:var(--purple)}
+  .hud .right{display:flex;align-items:center;gap:14px}
+  .hud .stat{font-family:"Cinzel",serif;font-size:13px;color:var(--ink-soft)}.hud .stat b{color:var(--pompeii);font-size:16px}
+  .progress{height:8px;background:#e3d3ac;border-radius:99px;overflow:hidden;margin:0 2px 16px;border:1px solid var(--line)}
   .progress > i{display:block;height:100%;background:linear-gradient(90deg,var(--gold-bright),var(--gold));width:0;transition:width .35s}
-
-  .prompt{
-    text-align:center;background:#fff8e9;border:1.5px solid var(--line);border-radius:12px;
-    padding:18px 16px 16px;margin-bottom:16px;box-shadow:inset 0 2px 8px -4px var(--shadow);
-  }
-  .prompt .sub{font-family:"Cinzel",serif;letter-spacing:.12em;text-transform:uppercase;font-size:11px;color:var(--gold);margin-bottom:8px}
-  .prompt .verb{font-family:"Cinzel",serif;font-weight:700;font-size:clamp(24px,6vw,34px);color:var(--ink);line-height:1.1}
-  .prompt .gloss{color:var(--ink-soft);font-size:18px;margin-top:6px;font-style:italic}
-  .prompt .ask{margin-top:12px;font-size:18px;color:var(--pompeii-deep)}
-  .prompt .ask b{font-weight:700}
-  .hint{margin-top:10px;font-size:15px;color:var(--ink-soft)}
-  .hint code{font-family:"Cinzel",serif;background:#efe0bb;padding:2px 7px;border-radius:5px;color:var(--pompeii)}
-
-  .options{display:grid;grid-template-columns:1fr 1fr;gap:11px}
-  @media(max-width:520px){.options{grid-template-columns:1fr}}
-  .opt{
-    font-family:"Cinzel",serif;font-weight:700;font-size:20px;letter-spacing:.02em;
-    background:linear-gradient(180deg,#fff8e9,#f1e2bf);border:1.6px solid var(--line);
-    border-radius:11px;padding:16px;text-align:center;color:var(--ink);
-    transition:transform .1s, border-color .12s, box-shadow .12s;
-  }
-  .opt:hover:not(:disabled){transform:translateY(-2px);border-color:var(--gold);box-shadow:0 10px 18px -12px var(--shadow)}
-  .opt:disabled{cursor:default}
-  .opt.correct{background:linear-gradient(180deg,#dcebca,#bcd49e);border-color:var(--green-deep);color:var(--green-deep)}
-  .opt.wrong{background:linear-gradient(180deg,#f2cfc6,#e3a99c);border-color:var(--pompeii-deep);color:var(--pompeii-deep)}
-  .opt.dim{opacity:.5}
-
-  .feedback{margin-top:16px;min-height:54px;text-align:center;font-size:17px;line-height:1.4}
-  .feedback .verdict{font-family:"Cinzel",serif;font-weight:700;letter-spacing:.06em;font-size:19px}
-  .feedback .verdict.good{color:var(--green-deep)}
-  .feedback .verdict.bad{color:var(--pompeii-deep)}
-  .feedback .why{color:var(--ink-soft);margin-top:4px}
-  .feedback .why code{font-family:"Cinzel",serif;background:#efe0bb;padding:2px 7px;border-radius:5px;color:var(--ink)}
-
-  .next{display:block;margin:18px auto 2px;max-width:260px;width:100%;
-    font-family:"Cinzel",serif;font-weight:700;letter-spacing:.12em;text-transform:uppercase;font-size:15px;
-    color:#fbf3df;padding:13px;border-radius:10px;
-    background:linear-gradient(180deg,var(--green),var(--green-deep));box-shadow:0 10px 20px -12px var(--green-deep);
-    transition:transform .12s, filter .12s}
-  .next:hover{transform:translateY(-2px);filter:brightness(1.07)}
-
-  /* results */
-  .laurel{font-family:"Cinzel",serif;text-align:center}
-  .laurel .grade{font-size:clamp(30px,8vw,52px);font-weight:900;color:var(--pompeii-deep);letter-spacing:.06em;margin:.2em 0}
-  .laurel .score{font-size:22px;color:var(--ink-soft);letter-spacing:.04em}
-  .laurel .blurb{font-family:"Cormorant Garamond",serif;font-style:italic;font-size:19px;color:var(--ink-soft);margin:14px auto 4px;max-width:40ch}
-
+  .card{background:#fff8e9;border:1.5px solid var(--line);border-radius:14px;padding:22px 20px;text-align:center;box-shadow:inset 0 2px 8px -4px var(--shadow)}
+  .card .verb{font-family:"Cinzel",serif;font-weight:700;font-size:clamp(26px,6vw,36px);color:var(--ink);line-height:1.1}
+  .card .gloss{color:var(--ink-soft);font-style:italic;font-size:17px;margin-top:4px}
+  .ask{font-family:"Cinzel",serif;letter-spacing:.06em;text-transform:uppercase;font-size:13px;color:var(--pompeii);margin-top:14px}
+  .ask b{color:var(--pompeii-deep)}
+  .hint{color:var(--ink-soft);font-size:15px;margin-top:8px;min-height:1.2em}
+  .hint code{background:#efe6cf;border:1px solid var(--gold);border-radius:5px;padding:1px 6px;font-family:"Cormorant Garamond",serif}
+  .opts{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-top:18px}
+  .opt{background:#f1e2bf;border:1.5px solid var(--line);border-radius:11px;padding:15px;font-size:20px;font-weight:600;color:var(--ink);transition:all .12s}
+  .opt:hover{transform:translateY(-2px);filter:brightness(1.03)}
+  .opt:disabled{cursor:default;transform:none}
+  .opt.right{background:var(--green);border-color:var(--green-deep);color:#f7f0dc}
+  .opt.wrong{background:var(--pompeii);border-color:var(--pompeii-deep);color:#fbf3df}
+  .feedback{text-align:center;min-height:1.5em;margin-top:14px;font-size:17px;font-style:italic;color:var(--ink-soft)}
+  .next{display:block;margin:14px auto 0;max-width:220px;width:100%;font-family:"Cinzel",serif;font-weight:700;letter-spacing:.1em;text-transform:uppercase;font-size:14px;
+    color:#fbf3df;padding:12px;border-radius:10px;background:linear-gradient(180deg,var(--gold-bright),var(--gold));box-shadow:0 10px 20px -12px var(--gold)}
+  .laurel{text-align:center;font-family:"Cinzel",serif}
+  .laurel .grade2{font-size:clamp(26px,7vw,40px);font-weight:900;color:var(--pompeii-deep);margin:.3em 0}
+  .laurel .blurb{font-family:"Cormorant Garamond",serif;font-style:italic;font-size:18px;color:var(--ink-soft);max-width:42ch;margin:10px auto 4px}
+  .foot{text-align:center;color:var(--ink-soft);font-size:13px;margin-top:18px}
   .hidden{display:none}
-  .foot{text-align:center;color:var(--ink-soft);font-size:13px;margin-top:18px;letter-spacing:.03em}
-  .foot b{color:var(--pompeii)}
+  @media(max-width:430px){.opts{grid-template-columns:1fr}}
 </style>
 
-<div class="stage">
-  <div class="scroll">
+<div class="stage"><div class="scroll">
 
-    <!-- ===== START ===== -->
-    <section id="start">
-      <h1>ACTA</h1>
-      <div class="tag">The Perfect Tense · Tempus Perfectum</div>
-      <p class="lede">Record the deeds that <b>have been done</b>. One set of endings rules them all —
-        <b>-ī&nbsp;·&nbsp;-istī&nbsp;·&nbsp;-it&nbsp;·&nbsp;-imus&nbsp;·&nbsp;-istis&nbsp;·&nbsp;-ērunt</b> —
-        but each verb hides its own perfect stem.</p>
+  <section id="start">
+    <h1>ACTA</h1>
+    <div class="tag">Verba - the verb forge</div>
+    <p class="lede">Conjugate across the tenses, or drill the perfect stems. Pick a tense and a conjugation, then forge the forms.</p>
+    <div class="panel-title">Which tense?</div>
+    <div class="chips" id="tenseChips">
+      <button class="chip" data-t="pres" aria-pressed="false">Present</button>
+      <button class="chip" data-t="imp" aria-pressed="false">Imperfect</button>
+      <button class="chip" data-t="perf" aria-pressed="true">Perfect</button>
+      <button class="chip" data-t="stems" aria-pressed="false">Perfect stems</button>
+    </div>
+    <div class="panel-title">Which conjugation?</div>
+    <div class="chips" id="famChips">
+      <button class="chip" data-f="all" aria-pressed="true">All</button>
+      <button class="chip" data-f="1" aria-pressed="false">1st</button>
+      <button class="chip" data-f="2" aria-pressed="false">2nd</button>
+      <button class="chip" data-f="3" aria-pressed="false">3rd</button>
+      <button class="chip" data-f="4" aria-pressed="false">4th</button>
+      <button class="chip" data-f="sum" aria-pressed="false">sum</button>
+    </div>
+    <div class="panel-title">Hints?</div>
+    <div class="chips" id="hintChips">
+      <button class="chip" data-h="on" aria-pressed="true">Show me the stem</button>
+      <button class="chip" data-h="off" aria-pressed="false">No hints</button>
+    </div>
+    <button class="play" id="playBtn">Begin &rarr;</button>
+    <div class="foot">10 questions a round &middot; matches the Level 1 CE grammar sheet</div>
+  </section>
 
-      <div class="panel-title">Choose your trial</div>
-      <div class="grid two">
-        <button class="card" data-mode="stem">
-          <div class="k">I · Find the Stem</div>
-          <div class="d">Spot the perfect form (the 3rd principal part). This is the memory game — where the conjugations split apart.</div>
-        </button>
-        <button class="card" data-mode="conjugate">
-          <div class="k">II · Forge the Form</div>
-          <div class="d">Bolt the right ending onto the stem for a given person. This is the pattern game — endings never change.</div>
-        </button>
+  <section id="play" class="hidden">
+    <div class="hud">
+      <span class="pill" id="tensePill">tense</span>
+      <div class="right">
+        <span class="stat">Q <b id="qnum">1</b>/10</span>
+        <span class="stat">Streak <b id="streak">0</b></span>
       </div>
+    </div>
+    <div class="progress"><i id="bar"></i></div>
+    <div class="card">
+      <div class="verb" id="verb"></div>
+      <div class="gloss" id="gloss"></div>
+      <div class="ask" id="ask"></div>
+      <div class="hint" id="hint"></div>
+    </div>
+    <div class="opts" id="opts"></div>
+    <div class="feedback" id="feedback"></div>
+    <button class="next hidden" id="nextBtn">Next &rarr;</button>
+    <div class="foot"><a href="#" id="quitLink" style="color:var(--ink-soft)">&larr; change tense</a></div>
+  </section>
 
-      <div class="panel-title">Which conjugations?</div>
-      <div class="chips" id="conjChips">
-        <button class="chip" data-conj="1" aria-pressed="true">1st · -āre</button>
-        <button class="chip" data-conj="2" aria-pressed="true">2nd · -ēre</button>
-        <button class="chip" data-conj="3" aria-pressed="true">3rd · -ere</button>
-        <button class="chip" data-conj="4" aria-pressed="true">4th · -īre</button>
-      </div>
+  <section id="done" class="hidden">
+    <div class="tag">Round complete</div>
+    <div class="laurel"><div class="grade2" id="score"></div><div class="blurb" id="blurb"></div></div>
+    <button class="play" id="againBtn">Another round &rarr;</button>
+  </section>
 
-      <div class="panel-title">Difficulty</div>
-      <div class="chips" id="diffChips">
-        <button class="chip" data-diff="easy" aria-pressed="true">Tiro · hints on</button>
-        <button class="chip" data-diff="hard" aria-pressed="false">Centurio · no hints</button>
-      </div>
-
-      <button class="play" id="playBtn">Begin →</button>
-      <div class="foot">10 questions · click an answer · macrons (ā ē ī) mark long vowels</div>
-    </section>
-
-    <!-- ===== PLAY ===== -->
-    <section id="play" class="hidden">
-      <div class="hud">
-        <div class="stat">Question <b id="qNum">1</b>/10</div>
-        <div class="stat">Streak <b id="streak">0</b></div>
-        <div class="stat">Laurels <b id="score">0</b></div>
-      </div>
-      <div class="progress"><i id="bar"></i></div>
-
-      <div class="prompt" id="prompt"></div>
-      <div class="options" id="options"></div>
-      <div class="feedback" id="feedback"></div>
-      <button class="next hidden" id="nextBtn">Next →</button>
-    </section>
-
-    <!-- ===== RESULTS ===== -->
-    <section id="results" class="hidden">
-      <div class="tag">The Triumph</div>
-      <div class="laurel">
-        <div class="grade" id="grade"></div>
-        <div class="score" id="finalScore"></div>
-        <div class="blurb" id="blurb"></div>
-      </div>
-      <button class="play" id="againBtn">Again →</button>
-    </section>
-
-  </div>
-  <div class="foot">A summer game for a Latinist · <b>perfect active indicative</b></div>
 </div>
+<div class="foot">LUDUS I &middot; <b style="color:var(--pompeii)">ACTA</b> &middot; the verb forge</div></div>
 
 <script>
 (function(){
-  // ---- data: stem = perfect.slice(0,-1) ; presentStem = infinitive.slice(0,-3) ----
-  const VERBS = [
-    // 1st  -āvī
-    {c:1,p:"amō",inf:"amāre",pf:"amāvī",g:"to love"},
-    {c:1,p:"portō",inf:"portāre",pf:"portāvī",g:"to carry"},
-    {c:1,p:"laudō",inf:"laudāre",pf:"laudāvī",g:"to praise"},
-    {c:1,p:"vocō",inf:"vocāre",pf:"vocāvī",g:"to call"},
-    {c:1,p:"parō",inf:"parāre",pf:"parāvī",g:"to prepare"},
-    {c:1,p:"spectō",inf:"spectāre",pf:"spectāvī",g:"to watch"},
-    {c:1,p:"pugnō",inf:"pugnāre",pf:"pugnāvī",g:"to fight"},
-    {c:1,p:"dō",inf:"dare",pf:"dedī",g:"to give",irr:1},
-    {c:1,p:"stō",inf:"stāre",pf:"stetī",g:"to stand",irr:1},
-    // 2nd  -uī + irregulars
-    {c:2,p:"moneō",inf:"monēre",pf:"monuī",g:"to warn"},
-    {c:2,p:"terreō",inf:"terrēre",pf:"terruī",g:"to frighten"},
-    {c:2,p:"habeō",inf:"habēre",pf:"habuī",g:"to have"},
-    {c:2,p:"teneō",inf:"tenēre",pf:"tenuī",g:"to hold"},
-    {c:2,p:"videō",inf:"vidēre",pf:"vīdī",g:"to see",irr:1},
-    {c:2,p:"moveō",inf:"movēre",pf:"mōvī",g:"to move",irr:1},
-    {c:2,p:"iubeō",inf:"iubēre",pf:"iussī",g:"to order",irr:1},
-    {c:2,p:"maneō",inf:"manēre",pf:"mānsī",g:"to remain",irr:1},
-    // 3rd  the wild west
-    {c:3,p:"regō",inf:"regere",pf:"rēxī",g:"to rule"},
-    {c:3,p:"dūcō",inf:"dūcere",pf:"dūxī",g:"to lead"},
-    {c:3,p:"mittō",inf:"mittere",pf:"mīsī",g:"to send"},
-    {c:3,p:"scrībō",inf:"scrībere",pf:"scrīpsī",g:"to write"},
-    {c:3,p:"agō",inf:"agere",pf:"ēgī",g:"to do, drive"},
-    {c:3,p:"pōnō",inf:"pōnere",pf:"posuī",g:"to place"},
-    {c:3,p:"gerō",inf:"gerere",pf:"gessī",g:"to wage"},
-    {c:3,p:"vincō",inf:"vincere",pf:"vīcī",g:"to conquer"},
-    {c:3,p:"currō",inf:"currere",pf:"cucurrī",g:"to run",irr:1},
-    {c:3,p:"capiō",inf:"capere",pf:"cēpī",g:"to take"},
-    {c:3,p:"faciō",inf:"facere",pf:"fēcī",g:"to make"},
-    {c:3,p:"legō",inf:"legere",pf:"lēgī",g:"to read, choose"},
-    // 4th  -īvī + irregulars
-    {c:4,p:"audiō",inf:"audīre",pf:"audīvī",g:"to hear"},
-    {c:4,p:"mūniō",inf:"mūnīre",pf:"mūnīvī",g:"to fortify"},
-    {c:4,p:"dormiō",inf:"dormīre",pf:"dormīvī",g:"to sleep"},
-    {c:4,p:"custōdiō",inf:"custōdīre",pf:"custōdīvī",g:"to guard"},
-    {c:4,p:"veniō",inf:"venīre",pf:"vēnī",g:"to come",irr:1},
-    {c:4,p:"sentiō",inf:"sentīre",pf:"sēnsī",g:"to feel",irr:1},
-    {c:4,p:"inveniō",inf:"invenīre",pf:"invēnī",g:"to find",irr:1},
-    {c:4,p:"aperiō",inf:"aperīre",pf:"aperuī",g:"to open",irr:1},
+  const V = [
+    {c:1,p:"amo",inf:"amare",pf:"amavi",g:"to love"},
+    {c:1,p:"porto",inf:"portare",pf:"portavi",g:"to carry"},
+    {c:1,p:"laudo",inf:"laudare",pf:"laudavi",g:"to praise"},
+    {c:1,p:"voco",inf:"vocare",pf:"vocavi",g:"to call"},
+    {c:1,p:"paro",inf:"parare",pf:"paravi",g:"to prepare"},
+    {c:1,p:"do",inf:"dare",pf:"dedi",g:"to give",irr:1},
+    {c:1,p:"sto",inf:"stare",pf:"steti",g:"to stand",irr:1},
+    {c:2,p:"moneo",inf:"monere",pf:"monui",g:"to warn"},
+    {c:2,p:"habeo",inf:"habere",pf:"habui",g:"to have"},
+    {c:2,p:"teneo",inf:"tenere",pf:"tenui",g:"to hold"},
+    {c:2,p:"terreo",inf:"terrere",pf:"terrui",g:"to frighten"},
+    {c:2,p:"timeo",inf:"timere",pf:"timui",g:"to fear"},
+    {c:2,p:"deleo",inf:"delere",pf:"delevi",g:"to destroy",irr:1},
+    {c:2,p:"iubeo",inf:"iubere",pf:"iussi",g:"to order",irr:1},
+    {c:2,p:"maneo",inf:"manere",pf:"mansi",g:"to remain",irr:1},
+    {c:2,p:"moveo",inf:"movere",pf:"movi",g:"to move",irr:1},
+    {c:2,p:"respondeo",inf:"respondere",pf:"respondi",g:"to reply",irr:1},
+    {c:2,p:"rideo",inf:"ridere",pf:"risi",g:"to laugh",irr:1},
+    {c:2,p:"video",inf:"videre",pf:"vidi",g:"to see",irr:1},
+    {c:3,p:"rego",inf:"regere",pf:"rexi",g:"to rule"},
+    {c:3,p:"duco",inf:"ducere",pf:"duxi",g:"to lead"},
+    {c:3,p:"mitto",inf:"mittere",pf:"misi",g:"to send"},
+    {c:3,p:"scribo",inf:"scribere",pf:"scripsi",g:"to write"},
+    {c:3,p:"dico",inf:"dicere",pf:"dixi",g:"to say"},
+    {c:3,p:"pono",inf:"ponere",pf:"posui",g:"to put, place"},
+    {c:3,p:"lego",inf:"legere",pf:"legi",g:"to read, choose"},
+    {c:3,p:"ludo",inf:"ludere",pf:"lusi",g:"to play"},
+    {c:3,p:"bibo",inf:"bibere",pf:"bibi",g:"to drink"},
+    {c:3,p:"curro",inf:"currere",pf:"cucurri",g:"to run",irr:1},
+    {c:3,p:"consumo",inf:"consumere",pf:"consumpsi",g:"to eat"},
+    {c:3,p:"constituo",inf:"constituere",pf:"constitui",g:"to decide"},
+    {c:3,p:"discedo",inf:"discedere",pf:"discessi",g:"to leave"},
+    {c:3,p:"ostendo",inf:"ostendere",pf:"ostendi",g:"to show"},
+    {c:4,p:"audio",inf:"audire",pf:"audivi",g:"to hear"},
+    {c:4,p:"venio",inf:"venire",pf:"veni",g:"to come",irr:1},
+    {c:4,p:"dormio",inf:"dormire",pf:"dormivi",g:"to sleep"},
+    {c:4,p:"punio",inf:"punire",pf:"punivi",g:"to punish"},
   ];
-
-  const PERSONS = [
-    {k:"1sg",en:"I",end:"ī"},
-    {k:"2sg",en:"you (sg.)",end:"istī"},
-    {k:"3sg",en:"he / she / it",end:"it"},
-    {k:"1pl",en:"we",end:"imus"},
-    {k:"2pl",en:"you (pl.)",end:"istis"},
-    {k:"3pl",en:"they",end:"ērunt"},
+  const SUM = [
+    {p:"sum",g:"to be",special:1,c:0,pf:"fui",forms:{pres:["sum","es","est","sumus","estis","sunt"],imp:["eram","eras","erat","eramus","eratis","erant"],perf:["fui","fuisti","fuit","fuimus","fuistis","fuerunt"]}},
+    {p:"adsum",g:"to be present",special:1,c:0,pf:"adfui",forms:{pres:["adsum","ades","adest","adsumus","adestis","adsunt"],imp:["aderam","aderas","aderat","aderamus","aderatis","aderant"],perf:["adfui","adfuisti","adfuit","adfuimus","adfuistis","adfuerunt"]}},
+    {p:"absum",g:"to be absent",special:1,c:0,pf:"afui",forms:{pres:["absum","abes","abest","absumus","abestis","absunt"],imp:["aberam","aberas","aberat","aberamus","aberatis","aberant"],perf:["afui","afuisti","afuit","afuimus","afuistis","afuerunt"]}},
   ];
-  const SUFFIX_POOL = ["āvī","uī","sī","īvī","ī","xī","ēvī"]; // for tempting distractors
+  const PERSONS=[{k:"I"},{k:"you (sg.)"},{k:"he/she/it"},{k:"we"},{k:"you (pl.)"},{k:"they"}];
+  const TENSE_LABEL={pres:"Present",imp:"Imperfect",perf:"Perfect",stems:"Perfect stems"};
+  const TENSE_HINT={pres:"present: -o -s -t -mus -tis -nt",imp:"imperfect: -bam -bas -bat -bamus -batis -bant",perf:"perfect: -i -isti -it -imus -istis -erunt"};
 
-  const stemOf   = v => v.pf.slice(0,-1);
-  const presStem = v => v.inf.slice(0,-3);
-  const rand = a => a[Math.floor(Math.random()*a.length)];
-  const shuffle = a => { for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; };
-
-  // ---- state ----
-  const S = {mode:"stem", conjs:new Set([1,2,3,4]), diff:"easy",
-             q:0, total:10, score:0, streak:0, best:0, pool:[], cur:null};
-
-  const $ = id => document.getElementById(id);
-  const secStart=$("start"), secPlay=$("play"), secRes=$("results");
-
-  // ---- start screen wiring ----
-  document.querySelectorAll('#start .card').forEach(b=>{
-    b.addEventListener('click',()=>{
-      S.mode=b.dataset.mode;
-      document.querySelectorAll('#start .card').forEach(x=>x.style.borderColor="");
-      b.style.borderColor="var(--gold)";
-    });
-  });
-  // default-select stem visually
-  document.querySelector('#start .card[data-mode="stem"]').style.borderColor="var(--gold)";
-
-  $("conjChips").addEventListener('click',e=>{
-    const c=e.target.closest('.chip'); if(!c)return;
-    const n=+c.dataset.conj;
-    if(S.conjs.has(n)&&S.conjs.size>1){S.conjs.delete(n);c.setAttribute('aria-pressed','false');}
-    else{S.conjs.add(n);c.setAttribute('aria-pressed','true');}
-  });
-  $("diffChips").addEventListener('click',e=>{
-    const c=e.target.closest('.chip'); if(!c)return;
-    S.diff=c.dataset.diff;
-    document.querySelectorAll('#diffChips .chip').forEach(x=>x.setAttribute('aria-pressed', x===c?'true':'false'));
-  });
-
-  $("playBtn").addEventListener('click',startRound);
-  $("againBtn").addEventListener('click',()=>{secRes.classList.add('hidden');secStart.classList.remove('hidden');});
-  $("nextBtn").addEventListener('click',()=>{ S.q++; (S.q>=S.total)? finish() : renderQ(); });
-
-  function startRound(){
-    const avail = VERBS.filter(v=>S.conjs.has(v.c));
-    S.pool = shuffle(avail.slice());
-    S.q=0; S.score=0; S.streak=0; S.best=0;
-    secStart.classList.add('hidden'); secRes.classList.add('hidden'); secPlay.classList.remove('hidden');
-    renderQ();
+  function stem(v){ if(v.c===1||v.c===2||v.c===4) return v.inf.slice(0,-2); if(v.c===3) return v.inf.slice(0,-3); return ""; }
+  function conjugate(v,t){
+    if(v.special) return v.forms[t].slice();
+    const st=stem(v);
+    if(t==="pres"){
+      if(v.c===1) return [st.slice(0,-1)+"o",st+"s",st+"t",st+"mus",st+"tis",st+"nt"];
+      if(v.c===2) return [st+"o",st+"s",st+"t",st+"mus",st+"tis",st+"nt"];
+      if(v.c===3) return [st+"o",st+"is",st+"it",st+"imus",st+"itis",st+"unt"];
+      if(v.c===4) return [st+"o",st+"s",st+"t",st+"mus",st+"tis",st+"unt"];
+    }
+    if(t==="imp"){ const b=(v.c===1||v.c===2)?st+"ba":st+"eba"; return [b+"m",b+"s",b+"t",b+"mus",b+"tis",b+"nt"]; }
+    const ps=v.pf.slice(0,-1); return [v.pf,ps+"isti",ps+"it",ps+"imus",ps+"istis",ps+"erunt"];
   }
 
-  function pickVerb(){
-    if(S.pool.length===0) S.pool = shuffle(VERBS.filter(v=>S.conjs.has(v.c)).slice());
-    return S.pool.pop();
+  const $=id=>document.getElementById(id);
+  const secStart=$("start"),secPlay=$("play"),secDone=$("done");
+  let tense="perf",fam="all",hints="on",pool=[],q=0,correct=0,streak=0,answer="";
+  const TOTAL=10;
+
+  function chipRow(id,attr,setter){ $(id).addEventListener("click",e=>{const c=e.target.closest(".chip");if(!c)return;
+    setter(c.dataset[attr]); document.querySelectorAll("#"+id+" .chip").forEach(x=>x.setAttribute("aria-pressed",x===c?"true":"false"));}); }
+  chipRow("tenseChips","t",v=>tense=v); chipRow("famChips","f",v=>fam=v); chipRow("hintChips","h",v=>hints=v);
+
+  $("playBtn").addEventListener("click",start);
+  $("againBtn").addEventListener("click",()=>{secDone.classList.add("hidden");secStart.classList.remove("hidden");});
+  $("quitLink").addEventListener("click",e=>{e.preventDefault();secPlay.classList.add("hidden");secStart.classList.remove("hidden");});
+  $("nextBtn").addEventListener("click",()=>{q++;(q>=TOTAL)?finish():render();});
+
+  function buildPool(){
+    let base = (fam==="sum") ? SUM.slice() : (fam==="all" ? V.concat(SUM) : V.filter(v=>v.c===+fam));
+    if(tense!=="stems" && fam==="all"){ base=V.concat(SUM); }
+    return base;
   }
+  function start(){ pool=buildPool(); q=0;correct=0;streak=0;
+    secStart.classList.add("hidden");secDone.classList.add("hidden");secPlay.classList.remove("hidden");
+    $("tensePill").textContent=TENSE_LABEL[tense]; render(); }
 
-  function buildStemQ(v){
-    // answer = full perfect (1sg). distractors = presentStem + wrong suffixes
-    const ans=v.pf, ps=presStem(v), set=new Set([ans]);
-    const opts=[ans];
-    const sufs=shuffle(SUFFIX_POOL.slice());
-    for(const s of sufs){ const cand=ps+s; if(!set.has(cand)){set.add(cand);opts.push(cand);} if(opts.length>=4)break; }
-    return {
-      sub:"The 4th conjugation? Find the deed once done.",
-      verb:v.p, gloss:v.g,
-      ask:`What is the <b>perfect</b> form — “${persEN(v,'1sg')}”?`,
-      hint: S.diff==='easy' ? `Conjugation <code>${roman(v.c)}</code> · infinitive <code>${v.inf}</code>` : "",
-      options:shuffle(opts), answer:ans,
-      why:(ok)=>`<code>${v.p}</code> → <code>${v.inf}</code> → <code>${v.pf}</code>. ${v.irr?'An <b>irregular</b> stem — one to memorise.':'Regular for conj. '+roman(v.c)+'.'}`
-    };
+  const pick=a=>a[Math.floor(Math.random()*a.length)];
+  function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+  function render(){
+    $("qnum").textContent=q+1; $("streak").textContent=streak; $("bar").style.width=(q/TOTAL*100)+"%";
+    $("feedback").textContent=""; $("nextBtn").classList.add("hidden");
+    const v=pick(pool);
+    $("verb").textContent=v.p; $("gloss").textContent=v.g+(v.special?" (irregular)":" \u00b7 "+ordinal(v.c)+" conj.");
+
+    if(tense==="stems"){
+      answer=v.pf;
+      $("ask").innerHTML="What is the <b>perfect</b> (I \u2026)?";
+      $("hint").innerHTML = hints==="on" ? "Present is <code>"+v.p+"</code>"+(v.irr?" &middot; watch out, irregular stem!":"") : "";
+      const wrong=stemDistractors(v);
+      buildOpts([v.pf,...wrong]);
+    } else {
+      const idx=Math.floor(Math.random()*6);
+      const forms=conjugate(v,tense);
+      answer=forms[idx];
+      $("ask").innerHTML="Give the <b>"+PERSONS[idx].k+"</b> form &middot; "+TENSE_LABEL[tense];
+      $("hint").innerHTML = hints==="on" ? "stem <code>"+(v.special?v.p:stem(v)+"-")+"</code> &middot; "+(TENSE_HINT[tense]||"") : "";
+      const others=shuffle(forms.filter((_,i)=>i!==idx)).slice(0,3);
+      buildOpts([answer,...others]);
+    }
   }
-
-  function buildConjQ(v){
-    const per=rand(PERSONS), stem=stemOf(v), ans=stem+per.end;
-    const set=new Set([ans]); const opts=[ans];
-    // distractor 1: present stem + correct ending (wrong-stem error)
-    const d1=presStem(v)+per.end; if(!set.has(d1)){set.add(d1);opts.push(d1);}
-    // distractors: correct stem + other endings
-    const others=shuffle(PERSONS.filter(p=>p.k!==per.k));
-    for(const p of others){ const cand=stem+p.end; if(!set.has(cand)){set.add(cand);opts.push(cand);} if(opts.length>=4)break; }
-    return {
-      sub:"Forge the form · endings never change",
-      verb:v.p, gloss:v.g,
-      ask:`Write the perfect for <b>“${per.en}”</b>.`,
-      hint: S.diff==='easy' ? `Perfect stem <code>${stem}-</code> · add the “${per.en}” ending` : `Perfect stem <code>${stem}-</code>`,
-      options:shuffle(opts), answer:ans,
-      why:(ok)=>`<code>${stem}-</code> + <code>-${per.end}</code> = <code>${ans}</code> &nbsp;(“${persEN(v,per.k)}”).`
-    };
+  function ordinal(c){return c===1?"1st":c===2?"2nd":c===3?"3rd":"4th";}
+  function stemDistractors(v){
+    const base=v.p.replace(/o$/,"");
+    const cand=[base+"i",base+"si",base+"vi",base+"ui",base+"xi"].filter(x=>x!==v.pf);
+    return shuffle([...new Set(cand)]).slice(0,3);
   }
-
-  function persEN(v,k){
-    const verb=v.g.replace(/^to /,'');
-    const map={"1sg":"I "+verb+"ed","2sg":"you "+verb+"ed","3sg":"he/she "+verb+"ed",
-               "1pl":"we "+verb+"ed","2pl":"you all "+verb+"ed","3pl":"they "+verb+"ed"};
-    return (map[k]||("I "+verb+"ed")).replace("eded","ed").replace("eed","ed");
+  function buildOpts(arr){
+    arr=shuffle([...new Set(arr)]);
+    while(arr.length<2)arr.push(answer);
+    const box=$("opts"); box.innerHTML="";
+    arr.forEach(t=>{ const b=document.createElement("button"); b.className="opt"; b.textContent=t;
+      b.addEventListener("click",()=>choose(b,t)); box.appendChild(b); });
   }
-  function roman(n){return ["","I","II","III","IV"][n]||n;}
-
-  function renderQ(){
-    const v=pickVerb();
-    S.cur = (S.mode==="stem") ? buildStemQ(v) : buildConjQ(v);
-    const c=S.cur;
-    $("qNum").textContent=S.q+1;
-    $("streak").textContent=S.streak;
-    $("score").textContent=S.score;
-    $("bar").style.width=((S.q)/S.total*100)+"%";
-
-    $("prompt").innerHTML=
-      `<div class="sub">${c.sub}</div>
-       <div class="verb">${c.verb}</div>
-       <div class="gloss">${c.gloss}</div>
-       <div class="ask">${c.ask}</div>
-       ${c.hint?`<div class="hint">${c.hint}</div>`:""}`;
-
-    const ob=$("options"); ob.innerHTML="";
-    c.options.forEach(opt=>{
-      const b=document.createElement('button');
-      b.className="opt"; b.textContent=opt;
-      b.addEventListener('click',()=>choose(b,opt));
-      ob.appendChild(b);
-    });
-    $("feedback").innerHTML="";
-    $("nextBtn").classList.add('hidden');
+  function choose(btn,val){
+    document.querySelectorAll(".opt").forEach(b=>{b.disabled=true;
+      if(b.textContent===answer)b.classList.add("right");});
+    if(val===answer){ correct++;streak++;$("feedback").textContent=pick(["Euge! Spot on.","Optime!","Recte!","Correct \u2014 nicely done."]); }
+    else{ streak=0; btn.classList.add("wrong"); $("feedback").innerHTML="Not quite \u2014 the answer is <b>"+answer+"</b>."; }
+    $("bar").style.width=((q+1)/TOTAL*100)+"%"; $("streak").textContent=streak; $("nextBtn").classList.remove("hidden");
   }
-
-  function choose(btn,opt){
-    const c=S.cur, ok=(opt===c.answer);
-    document.querySelectorAll('.opt').forEach(b=>{
-      b.disabled=true;
-      if(b.textContent===c.answer) b.classList.add('correct');
-      else if(b===btn) b.classList.add('wrong');
-      else b.classList.add('dim');
-    });
-    if(ok){
-      S.streak++; S.best=Math.max(S.best,S.streak);
-      S.score += 10 + (S.streak>=3?5:0);
-    } else { S.streak=0; }
-    $("streak").textContent=S.streak;
-    $("score").textContent=S.score;
-    $("bar").style.width=((S.q+1)/S.total*100)+"%";
-
-    const verdict = ok
-      ? rand(["Rēctē!","Optimē!","Euge!","Ita vērō!"])
-      : rand(["Minimē.","Heu!","Nōn ita."]);
-    $("feedback").innerHTML =
-      `<div class="verdict ${ok?'good':'bad'}">${verdict}${ok&&S.streak>=3?` · streak ×${S.streak}`:''}</div>
-       <div class="why">${c.why(ok)}</div>`;
-    $("nextBtn").classList.remove('hidden');
-    $("nextBtn").textContent = (S.q+1>=S.total)?"See your triumph →":"Next →";
-  }
-
   function finish(){
-    secPlay.classList.add('hidden'); secRes.classList.remove('hidden');
-    const max=S.total*10, pct=S.score/max;
-    let grade,blurb;
-    if(pct>=1){grade="TRIUMPHUS";blurb="A flawless campaign. The Senate decrees a triumph — laurels, a chariot, and the whole of Rome chanting your perfect stems.";}
-    else if(pct>=0.8){grade="LAUREĀTA";blurb="Crowned with laurel. The endings are yours; a handful of stems still need taming.";}
-    else if(pct>=0.6){grade="MĪLES";blurb="A solid soldier of the perfect tense. Drill the irregular stems and you'll make centurion.";}
-    else if(pct>=0.4){grade="TĪRŌ";blurb="A recruit's start. Remember: the endings never change — it's the stems that ambush you.";}
-    else {grade="DISCIPULA";blurb="Every consul began as a student. Try one conjugation at a time with hints on.";}
-    $("grade").textContent=grade;
-    $("finalScore").textContent=`${S.score} laurels · best streak ×${S.best}`;
-    $("blurb").textContent=blurb;
+    secPlay.classList.add("hidden");secDone.classList.remove("hidden");$("bar").style.width="100%";
+    const pct=Math.round(correct/TOTAL*100);
+    $("score").textContent=correct+" / "+TOTAL;
+    $("blurb").textContent = pct>=90?"Magnificent \u2014 the legions salute you.":pct>=70?"Strong work. A consul in the making.":pct>=50?"Solid progress \u2014 run it again to sharpen up.":"Keep drilling; the forms will come.";
   }
 })();
 </script>
