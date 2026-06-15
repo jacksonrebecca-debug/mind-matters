@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Crete Explorer · Myths & Minoans</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐂</text></svg>" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#3a2a1c; --soft:#7c6450;
+    --plaster:#f7efe0; --plaster-deep:#efe2c9;
+    --sea:#1b6ca8; --sea-deep:#0e4a73; --sea-soft:#dbeaf4;
+    --terra:#c8642d; --terra-soft:#fbe4d3;
+    --olive:#6b7d3a; --olive-soft:#e7eccf;
+    --gold:#d9a528; --red:#b23b2e;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;min-height:100%;}
+  body{
+    font-family:'Nunito',sans-serif; color:var(--ink);
+    background:
+      radial-gradient(900px 500px at 12% -8%, #fffaf0 0%, transparent 55%),
+      radial-gradient(900px 520px at 92% 0%, #eaf2f8 0%, transparent 55%),
+      var(--plaster);
+    padding:0 16px 60px;
+  }
+  .meander{ height:14px; background:
+      repeating-linear-gradient(90deg, var(--sea) 0 4px, transparent 4px 10px),
+      repeating-linear-gradient(90deg, var(--terra) 0 4px, transparent 4px 10px);
+    background-position:0 0, 5px 0; opacity:.6; margin:0 -16px 0; }
+  .wrap{ max-width:880px; margin:0 auto; }
+
+  header{ text-align:center; padding:30px 0 6px; }
+  .kicker{ font-family:'Cinzel',serif; letter-spacing:.34em; text-transform:uppercase; font-size:11px; color:var(--terra); }
+  h1{ font-family:'Cinzel',serif; font-weight:900; font-size:clamp(34px,8vw,60px); margin:.1em 0 .05em; color:var(--sea-deep); letter-spacing:.04em; }
+  .sub{ font-size:clamp(15px,2.6vw,18px); font-weight:700; color:var(--soft); max-width:30ch; margin:6px auto 0; line-height:1.4; }
+
+  .progress-wrap{ max-width:460px; margin:20px auto 6px; }
+  .progress-top{ display:flex; justify-content:space-between; font-weight:800; font-size:13px; color:var(--soft); margin-bottom:6px; }
+  .progress-top b{ color:var(--sea-deep); }
+  .bar{ height:12px; background:#fff; border:2px solid var(--plaster-deep); border-radius:99px; overflow:hidden; }
+  .bar > i{ display:block; height:100%; width:0; background:linear-gradient(90deg,var(--gold),var(--terra)); transition:width .4s; }
+  .expert{ text-align:center; font-family:'Cinzel',serif; font-weight:700; color:var(--terra); margin-top:10px; min-height:20px; }
+
+  .controls{ display:flex; flex-wrap:wrap; gap:8px; justify-content:center; align-items:center; margin:18px 0 22px; }
+  .chip{ font-family:'Nunito',sans-serif; font-weight:800; font-size:14px; border:2px solid var(--plaster-deep); background:#fff; color:var(--soft); padding:8px 16px; border-radius:999px; cursor:pointer; box-shadow:0 3px 0 var(--plaster-deep); }
+  .chip[aria-pressed="true"]{ background:var(--sea); border-color:var(--sea-deep); color:#fff; box-shadow:0 3px 0 var(--sea-deep); }
+  .surprise{ font-family:'Cinzel',serif; font-weight:700; letter-spacing:.06em; border:2px solid var(--ink); background:var(--gold); color:var(--ink); padding:9px 18px; border-radius:999px; cursor:pointer; box-shadow:0 4px 0 var(--ink); }
+  .surprise:active{ transform:translateY(2px); box-shadow:0 2px 0 var(--ink); }
+
+  .grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap:16px; }
+  .card{ position:relative; border:2.5px solid var(--ink); border-radius:18px; background:#fff; padding:18px 18px 16px; cursor:pointer;
+    box-shadow:6px 6px 0 var(--accent); transition:transform .12s, box-shadow .12s; overflow:hidden; min-height:150px; display:flex; flex-direction:column; }
+  .card:hover{ transform:translate(-2px,-2px); box-shadow:9px 9px 0 var(--accent); }
+  .card .emoji{ font-size:34px; line-height:1; }
+  .card .cat{ position:absolute; top:14px; right:16px; font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.7px; color:var(--accent); }
+  .card .title{ font-family:'Cinzel',serif; font-weight:700; font-size:18px; margin:10px 0 0; line-height:1.2; color:var(--ink); }
+  .card .reveal-hint{ margin-top:auto; padding-top:10px; font-weight:800; font-size:13px; color:var(--accent); }
+  .card .fact{ display:none; }
+  .card.open .reveal-hint{ display:none; }
+  .card.open .fact{ display:block; margin-top:10px; animation:pop .25s ease; }
+  .card .fact .punch{ font-family:'Cinzel',serif; font-weight:700; font-size:16px; line-height:1.35; color:var(--sea-deep); }
+  .card .fact .detail{ font-size:14px; font-weight:600; color:var(--soft); margin-top:7px; line-height:1.45; }
+  .card .flexbadge{ display:inline-block; margin-top:10px; background:var(--red); color:#fff; font-weight:800; font-size:11px; letter-spacing:.4px; padding:4px 10px; border-radius:999px; }
+  .card.done::after{ content:"✓"; position:absolute; top:12px; left:14px; width:20px; height:20px; }
+  @keyframes pop{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:none;} }
+
+  .card.myth{ --accent:var(--terra); }
+  .card.minoan{ --accent:var(--sea); }
+  .card.nature{ --accent:var(--olive); }
+  .hide{ display:none !important; }
+
+  footer{ text-align:center; color:var(--soft); font-weight:700; font-size:13px; margin-top:34px; line-height:1.5; }
+  footer b{ color:var(--terra); }
+</style>
+</head>
+<body>
+  <div class="meander"></div>
+  <div class="wrap">
+    <header>
+      <div class="kicker">Greatest island of the Greeks</div>
+      <h1>Crete Explorer 🐂</h1>
+      <p class="sub">Tap a card to uncover a secret — then amaze the grown-ups on holiday.</p>
+
+      <div class="progress-wrap">
+        <div class="progress-top"><span>Secrets unlocked</span><span><b id="count">0</b> / <span id="total">0</span></span></div>
+        <div class="bar"><i id="barfill"></i></div>
+        <div class="expert" id="expert"></div>
+      </div>
+    </header>
+
+    <div class="controls">
+      <button class="chip" data-filter="all" aria-pressed="true">All</button>
+      <button class="chip" data-filter="myth" aria-pressed="false">🏺 Myths</button>
+      <button class="chip" data-filter="minoan" aria-pressed="false">🏛️ Minoans</button>
+      <button class="chip" data-filter="nature" aria-pressed="false">🌿 Nature</button>
+      <button class="surprise" id="surprise">🎲 Surprise me</button>
+    </div>
+
+    <div class="grid" id="grid"></div>
+
+    <footer>
+      Tip: the ones marked <b>🤯 Grown-up stopper</b> are the real show-offs.<br>See how many you can drop into conversation by the end of the trip!
+    </footer>
+  </div>
+
+<script>
+(function(){
+  const FACTS = [
+    // ---- MYTHS ----
+    { id:"minotaur", cat:"myth", emoji:"🐂", title:"The Minotaur", punch:"Half man, half bull — it lived in a maze beneath the palace.", detail:"King Minos kept the fearsome Minotaur deep in the Labyrinth, until a hero named Theseus came to defeat it.", flex:true },
+    { id:"thread", cat:"myth", emoji:"🧶", title:"Ariadne's Thread", punch:"A hero escaped the deadly maze using a ball of string.", detail:"Princess Ariadne gave Theseus a thread to unwind as he walked in — so he could follow it back out after beating the Minotaur.", flex:true },
+    { id:"labyrinth", cat:"myth", emoji:"🌀", title:"The Labyrinth", punch:"A maze so twisty that no one could ever find the way out.", detail:"Many people think the legend grew from the real palace of Knossos, which had so many rooms it felt like a maze.", flex:false },
+    { id:"icarus", cat:"myth", emoji:"🪶", title:"Daedalus & Icarus", punch:"A boy made wings of feathers and wax — and flew too close to the sun.", detail:"The inventor Daedalus built wings to escape Crete. His son Icarus soared too high, the wax melted, and he tumbled into the sea.", flex:true },
+    { id:"zeus", cat:"myth", emoji:"⚡", title:"Where Zeus Was Born", punch:"The king of all the Greek gods was said to be born in a cave on Crete.", detail:"Baby Zeus was hidden in a Cretan mountain cave to keep him safe from his hungry father, Cronus.", flex:false },
+    { id:"europa", cat:"myth", emoji:"🌍", title:"Why It's Called Europe", punch:"The whole continent of Europe may be named after a Cretan myth.", detail:"The god Zeus turned himself into a white bull and carried a princess named Europa across the sea to Crete.", flex:true },
+
+    // ---- MINOANS ----
+    { id:"first", cat:"minoan", emoji:"🏛️", title:"Europe's First Civilisation", punch:"The Minoans were Europe's very first great civilisation — over 4,000 years ago.", detail:"They lived on Crete in the Bronze Age, long before the Ancient Greeks or the Romans existed.", flex:true },
+    { id:"toilets", cat:"minoan", emoji:"🚽", title:"Ancient Flushing Toilets", punch:"They had flushing toilets and running water nearly 4,000 years ago!", detail:"The palace of Knossos had clever clay pipes and drains — some of the very first plumbing in the world.", flex:true },
+    { id:"bull", cat:"minoan", emoji:"🤸", title:"Bull-Leaping", punch:"Brave Minoans somersaulted right over charging bulls.", detail:"Paintings on the palace walls show people grabbing a bull by the horns and flipping over its back.", flex:true },
+    { id:"knossos", cat:"minoan", emoji:"🏰", title:"The Palace of Knossos", punch:"A palace with more than 1,000 rooms.", detail:"It was enormous and maze-like — which may be exactly where the Labyrinth legend came from.", flex:false },
+    { id:"lineara", cat:"minoan", emoji:"✍️", title:"A Code No One Can Crack", punch:"The Minoans wrote in a script called Linear A — and nobody has EVER decoded it.", detail:"Experts cracked their later writing (Linear B), but Linear A is still a complete mystery to this day.", flex:true },
+    { id:"octopus", cat:"minoan", emoji:"🐙", title:"Octopus Artists", punch:"They painted octopuses, dolphins and even blue monkeys.", detail:"Minoan pots and wall-paintings are famous for sea creatures with curling, swirling tentacles.", flex:false },
+    { id:"sailors", cat:"minoan", emoji:"⛵", title:"Master Sailors", punch:"The Minoans sailed and traded right across the sea.", detail:"Their ships carried pottery, oil and treasures all over the ancient Mediterranean world.", flex:false },
+    { id:"volcano", cat:"minoan", emoji:"🌋", title:"A Giant Volcano", punch:"A massive volcano nearby may have helped end their civilisation.", detail:"About 3,600 years ago the volcano on Santorini erupted — one of the biggest blasts in all of history.", flex:false },
+    { id:"nowalls", cat:"minoan", emoji:"🧱", title:"Towns With No Walls", punch:"Minoan towns had no big defensive walls.", detail:"Some experts think they simply felt safe, protected by the sea and their powerful fleet of ships.", flex:false },
+    { id:"evans", cat:"minoan", emoji:"🔎", title:"Named Only 120 Years Ago", punch:"The 'Minoans' got their name surprisingly recently.", detail:"Archaeologist Arthur Evans dug up Knossos in the early 1900s and named them after the legendary King Minos.", flex:false },
+
+    // ---- NATURE ----
+    { id:"krikri", cat:"nature", emoji:"🐐", title:"The Kri-Kri Goat", punch:"Crete has its own wild goat found almost nowhere else on Earth — a true GOAT!", detail:"The kri-kri is a wild mountain goat that mostly lives in the wild gorges of Crete.", flex:true },
+    { id:"biggest", cat:"nature", emoji:"🏝️", title:"The Biggest Island", punch:"Crete is the largest island in all of Greece.", detail:"It's also one of the biggest islands in the entire Mediterranean Sea.", flex:false },
+    { id:"palms", cat:"nature", emoji:"🌴", title:"A Palm-Forest Beach", punch:"Crete has the biggest natural palm forest in Europe.", detail:"At Vai beach the palm trees grow right down to the sand — it looks like a tropical island.", flex:false },
+    { id:"gorge", cat:"nature", emoji:"🥾", title:"A Colossal Gorge", punch:"One of the longest gorges in Europe runs through Crete.", detail:"The Samaria Gorge is about 16 km long — a famous (and very long!) walk down to the sea.", flex:false },
+    { id:"olive", cat:"nature", emoji:"🫒", title:"A Tree Older Than Rome", punch:"One olive tree on Crete is over 2,000 years old — and STILL grows olives.", detail:"The ancient Olive Tree of Vouves may be one of the oldest olive trees in the whole world.", flex:true },
+    { id:"snow", cat:"nature", emoji:"🏔️", title:"Snowy Mountains", punch:"Crete has mountains so high they get snow in winter.", detail:"The tallest, Mount Ida, is over 2,400 m — and is also a legendary home of the god Zeus.", flex:false },
+    { id:"turtles", cat:"nature", emoji:"🐢", title:"Sea Turtles", punch:"Loggerhead sea turtles lay their eggs on some Cretan beaches.", detail:"If you're lucky — and very careful not to disturb them — you might spot where they nest.", flex:false },
+    { id:"lyra", cat:"nature", emoji:"🎻", title:"Its Own Music", punch:"Crete has its own dances and a special instrument called the lyra.", detail:"Cretan music is played at big island celebrations that can last all night.", flex:false },
+  ];
+
+  const STORAGE_KEY = "crete-explorer:unlocked:v1";
+  function load(){ try{ const r = localStorage.getItem(STORAGE_KEY); if(r) return new Set(JSON.parse(r)); }catch(e){} return new Set(); }
+  function save(set){ try{ localStorage.setItem(STORAGE_KEY, JSON.stringify([...set])); }catch(e){} }
+
+  const unlocked = load();
+  let filter = "all";
+
+  const grid = document.getElementById("grid");
+  const countEl = document.getElementById("count");
+  const totalEl = document.getElementById("total");
+  const barfill = document.getElementById("barfill");
+  const expertEl = document.getElementById("expert");
+  totalEl.textContent = FACTS.length;
+
+  function buildCard(f){
+    const card = document.createElement("div");
+    card.className = "card " + f.cat + (unlocked.has(f.id) ? " open done" : "");
+    card.dataset.cat = f.cat;
+    card.dataset.id = f.id;
+    card.innerHTML =
+      '<div class="cat">'+(f.cat==="myth"?"Myth":f.cat==="minoan"?"Minoan":"Nature")+'</div>'+
+      '<div class="emoji">'+f.emoji+'</div>'+
+      '<div class="title">'+f.title+'</div>'+
+      '<div class="reveal-hint">Tap to reveal ✨</div>'+
+      '<div class="fact"><div class="punch">'+f.punch+'</div><div class="detail">'+f.detail+'</div>'+
+        (f.flex ? '<div class="flexbadge">🤯 Grown-up stopper</div>' : '')+'</div>';
+    card.addEventListener("click", ()=>{
+      if(!card.classList.contains("open")){
+        card.classList.add("open","done");
+        unlocked.add(f.id); save(unlocked); updateProgress();
+      }
+    });
+    return card;
+  }
+
+  function render(){
+    grid.innerHTML = "";
+    FACTS.forEach(f=>{
+      const c = buildCard(f);
+      if(filter!=="all" && f.cat!==filter) c.classList.add("hide");
+      grid.appendChild(c);
+    });
+  }
+
+  function updateProgress(){
+    const n = unlocked.size, total = FACTS.length;
+    countEl.textContent = n;
+    barfill.style.width = (n/total*100)+"%";
+    if(n===0) expertEl.textContent = "";
+    else if(n>=total) expertEl.textContent = "🏆 You're a Crete Expert! Go and amaze them.";
+    else if(n>=total*0.6) expertEl.textContent = "Nearly an expert — keep going!";
+    else expertEl.textContent = "";
+  }
+
+  document.querySelectorAll(".chip").forEach(ch=>{
+    ch.addEventListener("click", ()=>{
+      filter = ch.dataset.filter;
+      document.querySelectorAll(".chip").forEach(x=>x.setAttribute("aria-pressed", x===ch ? "true":"false"));
+      document.querySelectorAll(".card").forEach(c=>{
+        c.classList.toggle("hide", filter!=="all" && c.dataset.cat!==filter);
+      });
+    });
+  });
+
+  document.getElementById("surprise").addEventListener("click", ()=>{
+    const locked = FACTS.filter(f=>!unlocked.has(f.id));
+    const pool = locked.length ? locked : FACTS;
+    const pick = pool[Math.floor(Math.random()*pool.length)];
+    // make sure it's visible: switch to All
+    filter = "all";
+    document.querySelectorAll(".chip").forEach(x=>x.setAttribute("aria-pressed", x.dataset.filter==="all"?"true":"false"));
+    document.querySelectorAll(".card").forEach(c=>c.classList.remove("hide"));
+    const card = grid.querySelector('.card[data-id="'+pick.id+'"]');
+    if(card){
+      card.classList.add("open","done");
+      unlocked.add(pick.id); save(unlocked); updateProgress();
+      card.scrollIntoView({behavior:"smooth", block:"center"});
+    }
+  });
+
+  render();
+  updateProgress();
+})();
+</script>
+</body>
+</html>
