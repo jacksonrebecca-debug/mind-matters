@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>APORIA · Where Good Thinking Gets Hard</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌀</text></svg>" />
+
+<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+
+<style>
+  html, body { margin: 0; height: 100%; background: #131124; }
+  #root { min-height: 100%; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useRef } = React;
+
+/* ============================================================================
+   APORIA — hard thought experiments for a young philosopher (ages ~11+)
+   Every position has a price. The game rewards biting bullets, drawing
+   distinctions, finding counter-examples, and changing your mind.
+   ========================================================================== */
+
+const QUESTIONS = [
+  { id:"trolley", theme:"Ethics",
+    q:"A runaway tram will kill five people. You can pull a lever to divert it onto a side track where it kills one. Most people would pull. Now: same five, but the only way to stop the tram is to push one large stranger off a footbridge into its path. Same maths — one dies, five live. Would you push?",
+    stances:["Pull AND push — numbers are numbers","Pull, but never push","Neither — I won't act"],
+    bullet:"If you'd pull but not push, what is the moral difference? Both times you choose an act that kills one to save five. Is it that pushing USES a person as a mere tool — or just that it feels worse up close?",
+    deeper:"This pits consequentialism (the right act = the best outcome) against deontology (some acts are wrong whatever the outcome). The footbridge tests whether the ends can justify the means.",
+    thinkers:"Philippa Foot invented the trolley case; Judith Jarvis Thomson added the footbridge. They spent careers on why our gut treats them so differently.",
+    push:"Design a version where even YOU can't decide. What single feature flips your answer?" },
+
+  { id:"machine", theme:"Ethics",
+    q:"A machine can give you a lifetime of perfect, blissful experiences — any pleasure you can imagine — while you float in a tank. None of it is 'real', but you'd never know the difference. Plug in for life?",
+    stances:["Plug in — happiness is happiness","Stay out — reality matters","Only for a while"],
+    bullet:"If you refuse, you're admitting you want something BESIDES feeling good — you want your achievements and your loves to be real. So pleasure isn't the only thing you value. What else, exactly?",
+    deeper:"It attacks hedonism — the idea that pleasure is the only good. Staying out means you think a good life needs truth or real connection, not just nice feelings.",
+    thinkers:"Robert Nozick built this 'experience machine' in 1974 to show most of us care about authenticity, not just sensation.",
+    push:"Is a phone or a game a tiny experience machine? Where exactly is the line?" },
+
+  { id:"teleporter", theme:"Identity",
+    q:"A teleporter scans every atom of you, destroys your body, and builds a perfect copy on Mars — same memories, same personality. The copy is certain it's you. Did YOU travel to Mars, or did you die and a copy was born?",
+    stances:["It's me — I travelled","I died; that's a copy","There's no real fact of the matter"],
+    bullet:"Now suppose the machine malfunctions and DOESN'T destroy the original — now there are two of you. You can't both be 'the real you'. So maybe 'being the same person over time' isn't the deep, all-or-nothing thing we assume.",
+    deeper:"This is personal identity: what makes future-you the SAME person as present-you — your atoms, your chain of memories, or nothing fundamental at all?",
+    thinkers:"Derek Parfit argued that identity 'is not what matters' — what matters is psychological continuity, and it comes in degrees.",
+    push:"If the Mars copy is 'you enough', are you the same person as 4-year-old you? What's different?" },
+
+  { id:"chineseroom", theme:"Mind",
+    q:"A person who speaks no Chinese sits locked in a room with a vast rulebook. Chinese symbols come under the door; the rulebook tells them which symbols to pass back. To everyone outside, the room answers fluently in Chinese. Does the room UNDERSTAND Chinese?",
+    stances:["Yes — that IS understanding","No — it just shuffles symbols","'Understand' is the wrong word here"],
+    bullet:"Say it doesn't understand. But your BRAIN is also just cells passing signals by physical rules. So why does your symbol-shuffling create real understanding while the room's doesn't? What's the magic extra ingredient?",
+    deeper:"This is the heart of whether a mind is just computation. Real understanding might require consciousness — and nobody yet knows what consciousness even is.",
+    thinkers:"John Searle built the Chinese Room to argue machines only SIMULATE thought. Alan Turing argued that if we genuinely can't tell the difference, the question is empty.",
+    push:"Could an AI ever truly understand — or only ever act as if it does? How could you possibly tell?" },
+
+  { id:"simulation", theme:"Reality",
+    q:"Future civilisations might run billions of perfect simulations full of conscious people who believe they're real. If so, simulated minds would vastly outnumber real ones. So are YOU more likely to be a real person — or a simulated one?",
+    stances:["I'm definitely real","Probably simulated","The question can't be settled"],
+    bullet:"If you say 'definitely real', what evidence do you have that a good simulation couldn't perfectly fake? Everything you could check would be INSIDE the simulation. So how could you ever know?",
+    deeper:"It revives an ancient worry (Descartes' evil demon; the brain in a vat): can you ever be CERTAIN the outside world is real at all?",
+    thinkers:"Nick Bostrom made the modern argument; Descartes asked 400 years ago how he could be sure he wasn't being deceived about everything.",
+    push:"Would it actually MATTER if you were simulated? Would anything about how you should live change?" },
+
+  { id:"heap", theme:"Logic",
+    q:"One grain of sand is not a heap. Adding a single grain to a non-heap surely can't turn it into a heap. So adding grains one at a time, you could NEVER make a heap — yet heaps obviously exist. Where's the mistake?",
+    stances:["There's a hidden exact number","'Heap' is just fuzzy","Logic itself bends here"],
+    bullet:"If there's an exact number where it becomes a heap — name it. 10,000? Why would 9,999 grains NOT be a heap but 10,000 IS, on the strength of one grain? That's just as absurd.",
+    deeper:"This is the problem of vagueness: words like 'tall', 'old', 'bald' and 'heap' have no sharp boundary, yet we reason with them all day. Maybe truth itself comes in degrees.",
+    thinkers:"The ancient Greek Eubulides posed it; modern logicians invented 'fuzzy logic' partly to handle it.",
+    push:"Pick a word you use every day and try to find its exact boundary. Can you?" },
+
+  { id:"freewill", theme:"Mind",
+    q:"Every event has causes. Your choices come from your brain, which obeys the laws of physics — laws set in motion long before you were born. If the future is already fixed by the past, are your choices ever truly FREE?",
+    stances:["Yes — I'm genuinely free","No — it only feels free","Both can be true at once"],
+    bullet:"If 'free' means 'could have done otherwise given the EXACT same past', and the past fixes everything, that freedom looks impossible. But if you give it up — can anyone ever truly deserve blame or praise?",
+    deeper:"Three camps: hard determinists (no free will), libertarians (real free will — physics isn't the whole story), and compatibilists (free = acting from your own desires, even if those were caused).",
+    thinkers:"Philosophers have fought over this for millennia. Compatibilism — that free will and determinism actually fit together — is the most common view among them today.",
+    push:"If no one could ever 'have done otherwise', should we still punish wrongdoers? For what?" },
+
+  { id:"veil", theme:"Ethics",
+    q:"You get to design the rules for an entire society — but you won't know who you'll be in it: rich or poor, healthy or sick, gifted or struggling, any background at all. You could be ANYONE. What rules do you choose from behind this 'veil of ignorance'?",
+    stances:["Rules protecting the worst-off","Rules rewarding effort most","Maximum freedom for all"],
+    bullet:"If you might end up as the worst-off person, you'll be tempted to build a very safe, equal society. But does choosing rules out of FEAR of landing at the bottom give us real justice — or just caution?",
+    deeper:"It's a tool for fairness: a rule is just if you'd accept it without knowing where you'd land. It separates justice from self-interest.",
+    thinkers:"John Rawls used the 'veil of ignorance' to argue that inequalities are only fair if they actually help the worst-off.",
+    push:"Design one real rule for your school from behind the veil. Does it differ from what you'd pick as yourself?" },
+
+  { id:"maths", theme:"Reality",
+    q:"Did humans INVENT mathematics — like a language or a game we made up — or DISCOVER it, as truths that were already 'out there', true even before any minds existed? Was 2 + 2 = 4 true before anyone ever counted?",
+    stances:["Discovered — already true","Invented — we made the rules","Somehow both"],
+    bullet:"If maths is just invented rules, why does it predict reality so eerily well — black holes, radio waves — sometimes found in the equations BEFORE anyone observed them? But if it's 'out there', WHERE is it? You can't trip over the number 7.",
+    deeper:"This splits Platonists (abstract maths objects really exist) from those who think maths is a human construction, or simply a very useful set of patterns.",
+    thinkers:"Plato held that abstract truths exist in their own realm; many working mathematicians feel they 'discover' rather than invent.",
+    push:"Would aliens have the same mathematics as us? What about the same music?" },
+
+  { id:"mary", theme:"Mind",
+    q:"Mary is a brilliant scientist who knows EVERY physical fact about colour and the brain — but she has lived her whole life in a black-and-white room and has never seen colour. One day she steps outside and sees red for the first time. Does she learn something new?",
+    stances:["Yes — what red looks like","No — she already knew it all","It's not 'knowledge', it's experience"],
+    bullet:"If she learns something new, then knowing every PHYSICAL fact wasn't enough — there's a fact about EXPERIENCE that physics leaves out. That's trouble for the idea that everything is purely physical.",
+    deeper:"It targets the 'hard problem of consciousness': why does any of this FEEL like anything? The redness of red ('qualia') seems to slip through every physical description.",
+    thinkers:"Frank Jackson designed Mary to argue experience escapes physics — then later changed his own mind. Even great philosophers do.",
+    push:"Could you ever explain 'red' to someone born blind, using only words?" },
+
+  { id:"otherminds", theme:"Knowledge",
+    q:"You know YOU are conscious — you feel things from the inside. But how do you KNOW anyone else is? For all you can prove, everyone else might act conscious with no inner experience at all. How can you be sure other minds even exist?",
+    stances:["Obviously others feel too","I can't truly prove it","Wrong question — behaviour is enough"],
+    bullet:"You can't climb inside another head to check. Your only evidence is that others are built like you and behave like you — an inference, not a certainty. Are you comfortable with that gap?",
+    deeper:"It reveals how much we accept on reasonable faith. Total certainty about other minds may be impossible — yet seriously doubting it feels almost mad.",
+    thinkers:"This 'problem of other minds' troubled Descartes, and later Wittgenstein, who argued our shared language already takes for granted that others have inner lives.",
+    push:"If you can't strictly PROVE others are conscious, why is it still clearly wrong to hurt them?" },
+
+  { id:"ship", theme:"Identity",
+    q:"A ship has every plank replaced over the years until none of the original wood remains — call it Ship A. But someone secretly kept all the old planks and rebuilt them into a ship — Ship B. Now there are two. Which is the REAL original ship?",
+    stances:["A — continuity of use","B — the original matter","Neither / both — 'same' breaks"],
+    bullet:"Whichever you pick, the other has a serious claim too. Maybe 'being the same object over time' isn't a deep fact about the world at all — maybe it's partly a DECISION we make about how to talk.",
+    deeper:"It pushes identity to breaking point: is sameness in the object itself, or in our concepts and choices?",
+    thinkers:"Plutarch recorded the puzzle; Thomas Hobbes added the rebuilt-from-old-planks twist that makes it really bite.",
+    push:"Apply it to a band whose every member has been replaced. Same band? Why does that feel different from the ship?" },
+
+  { id:"moralluck", theme:"Ethics",
+    q:"Two equally careless drivers each run a red light. One hits nothing. The other, by pure chance, hits a child who steps out. We blame the second far more — yet they made the SAME choice. Is it fair to judge them differently for something only luck decided?",
+    stances:["Yes — outcomes matter","No — same choice, same blame","Our blaming is just inconsistent"],
+    bullet:"If blame should track only what's within our control, luck should change NOTHING and both drivers are equally guilty. But almost nobody truly feels that. So either our moral feelings are wrong — or control isn't the whole story.",
+    deeper:"'Moral luck' is the unsettling idea that how good or bad a person you are can depend partly on things outside your control.",
+    thinkers:"Bernard Williams and Thomas Nagel named this puzzle — and admitted they couldn't fully resolve it.",
+    push:"Recall a time you got in trouble through bad luck, or got away with something through good luck. Was it fair?" },
+
+  { id:"birth", theme:"Ethics",
+    q:"Your talents, your country, your family — even how naturally hard-working you are — are largely luck of birth you never chose. So do successful people really DESERVE their rewards, or did they mostly win a lottery?",
+    stances:["They earn it — effort counts","Mostly luck — less deserved","Effort matters, but luck sets the stage"],
+    bullet:"Even your ability to work hard may come from genes and upbringing you didn't pick. Follow that all the way down and 'deserving' starts to dissolve entirely. Yet a world where no one deserves ANYTHING feels wrong too.",
+    deeper:"It challenges the idea of 'desert' (getting what you deserve), and asks how a fair society should handle luck.",
+    thinkers:"Rawls argued that even talent is 'morally arbitrary' luck — a radical and hotly contested claim.",
+    push:"Should someone be taxed more simply because they were lucky enough to be born clever?" },
+
+  { id:"newcomb", theme:"Logic",
+    q:"A being that predicts your choices almost perfectly offers two boxes. Box A holds £1,000 (you can see it). Box B holds either £1,000,000 or nothing. The rule: it already put the million in B ONLY if it predicted you'd take B alone. It has already decided and gone. Do you take both boxes, or only B?",
+    stances:["Take both — the money's already set","Take only B — trust the predictor","A trick with no right answer"],
+    bullet:"'Both' seems obvious — the contents are already fixed, so why leave £1,000 behind? Yet everyone who reasons that way walks away with only £1,000, while the one-boxers collect a million. Being 'rational' seems to LOSE. How?",
+    deeper:"It splits two whole theories of rational choice, and even brushes free will: can your choice 'affect' something that's already been decided?",
+    thinkers:"Robert Nozick popularised it; decades later, brilliant philosophers still divide almost 50/50.",
+    push:"Which would you ACTUALLY walk out with — and does that match what you called 'rational'?" },
+
+  { id:"hotel", theme:"Logic",
+    q:"A hotel has infinitely many rooms, all full. A new guest arrives. No problem: move room 1's guest to room 2, room 2's to room 3, and so on forever — now room 1 is free, and nobody was thrown out. A 'full' hotel made room. Can infinity really behave like that?",
+    stances:["Yes — infinity is just strange","No — it's an impossible trick","Maths allows it; reality may not"],
+    bullet:"You can even fit infinitely many NEW guests into the full hotel (send everyone to double their room number). 'Completely full' and 'room for infinitely more' are both true at once. Either infinity behaves nothing like counting — or it can't truly exist in the real world.",
+    deeper:"It shows infinity isn't just 'a really big number' — it shatters our intuitions, and raises whether ACTUAL (not merely imagined) infinities can exist.",
+    thinkers:"David Hilbert dreamed up the hotel; Georg Cantor proved that some infinities are genuinely bigger than others (yes — really).",
+    push:"If some infinities are bigger than others, what could that possibly mean?" },
+];
+
+const THEME_META = {
+  "Ethics":   { color:"#f06b9a" },
+  "Mind":     { color:"#36d6e7" },
+  "Identity": { color:"#a78bfa" },
+  "Reality":  { color:"#34d3a6" },
+  "Knowledge":{ color:"#f0b84e" },
+  "Logic":    { color:"#b6e36a" },
+};
+
+const MOVES = [
+  { key:"bullet",   emoji:"🎯", label:"I bit the bullet" },
+  { key:"counter",  emoji:"🔍", label:"I found a counter-example" },
+  { key:"distinct", emoji:"✂️", label:"I drew a distinction" },
+  { key:"changed",  emoji:"🔄", label:"I changed my mind" },
+  { key:"newq",     emoji:"❓", label:"I have a new question" },
+];
+
+const STORAGE_KEY = "aporia-philosophy:v1";
+const TOTAL = QUESTIONS.length;
+function loadState(){ try{ const r=localStorage.getItem(STORAGE_KEY); if(r) return JSON.parse(r); }catch(e){} return null; }
+
+function Aporia(){
+  const saved = useRef(loadState()).current;
+  const [answers, setAnswers] = useState((saved && saved.answers) || {});
+  const [idx, setIdx] = useState(0);
+
+  useEffect(()=>{ try{ localStorage.setItem(STORAGE_KEY, JSON.stringify({ answers })); }catch(e){} }, [answers]);
+
+  const q = QUESTIONS[idx];
+  const meta = THEME_META[q.theme] || THEME_META["Ethics"];
+  const a = answers[q.id] || { stance:null, moves:{}, note:"" };
+  const answered = a.stance !== null && a.stance !== undefined;
+
+  const pondered = Object.values(answers).filter(x => x.stance !== null && x.stance !== undefined).length;
+  const badges = Object.values(answers).reduce((n,x)=> n + (x.moves ? Object.values(x.moves).filter(Boolean).length : 0), 0);
+
+  let level = "Certain — for now 😏";
+  if (pondered >= TOTAL) level = "💛 Lover of Wisdom — that's what 'philosopher' means";
+  else if (pondered >= 12) level = "🌌 Metaphysician";
+  else if (pondered >= 8) level = "⚔️ Dialectician";
+  else if (pondered >= 4) level = "🤨 Sceptic";
+  else if (pondered >= 1) level = "🌱 Questioner";
+
+  function choose(i){ setAnswers(p => ({ ...p, [q.id]: { ...(p[q.id]||{moves:{},note:""}), stance:i } })); }
+  function toggleMove(key){ setAnswers(p => { const cur = p[q.id] || { stance:null, moves:{}, note:"" }; const moves={...(cur.moves||{})}; moves[key]=!moves[key]; return { ...p, [q.id]:{...cur, moves} }; }); }
+  function setNote(v){ setAnswers(p => { const cur = p[q.id] || { stance:null, moves:{}, note:"" }; return { ...p, [q.id]:{...cur, note:v} }; }); }
+
+  const css = `
+    @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,800&family=Nunito:wght@400;600;700;800&display=swap');
+    .ap * { box-sizing:border-box; }
+    .ap { font-family:'Nunito',sans-serif; color:#e7e3f5; min-height:100vh; padding:24px 16px 56px;
+      background: radial-gradient(800px 500px at 85% -10%, #241b40 0%, transparent 55%), radial-gradient(700px 500px at 5% 5%, #1c2640 0%, transparent 55%), #131124; }
+    .ap-wrap { max-width:680px; margin:0 auto; }
+    .ap-head { text-align:center; }
+    .ap-kicker { font-family:'Fraunces',serif; letter-spacing:.3em; text-transform:uppercase; font-size:11px; color:#9b86e6; }
+    .ap-title { font-family:'Fraunces',serif; font-weight:800; font-size:clamp(36px,9vw,60px); margin:.06em 0 .04em; letter-spacing:.04em;
+      background:linear-gradient(90deg,#f06b9a,#a78bfa,#36d6e7); -webkit-background-clip:text; background-clip:text; color:transparent; }
+    .ap-sub { font-weight:700; color:#b3acce; font-size:15px; margin:0 auto; max-width:34ch; line-height:1.45; }
+    .ap-note { font-size:13px; color:#7f78a0; font-style:italic; margin:10px auto 0; max-width:42ch; line-height:1.5; }
+
+    .ap-stats { display:flex; gap:10px; margin:20px 0 16px; }
+    .ap-stat { flex:1; background:#1d1a33; border:1.5px solid #322c52; border-radius:14px; padding:9px 12px; text-align:center; }
+    .ap-stat b { font-family:'Fraunces',serif; font-size:21px; display:block; line-height:1.1; color:#fff; }
+    .ap-stat span { font-size:11px; font-weight:800; color:#8780a6; text-transform:uppercase; letter-spacing:.5px; }
+    .ap-level { text-align:center; font-family:'Fraunces',serif; font-weight:600; color:#c9bdf5; margin:-4px 0 18px; font-size:15px; }
+
+    .ap-card { background:#1b1830; border:1.5px solid #332c54; border-radius:22px; padding:22px; position:relative;
+      box-shadow:0 0 0 1px rgba(255,255,255,.02), 0 18px 50px -22px ${meta.color}; }
+    .ap-tag { display:inline-block; border:1.5px solid ${meta.color}; color:${meta.color}; font-weight:800; font-size:11px; padding:4px 11px; border-radius:999px; text-transform:uppercase; letter-spacing:.6px; }
+    .ap-qnum { float:right; font-family:'Fraunces',serif; font-weight:600; font-size:12px; color:#6f688e; }
+    .ap-q { font-family:'Fraunces',serif; font-weight:500; font-size:clamp(18px,4vw,22px); line-height:1.5; margin:14px 0 0; color:#f3f0ff; }
+
+    .ap-stances { display:flex; flex-direction:column; gap:9px; margin-top:18px; }
+    .ap-stance { font-family:'Nunito',sans-serif; text-align:left; font-weight:700; font-size:15px; border:1.5px solid #3a3358; background:#221e3b; color:#e7e3f5; padding:13px 15px; border-radius:13px; cursor:pointer; transition:transform .06s, border-color .12s; }
+    .ap-stance:hover { border-color:${meta.color}; }
+    .ap-stance.sel { background:${meta.color}; border-color:${meta.color}; color:#15122a; }
+
+    .ap-reveal { margin-top:18px; animation:fade .3s ease; }
+    @keyframes fade { from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:none;} }
+    .ap-block { background:#221e3b; border-left:3px solid ${meta.color}; border-radius:0 13px 13px 0; padding:13px 15px; margin-top:11px; }
+    .ap-block .lab { display:block; font-weight:800; text-transform:uppercase; font-size:11px; letter-spacing:.6px; color:${meta.color}; margin-bottom:5px; }
+    .ap-block p { margin:0; font-weight:600; line-height:1.55; font-size:15px; color:#d7d2ee; }
+    .ap-block .who { font-family:'Fraunces',serif; font-weight:600; color:#fff; }
+
+    .ap-journal-lab { font-family:'Fraunces',serif; font-weight:600; font-size:13px; color:#b3acce; margin:18px 0 8px; }
+    .ap-journal { width:100%; min-height:90px; font-family:'Nunito',sans-serif; font-size:15px; line-height:1.5; color:#f3f0ff; background:#15122a; border:1.5px solid #3a3358; border-radius:13px; padding:12px 14px; outline:none; resize:vertical; }
+    .ap-journal:focus { border-color:${meta.color}; }
+    .ap-journal::placeholder { color:#6f688e; }
+
+    .ap-moves-lab { font-family:'Fraunces',serif; font-weight:600; font-size:13px; color:#b3acce; margin:16px 0 9px; text-align:center; }
+    .ap-moves { display:flex; flex-wrap:wrap; gap:8px; justify-content:center; }
+    .ap-move { font-family:'Nunito',sans-serif; font-weight:800; font-size:13px; border:1.5px solid #3a3358; background:#221e3b; color:#9d96bd; padding:8px 13px; border-radius:999px; cursor:pointer; }
+    .ap-move.on { background:#f0f0ff; border-color:#f0f0ff; color:#15122a; }
+
+    .ap-nav { display:flex; align-items:center; justify-content:space-between; margin-top:20px; gap:10px; }
+    .ap-navbtn { font-family:'Nunito',sans-serif; border:1.5px solid #3a3358; background:#1d1a33; border-radius:12px; padding:10px 16px; font-weight:800; cursor:pointer; color:#e7e3f5; }
+    .ap-navbtn:disabled { opacity:.3; cursor:default; }
+    .ap-navbtn.next { background:linear-gradient(90deg,#a78bfa,#f06b9a); color:#15122a; border:none; }
+    .ap-dots { display:flex; flex-wrap:wrap; gap:5px; justify-content:center; margin-top:18px; }
+    .ap-dot { width:9px; height:9px; border-radius:50%; background:#322c52; cursor:pointer; }
+    .ap-dot.done { background:#a78bfa; }
+    .ap-dot.cur { box-shadow:0 0 0 2px #f06b9a; }
+  `;
+
+  return (
+    <div className="ap">
+      <style>{css}</style>
+      <div className="ap-wrap">
+        <div className="ap-head">
+          <div className="ap-kicker">Where good thinking gets hard</div>
+          <div className="ap-title">APORIA</div>
+          <div className="ap-sub">Every answer has a price. Take a position — then face the part that should bother you.</div>
+          <div className="ap-note">'Aporia' is the Greek word for being genuinely stuck on a hard question. Socrates thought that feeling wasn't failure — it's exactly where real thinking begins.</div>
+        </div>
+
+        <div className="ap-stats">
+          <div className="ap-stat"><b>{pondered}<span style={{ fontSize: 12, color: "#6f688e" }}> / {TOTAL}</span></b><span>Wrestled with</span></div>
+          <div className="ap-stat"><b>{badges}</b><span>Thinking badges</span></div>
+        </div>
+        <div className="ap-level">{level}</div>
+
+        <div className="ap-card">
+          <span className="ap-tag">{q.theme}</span>
+          <span className="ap-qnum">{idx + 1} / {TOTAL}</span>
+          <p className="ap-q">{q.q}</p>
+
+          <div className="ap-stances">
+            {q.stances.map((s, i) => (
+              <button key={i} className={"ap-stance" + (a.stance === i ? " sel" : "")} onClick={() => choose(i)}>{s}</button>
+            ))}
+          </div>
+
+          {answered && (
+            <div className="ap-reveal">
+              <div className="ap-block">
+                <span className="lab">⚡ The bullet you must bite</span>
+                <p>{q.bullet}</p>
+              </div>
+              <div className="ap-block">
+                <span className="lab">🌀 The deeper question</span>
+                <p>{q.deeper}</p>
+              </div>
+              <div className="ap-block">
+                <span className="lab">📚 Who lost sleep over this</span>
+                <p><span className="who">{q.thinkers}</span></p>
+              </div>
+              <div className="ap-block">
+                <span className="lab">✍️ Push yourself</span>
+                <p>{q.push}</p>
+              </div>
+
+              <div className="ap-journal-lab">Your reasoning (saved for you):</div>
+              <textarea className="ap-journal" placeholder="Where do you stand now — and why? What's the strongest objection to your own view?" value={a.note || ""} onChange={(e) => setNote(e.target.value)} />
+
+              <div className="ap-moves-lab">Which thinking moves did you just make? Earn a badge for each.</div>
+              <div className="ap-moves">
+                {MOVES.map(m => (
+                  <button key={m.key} className={"ap-move" + (a.moves && a.moves[m.key] ? " on" : "")} onClick={() => toggleMove(m.key)}>
+                    {m.emoji} {m.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="ap-nav">
+          <button className="ap-navbtn" disabled={idx <= 0} onClick={() => setIdx(i => Math.max(0, i - 1))}>← Back</button>
+          <button className="ap-navbtn next" disabled={idx >= TOTAL - 1} onClick={() => setIdx(i => Math.min(TOTAL - 1, i + 1))}>Next puzzle →</button>
+        </div>
+
+        <div className="ap-dots">
+          {QUESTIONS.map((qq, i) => {
+            const done = answers[qq.id] && answers[qq.id].stance !== null && answers[qq.id].stance !== undefined;
+            return <div key={qq.id} className={"ap-dot" + (done ? " done" : "") + (i === idx ? " cur" : "")} onClick={() => setIdx(i)} />;
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<Aporia />);
+</script>
+</body>
+</html>
