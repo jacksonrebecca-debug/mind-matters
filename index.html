@@ -5,6 +5,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Mind Matters · Leo · Summer 2026</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧠</text></svg>" />
+
+<!-- =====================================================================
+     EDIT YOUR LINKS HERE
+     Each card below is an <a href="...">. To point a card at a game:
+       • If the game is a file in THIS repo:  href="ludus-ii.html"
+       • If it lives somewhere else:          href="https://your-other-site/..."
+     Change the href values in the cards marked  EDIT LINK  and you're done.
+     To add a new game, copy a whole <a class="card"> ... </a> block.
+===================================================================== -->
+
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,800;9..144,900&family=Nunito:wght@400;600;700;800&display=swap');
   * { box-sizing: border-box; }
@@ -23,13 +33,17 @@
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   }
   .wrap { max-width: 860px; margin: 0 auto; position: relative; z-index: 1; }
+
   .sun { position:absolute; top:-26px; right:-6px; font-size:64px; animation: spin 26s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
+
   .eyebrow { font-weight:800; letter-spacing:2.5px; text-transform:uppercase; font-size:12px; color:#e08a2b; margin-bottom:8px; }
   h1 { font-family:'Fraunces',serif; font-weight:900; font-size: clamp(38px, 9vw, 72px); line-height:.96; letter-spacing:-1.5px; margin:0; }
   h1 .amp { color:#1f9b8a; font-style:italic; }
   .lede { font-size: clamp(16px,2.6vw,19px); font-weight:600; color:#7a6f60; margin:16px 0 0; max-width:520px; line-height:1.5; }
+
   .grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap:18px; margin-top:40px; }
+
   .card { position:relative; display:flex; flex-direction:column; gap:6px; text-decoration:none; color:#2a2320;
     background:#fff; border:2.5px solid #2a2320; border-radius:24px; padding:24px 22px 22px;
     box-shadow: 7px 7px 0 var(--accent); transition: transform .12s ease, box-shadow .12s ease; overflow:hidden; }
@@ -44,6 +58,7 @@
   .card.soon { border-style:dashed; border-color:#d9c9ad; box-shadow:7px 7px 0 #efe3cc; cursor:default; }
   .card.soon:hover { transform:none; box-shadow:7px 7px 0 #efe3cc; }
   .card.soon .go { color:#b8a894; }
+
   footer { margin-top:48px; text-align:center; font-weight:700; color:#b8a894; font-size:13px; }
   footer span { color:#e0553b; }
 </style>
@@ -54,7 +69,10 @@
     <div class="eyebrow">Summer 2026</div>
     <h1>Mind <span class="amp">Matters</span></h1>
     <p class="lede">A summer of brain-stretchers for Leo — a little maths, a little Latin, every day. Pick something and dive in.</p>
+
     <div class="grid">
+
+      <!-- ===== Summer Maths Quest (working) ===== -->
       <a class="card" href="maths-quest.html" style="--accent:#e08a2b; --soft:#fbe9d2;">
         <div class="wm">🧮</div>
         <div class="glyph">☀️</div>
@@ -63,38 +81,38 @@
         <p>One puzzle a day for 9 weeks — algebra, ratios, brain twisters and fun ones. Track your streak.</p>
         <div class="go">Start today's puzzle →</div>
       </a>
+
+      <!-- ===== Latin: ACTA =====  EDIT LINK below -->
       <a class="card" href="acta.html" style="--accent:#1f9b8a; --soft:#d9f2ee;">
         <div class="wm">📜</div>
         <div class="glyph">🏛️</div>
-        <span class="tag">Latin · verbs</span>
+        <span class="tag">Latin</span>
         <h2>ACTA</h2>
-        <p>Conjugate verbs across present, imperfect and perfect — plus tricky <i>sum</i> — or drill the perfect stems. Pick a tense and forge the forms.</p>
+        <p>Latin practice, the fun way.</p>
         <div class="go">Play →</div>
       </a>
+
+      <!-- ===== Latin: LŪDUS II =====  EDIT LINK below -->
       <a class="card" href="ludus-ii.html" style="--accent:#7a4fd0; --soft:#e8def9;">
         <div class="wm">🗝️</div>
         <div class="glyph">📖</div>
         <span class="tag">Latin · vocab</span>
-        <h2>VERBA</h2>
-        <p>Every word from the whole CE list — 469 of them — each with a memory hook, and spaced repetition that keeps bringing back the ones that won't stick.</p>
+        <h2>LŪDUS II</h2>
+        <p>Latin vocabulary game.</p>
         <div class="go">Play →</div>
       </a>
-      <a class="card" href="ludus-iii.html" style="--accent:#c24d6d; --soft:#f7dde7;">
-        <div class="wm">📐</div>
-        <div class="glyph">🧱</div>
-        <span class="tag">Latin · grammar</span>
-        <h2>CASUS</h2>
-        <p>Decline puella, dominus and bellum, make adjectives agree, and learn what each of the six cases is actually for.</p>
-        <div class="go">Play →</div>
+
+      <!-- ===== Crete Explorer (holiday) ===== -->
+      <a class="card" href="crete-explorer.html" style="--accent:#1b6ca8; --soft:#d9e9f4;">
+        <div class="wm">🐂</div>
+        <div class="glyph">🏛️</div>
+        <span class="tag">Holiday · explore</span>
+        <h2>Crete Explorer</h2>
+        <p>Tap to uncover Greek myths and Minoan secrets — then amaze the grown-ups in Crete.</p>
+        <div class="go">Start exploring →</div>
       </a>
-      <a class="card" href="spark-lab.html" style="--accent:#2f7fe0; --soft:#d8e8fb;">
-        <div class="wm">⚡</div>
-        <div class="glyph">🧪</div>
-        <span class="tag">Science</span>
-        <h2>Spark Lab</h2>
-        <p>Split water into hydrogen and oxygen with two pencils and a battery — then try it for real.</p>
-        <div class="go">Play →</div>
-      </a>
+
+      <!-- ===== Example: a "coming soon" card. Copy this block to add more. ===== -->
       <div class="card soon" style="--accent:#e0553b; --soft:#fbdfd8;">
         <div class="wm">✨</div>
         <div class="glyph">🛠️</div>
@@ -103,7 +121,9 @@
         <p>Drop a new HTML file in this folder and point a card at it.</p>
         <div class="go">Coming soon</div>
       </div>
+
     </div>
+
     <footer>Made with <span>♥</span> for Leo · Summer 2026</footer>
   </div>
 </body>
