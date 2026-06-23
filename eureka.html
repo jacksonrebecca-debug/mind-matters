@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>EUREKA · How We Figured Out the Universe</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔭</text></svg>" />
+
+<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+
+<style>
+  html, body { margin: 0; height: 100%; background: #0c1426; }
+  #root { min-height: 100%; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useRef } = React;
+
+/* ============================================================================
+   EUREKA — great scientific discoveries, for a young thinker (ages ~11+)
+   Guess first, then discover what's really going on and why it's astonishing.
+   Edit the QUESTIONS array to add discoveries.
+   ========================================================================== */
+
+const QUESTIONS = [
+  { id:"falling", field:"Physics",
+    q:"Drop a heavy cannonball and a light wooden ball from a tower at the very same moment (and ignore the air). Which hits the ground first?",
+    stances:["The heavy one","The light one","They land together"],
+    reveal:"They land together. All objects fall and speed up at exactly the same rate, whatever their weight. In everyday life, air resistance slows light things down and fools us.",
+    mindbender:"On the airless Moon, astronauts really did drop a hammer and a feather together — and they landed at the same instant. Our gut feeling that 'heavy = faster' is simply wrong.",
+    thinkers:"Galileo argued this with a brilliant thought experiment around 400 years ago, long before anyone could test it in a vacuum.",
+    push:"Galileo's trick: imagine tying the light ball to the heavy one. The light one should drag and SLOW it… but together they're heavier, so should fall FASTER. Can you see the contradiction that forced his answer?" },
+
+  { id:"moon", field:"Cosmos",
+    q:"Newton wondered: a dropped apple falls to the ground, so why doesn't the Moon fall down too, instead of hanging in the sky?",
+    stances:["It's too far away for gravity","The Moon IS falling — but also racing sideways","There's no gravity in space"],
+    reveal:"The Moon is constantly falling towards Earth — but it's also moving sideways so fast that it keeps 'missing' the Earth. That endless curved fall is exactly what an orbit is.",
+    mindbender:"The same force that drops an apple holds the Moon, the planets and the galaxies. Newton realised the sky and the Earth obey ONE set of rules — an astonishing unification.",
+    thinkers:"Isaac Newton, with his famous image of a cannon fired so hard the ball falls all the way around the world.",
+    push:"If you could throw a ball sideways fast enough, could you put it into orbit? What would 'fast enough' actually have to mean?" },
+
+  { id:"lightspeed", field:"Physics",
+    q:"You switch on a torch while riding a rocket at almost the speed of light. How fast is the torch's light — measured by YOU, and by someone watching from the ground?",
+    stances:["Faster for the ground watcher","Slower for you on the rocket","Exactly the same for both"],
+    reveal:"Incredibly, both measure the light travelling at exactly the same speed. Light's speed is the same for everyone, no matter how they are moving.",
+    mindbender:"For that to be possible, time and space themselves must stretch and squeeze. A fast-moving clock genuinely ticks slower. Time is not the fixed, universal thing we assume.",
+    thinkers:"Albert Einstein built his theory of relativity on this one strange fact — and experiments have confirmed it again and again.",
+    push:"A twin who flew off near light-speed and returned would be YOUNGER than her stay-at-home sister. It feels impossible — but does 'feeling impossible' make it untrue?" },
+
+  { id:"evolution", field:"Life",
+    q:"How could something as intricate as an eye — or a human being — come about, with no one designing it?",
+    stances:["It must have been designed","Tiny useful changes piling up over vast time","Pure random luck, all at once"],
+    reveal:"Natural selection: living things vary; those whose variations help them survive have more offspring and pass those traits on. Repeat over millions of years and great complexity builds — no designer required.",
+    mindbender:"The key point: it is NOT pure luck. Selection is the opposite of random — it keeps whatever works and discards the rest. Given enough time, a slow, blind process can build an eye.",
+    thinkers:"Charles Darwin — and, independently, Alfred Russel Wallace — worked this out in the 1800s.",
+    push:"What exactly is the difference between 'random chance' and 'natural selection'? Why does getting that distinction right matter so much?" },
+
+  { id:"deeptime", field:"Earth",
+    q:"How old do you reckon the Earth is?",
+    stances:["A few thousand years","A few million years","About 4.5 billion years"],
+    reveal:"About 4.5 billion years — almost unimaginably ancient. We know it from radioactive 'clocks' locked in rocks, which decay at a fixed, measurable rate.",
+    mindbender:"If all of Earth's history were squeezed into a single year, humans show up only in the last half-hour of 31 December. We are a tiny, very recent flicker.",
+    thinkers:"Geologists like James Hutton first realised Earth was vastly older than people thought; radioactivity later let us actually measure it.",
+    push:"Why is 'deep time' so hard for our brains to picture? And does that difficulty make it any less true?" },
+
+  { id:"germs", field:"Life",
+    q:"Long ago, doctors went straight from examining dead bodies to delivering babies, without washing their hands — and many mothers died. One doctor worked out why. What did he conclude?",
+    stances:["It was bad luck or 'bad air'","Invisible things were being carried on unwashed hands","The mothers were simply unlucky"],
+    reveal:"Tiny invisible living things — germs — were being carried on hands and causing deadly infections. Simply washing hands saved lives.",
+    mindbender:"Here's the unsettling part: when he showed the evidence, other doctors REFUSED to believe him and mocked him. Being right is not always enough — people resist ideas that blame them.",
+    thinkers:"Ignaz Semmelweis spotted the handwashing link; Louis Pasteur and Robert Koch later proved germ theory properly.",
+    push:"Why do people sometimes reject ideas that are true? How should a scientist act when the evidence is clear but nobody will believe it?" },
+
+  { id:"atoms", field:"Physics",
+    q:"Scientists fired tiny particles at a thin sheet of gold, expecting them all to sail straight through. A few bounced almost straight back. What did that reveal about atoms?",
+    stances:["Atoms are solid little balls","Atoms are mostly empty space with a tiny dense centre","Gold is special and magical"],
+    reveal:"Atoms are almost entirely empty space, with a tiny, fantastically dense nucleus at the centre. The few particles that bounced back had struck that nucleus head-on.",
+    mindbender:"You — and everything you can touch — are about 99.9999% empty space. A 'solid' table is mostly nothing; it feels solid because of forces, not stuff.",
+    thinkers:"Ernest Rutherford, who said the result was as astonishing as firing a shell at tissue paper and having it bounce back at you.",
+    push:"If atoms are mostly empty, why can't your hand pass straight through the table? (Clue: the answer is about forces, not solid 'stuff'.)" },
+
+  { id:"dna", field:"Life",
+    q:"How does a seed 'know' how to grow into a particular plant, and a baby inherit its parents' features? Where is the 'instruction book' kept?",
+    stances:["In the heart","In a chemical code inside every cell — DNA","Nowhere; it's all random"],
+    reveal:"Every cell carries DNA: a long molecule whose sequence is a chemical code — a recipe — for building and running a living thing, copied and handed down to offspring.",
+    mindbender:"Life runs on INFORMATION. The very same four-letter code writes a daffodil, a whale and you — the only difference is the order of the letters.",
+    thinkers:"Watson and Crick described the double-helix shape in 1953, crucially using Rosalind Franklin's X-ray images — work she was long denied proper credit for.",
+    push:"Life is 'written' in a code. Does that mean a living thing is just very clever chemistry — or is there something more to it? What do you think, and why?" },
+
+  { id:"bigbang", field:"Cosmos",
+    q:"Look in every direction and distant galaxies are rushing AWAY from us — and the farther ones move away faster. What does that tell us about the universe?",
+    stances:["We're at the centre of everything","Space itself is expanding — it had a beginning","The galaxies are malfunctioning"],
+    reveal:"Space itself is stretching, carrying the galaxies apart. Rewind that expansion and everything was once packed into an incredibly hot, dense beginning — the Big Bang, about 13.8 billion years ago.",
+    mindbender:"Galaxies aren't flying through space from a centre — SPACE is growing between them, like raisins spreading apart in rising dough. There's no centre and no edge to point at.",
+    thinkers:"Georges Lemaître first proposed the idea; Edwin Hubble's measurements showed the universe really is expanding.",
+    push:"If space is expanding, what is it expanding INTO? (That question is far trickier — and more interesting — than it first sounds.)" },
+
+  { id:"doubleslit", field:"Physics",
+    q:"Fire single particles, one at a time, at a screen with two slits. With nothing recording which slit each one uses, what pattern slowly builds up?",
+    stances:["Two simple bands behind the slits","A striped 'wave' pattern, as if each went through both","Just random scatter"],
+    reveal:"You get a striped wave pattern — as though each single particle passed through BOTH slits and interfered with itself. But the instant you detect which slit it takes, the wave pattern disappears.",
+    mindbender:"At the tiniest scale, things behave like waves of possibility until they're measured — and merely LOOKING changes the result. Reality down there isn't definite until it's observed.",
+    thinkers:"This experiment sits at the heart of quantum physics — it baffled even Einstein and Bohr, who argued about what it means for years.",
+    push:"What could it possibly mean that 'observing' changes the outcome? Does the Moon exist when nobody is looking? (Einstein genuinely asked that.)" },
+
+  { id:"cat", field:"Physics",
+    q:"Quantum rules say a particle can be in two states at once until it's measured. A famous thought experiment links such a particle to a cat in a sealed box. Until you open it, the rules seem to say the cat is…?",
+    stances:["Definitely alive","Definitely asleep","Somehow both alive AND dead at once"],
+    reveal:"By the strict rules, the cat would be in a 'superposition' — both alive and dead — until observed. It was dreamed up to show how ABSURD quantum weirdness sounds when blown up to everyday size.",
+    mindbender:"The cat was a CRITICISM, not a claim about real cats. It pinpoints the deep puzzle: where exactly is the line between the strange quantum world and the ordinary, definite world we live in?",
+    thinkers:"Erwin Schrödinger invented the cat in 1935 precisely to show how strange it is to take the quantum rules literally.",
+    push:"Where do YOU think the line falls between 'quantum-weird' and 'normal-sized'? Why is that line so maddeningly hard to draw?" },
+
+  { id:"tectonics", field:"Earth",
+    q:"On a map, South America and Africa look like they'd slot together like puzzle pieces. One scientist claimed the continents actually MOVE. How was he treated at the time?",
+    stances:["Celebrated at once","Ignored and ridiculed for decades","Crowned a hero immediately"],
+    reveal:"He was mocked for years — until evidence (matching rocks and fossils across oceans, and the spreading sea floor) proved that continents really do drift on enormous moving plates.",
+    mindbender:"He was RIGHT, but too early: he couldn't explain HOW the continents moved, so he was dismissed. Sometimes a true idea has to wait decades for the evidence to catch up.",
+    thinkers:"Alfred Wegener proposed continental drift in 1912; it was only accepted in the 1960s — after he had died.",
+    push:"How should we treat a bold idea that has good clues but no proven mechanism yet? When is doubt wise — and when is it just stubbornness?" },
+
+  { id:"entropy", field:"Physics",
+    q:"You can scramble an egg in seconds, but never un-scramble it. You remember the past, not the future. Why does time seem to flow only one way?",
+    stances:["Time is just an illusion","Because disorder (entropy) almost always increases","No reason — it simply does"],
+    reveal:"There are vastly more 'messy' arrangements of things than 'tidy' ones, so things naturally tumble towards disorder (called entropy). That one-way slide towards mess is, in a sense, the arrow of time.",
+    mindbender:"Almost all the basic laws of physics work the same forwards and backwards — yet the universe clearly has a past and a future. That direction may come entirely from the fact that the universe began extremely tidy.",
+    thinkers:"Ludwig Boltzmann linked time's arrow to entropy and probability in the 1800s.",
+    push:"A film of bouncing billiard balls looks fine played backwards. Why does a film of a glass smashing look so obviously 'wrong' in reverse?" },
+
+  { id:"vaccine", field:"Life",
+    q:"A country doctor noticed that milkmaids who had caught mild 'cowpox' never seemed to catch deadly smallpox. What daring idea did he then test?",
+    stances:["Stay away from all cows","Deliberately give people a tiny dose of the mild disease to protect them","Nothing — it was a coincidence"],
+    reveal:"He gave a boy a little cowpox; the boy then resisted smallpox. By 'training' the body's defences with a harmless version, you can protect against the deadly one — the very first vaccine.",
+    mindbender:"Your immune system LEARNS and remembers. A vaccine is basically a safe practice-run for your body's defences — and this single idea went on to wipe smallpox off the entire planet.",
+    thinkers:"Edward Jenner, in 1796 — building on something ordinary milkmaids had noticed long before.",
+    push:"Everyday people spotted the cowpox clue long before doctors acted on it. Where else might important truths be hiding in plain, 'ordinary' observations?" },
+
+  { id:"method", field:"Method",
+    q:"What's the real difference between a scientific theory and 'just a guess'?",
+    stances:["A theory is just a posh word for a guess","A theory makes risky predictions that COULD be proven wrong — and survives testing","A theory is whatever experts declare"],
+    reveal:"A good scientific idea sticks its neck out: it predicts things that could turn out to be FALSE. We trust it only after it survives many honest attempts to break it.",
+    mindbender:"This means science can never 'prove' it is finally, completely right — only that an idea hasn't been beaten YET. Being open to being wrong is science's secret strength, not a weakness.",
+    thinkers:"Karl Popper argued that being 'falsifiable' — testable, and able to be shown wrong — is what separates real science from mere opinion.",
+    push:"Think of a claim that could NEVER be proven wrong, whatever happened. Is it scientific? And why might 'can't ever be wrong' actually be a problem?" },
+
+  { id:"fermi", field:"Cosmos",
+    q:"There are billions of galaxies, each with billions of stars, many with planets, and it's all extremely old. So, as the physicist Fermi asked: where IS everybody? Why haven't we met any aliens?",
+    stances:["They exist but are too far / haven't visited","Life is far rarer than it looks","We may be alone — or among the very first"],
+    reveal:"Nobody knows — it's a genuine open puzzle, the Fermi Paradox. Maybe life is rare; maybe civilisations don't last; maybe they're staying quiet; maybe we're early. All are taken seriously.",
+    mindbender:"Either answer is staggering: a universe TEEMING with life we somehow can't find, or a vast cosmos in which Earth's life is rare and precious. There's no cosy middle option.",
+    thinkers:"Enrico Fermi reportedly posed the question over lunch in 1950; scientists still debate it seriously today.",
+    push:"Which would unsettle you more — discovering we are NOT alone, or discovering that we are? Why?" },
+];
+
+const THEME_META = {
+  "Physics": { color:"#36d6e7" },
+  "Cosmos":  { color:"#6aa9ff" },
+  "Life":    { color:"#5fd17a" },
+  "Earth":   { color:"#e0a64e" },
+  "Method":  { color:"#c08bff" },
+};
+
+const MOVES = [
+  { key:"predict",  emoji:"🔭", label:"I made a prediction" },
+  { key:"howknow",  emoji:"🤔", label:"I asked 'how do we know?'" },
+  { key:"evidence", emoji:"🔁", label:"I changed my mind with evidence" },
+  { key:"connect",  emoji:"🧩", label:"I connected two ideas" },
+  { key:"newq",     emoji:"❓", label:"I have a new question" },
+];
+
+const STORAGE_KEY = "eureka-science:v1";
+const TOTAL = QUESTIONS.length;
+function loadState(){ try{ const r=localStorage.getItem(STORAGE_KEY); if(r) return JSON.parse(r); }catch(e){} return null; }
+
+function Eureka(){
+  const saved = useRef(loadState()).current;
+  const [answers, setAnswers] = useState((saved && saved.answers) || {});
+  const [idx, setIdx] = useState(0);
+
+  useEffect(()=>{ try{ localStorage.setItem(STORAGE_KEY, JSON.stringify({ answers })); }catch(e){} }, [answers]);
+
+  const q = QUESTIONS[idx];
+  const meta = THEME_META[q.field] || THEME_META["Physics"];
+  const a = answers[q.id] || { stance:null, moves:{}, note:"" };
+  const answered = a.stance !== null && a.stance !== undefined;
+
+  const pondered = Object.values(answers).filter(x => x.stance !== null && x.stance !== undefined).length;
+  const badges = Object.values(answers).reduce((n,x)=> n + (x.moves ? Object.values(x.moves).filter(Boolean).length : 0), 0);
+
+  let level = "Curious newcomer";
+  if (pondered >= TOTAL) level = "🌌 Natural Philosopher";
+  else if (pondered >= 12) level = "🧠 Theorist";
+  else if (pondered >= 8) level = "⚗️ Experimenter";
+  else if (pondered >= 4) level = "🔭 Observer";
+  else if (pondered >= 1) level = "🌱 Stargazer";
+
+  function choose(i){ setAnswers(p => ({ ...p, [q.id]: { ...(p[q.id]||{moves:{},note:""}), stance:i } })); }
+  function toggleMove(key){ setAnswers(p => { const cur = p[q.id] || { stance:null, moves:{}, note:"" }; const moves={...(cur.moves||{})}; moves[key]=!moves[key]; return { ...p, [q.id]:{...cur, moves} }; }); }
+  function setNote(v){ setAnswers(p => { const cur = p[q.id] || { stance:null, moves:{}, note:"" }; return { ...p, [q.id]:{...cur, note:v} }; }); }
+
+  const css = `
+    @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,800&family=Nunito:wght@400;600;700;800&display=swap');
+    .eu * { box-sizing:border-box; }
+    .eu { font-family:'Nunito',sans-serif; color:#e4ecf7; min-height:100vh; padding:24px 16px 56px;
+      background: radial-gradient(820px 520px at 85% -10%, #14304a 0%, transparent 55%), radial-gradient(720px 520px at 8% 4%, #142a4a 0%, transparent 55%), #0c1426; }
+    .eu-wrap { max-width:680px; margin:0 auto; }
+    .eu-head { text-align:center; }
+    .eu-kicker { font-family:'Fraunces',serif; letter-spacing:.3em; text-transform:uppercase; font-size:11px; color:#6fa8d6; }
+    .eu-title { font-family:'Fraunces',serif; font-weight:800; font-size:clamp(38px,9vw,62px); margin:.05em 0 .04em; letter-spacing:.05em;
+      background:linear-gradient(90deg,#36d6e7,#6aa9ff,#e0a64e); -webkit-background-clip:text; background-clip:text; color:transparent; }
+    .eu-sub { font-weight:700; color:#a9bcd4; font-size:15px; margin:0 auto; max-width:36ch; line-height:1.45; }
+    .eu-note { font-size:13px; color:#7388a3; font-style:italic; margin:10px auto 0; max-width:42ch; line-height:1.5; }
+
+    .eu-stats { display:flex; gap:10px; margin:20px 0 16px; }
+    .eu-stat { flex:1; background:#15233b; border:1.5px solid #28395a; border-radius:14px; padding:9px 12px; text-align:center; }
+    .eu-stat b { font-family:'Fraunces',serif; font-size:21px; display:block; line-height:1.1; color:#fff; }
+    .eu-stat span { font-size:11px; font-weight:800; color:#7e90ad; text-transform:uppercase; letter-spacing:.5px; }
+    .eu-level { text-align:center; font-family:'Fraunces',serif; font-weight:600; color:#bcd2ec; margin:-4px 0 18px; font-size:15px; }
+
+    .eu-card { background:#13203a; border:1.5px solid #29395c; border-radius:22px; padding:22px; position:relative;
+      box-shadow:0 18px 50px -22px ${meta.color}; }
+    .eu-tag { display:inline-block; border:1.5px solid ${meta.color}; color:${meta.color}; font-weight:800; font-size:11px; padding:4px 11px; border-radius:999px; text-transform:uppercase; letter-spacing:.6px; }
+    .eu-qnum { float:right; font-family:'Fraunces',serif; font-weight:600; font-size:12px; color:#647296; }
+    .eu-q { font-family:'Fraunces',serif; font-weight:500; font-size:clamp(18px,4vw,22px); line-height:1.5; margin:14px 0 0; color:#eef4ff; }
+
+    .eu-stances { display:flex; flex-direction:column; gap:9px; margin-top:18px; }
+    .eu-stance { font-family:'Nunito',sans-serif; text-align:left; font-weight:700; font-size:15px; border:1.5px solid #34456a; background:#1b2843; color:#e4ecf7; padding:13px 15px; border-radius:13px; cursor:pointer; transition:transform .06s, border-color .12s; }
+    .eu-stance:hover { border-color:${meta.color}; }
+    .eu-stance.sel { background:${meta.color}; border-color:${meta.color}; color:#0c1426; }
+
+    .eu-reveal { margin-top:18px; animation:fade .3s ease; }
+    @keyframes fade { from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:none;} }
+    .eu-block { background:#1b2843; border-left:3px solid ${meta.color}; border-radius:0 13px 13px 0; padding:13px 15px; margin-top:11px; }
+    .eu-block .lab { display:block; font-weight:800; text-transform:uppercase; font-size:11px; letter-spacing:.6px; color:${meta.color}; margin-bottom:5px; }
+    .eu-block p { margin:0; font-weight:600; line-height:1.55; font-size:15px; color:#d4deee; }
+    .eu-block .who { font-family:'Fraunces',serif; font-weight:600; color:#fff; }
+
+    .eu-journal-lab { font-family:'Fraunces',serif; font-weight:600; font-size:13px; color:#a9bcd4; margin:18px 0 8px; }
+    .eu-journal { width:100%; min-height:84px; font-family:'Nunito',sans-serif; font-size:15px; line-height:1.5; color:#eef4ff; background:#0e1830; border:1.5px solid #34456a; border-radius:13px; padding:12px 14px; outline:none; resize:vertical; }
+    .eu-journal:focus { border-color:${meta.color}; }
+    .eu-journal::placeholder { color:#647296; }
+
+    .eu-moves-lab { font-family:'Fraunces',serif; font-weight:600; font-size:13px; color:#a9bcd4; margin:16px 0 9px; text-align:center; }
+    .eu-moves { display:flex; flex-wrap:wrap; gap:8px; justify-content:center; }
+    .eu-move { font-family:'Nunito',sans-serif; font-weight:800; font-size:13px; border:1.5px solid #34456a; background:#1b2843; color:#90a2c0; padding:8px 13px; border-radius:999px; cursor:pointer; }
+    .eu-move.on { background:#eef4ff; border-color:#eef4ff; color:#0c1426; }
+
+    .eu-nav { display:flex; align-items:center; justify-content:space-between; margin-top:20px; gap:10px; }
+    .eu-navbtn { font-family:'Nunito',sans-serif; border:1.5px solid #34456a; background:#15233b; border-radius:12px; padding:10px 16px; font-weight:800; cursor:pointer; color:#e4ecf7; }
+    .eu-navbtn:disabled { opacity:.3; cursor:default; }
+    .eu-navbtn.next { background:linear-gradient(90deg,#36d6e7,#6aa9ff); color:#0c1426; border:none; }
+    .eu-dots { display:flex; flex-wrap:wrap; gap:5px; justify-content:center; margin-top:18px; }
+    .eu-dot { width:9px; height:9px; border-radius:50%; background:#28395a; cursor:pointer; }
+    .eu-dot.done { background:#6aa9ff; }
+    .eu-dot.cur { box-shadow:0 0 0 2px #36d6e7; }
+  `;
+
+  return (
+    <div className="eu">
+      <style>{css}</style>
+      <div className="eu-wrap">
+        <div className="eu-head">
+          <div className="eu-kicker">How we figured out the universe</div>
+          <div className="eu-title">EUREKA</div>
+          <div className="eu-sub">Make a guess — then discover what's really going on, and why it's stranger than common sense.</div>
+          <div className="eu-note">'Eureka!' is what Archimedes is said to have shouted — 'I've found it!' — leaping from his bath. It's the cry of discovery.</div>
+        </div>
+
+        <div className="eu-stats">
+          <div className="eu-stat"><b>{pondered}<span style={{ fontSize: 12, color: "#647296" }}> / {TOTAL}</span></b><span>Discovered</span></div>
+          <div className="eu-stat"><b>{badges}</b><span>Thinking badges</span></div>
+        </div>
+        <div className="eu-level">{level}</div>
+
+        <div className="eu-card">
+          <span className="eu-tag">{q.field}</span>
+          <span className="eu-qnum">{idx + 1} / {TOTAL}</span>
+          <p className="eu-q">{q.q}</p>
+
+          <div className="eu-stances">
+            {q.stances.map((s, i) => (
+              <button key={i} className={"eu-stance" + (a.stance === i ? " sel" : "")} onClick={() => choose(i)}>{s}</button>
+            ))}
+          </div>
+
+          {answered && (
+            <div className="eu-reveal">
+              <div className="eu-block">
+                <span className="lab">🔬 What we found out</span>
+                <p>{q.reveal}</p>
+              </div>
+              <div className="eu-block">
+                <span className="lab">🤯 The mind-bending bit</span>
+                <p>{q.mindbender}</p>
+              </div>
+              <div className="eu-block">
+                <span className="lab">📜 Who cracked it</span>
+                <p><span className="who">{q.thinkers}</span></p>
+              </div>
+              <div className="eu-block">
+                <span className="lab">🌌 Think further</span>
+                <p>{q.push}</p>
+              </div>
+
+              <div className="eu-journal-lab">Your thinking (saved for you):</div>
+              <textarea className="eu-journal" placeholder="Did the real answer surprise you? What new question does it spark?" value={a.note || ""} onChange={(e) => setNote(e.target.value)} />
+
+              <div className="eu-moves-lab">Which thinking moves did you make? Earn a badge for each.</div>
+              <div className="eu-moves">
+                {MOVES.map(m => (
+                  <button key={m.key} className={"eu-move" + (a.moves && a.moves[m.key] ? " on" : "")} onClick={() => toggleMove(m.key)}>
+                    {m.emoji} {m.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="eu-nav">
+          <button className="eu-navbtn" disabled={idx <= 0} onClick={() => setIdx(i => Math.max(0, i - 1))}>← Back</button>
+          <button className="eu-navbtn next" disabled={idx >= TOTAL - 1} onClick={() => setIdx(i => Math.min(TOTAL - 1, i + 1))}>Next discovery →</button>
+        </div>
+
+        <div className="eu-dots">
+          {QUESTIONS.map((qq, i) => {
+            const done = answers[qq.id] && answers[qq.id].stance !== null && answers[qq.id].stance !== undefined;
+            return <div key={qq.id} className={"eu-dot" + (done ? " done" : "") + (i === idx ? " cur" : "")} onClick={() => setIdx(i)} />;
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<Eureka />);
+</script>
+</body>
+</html>
