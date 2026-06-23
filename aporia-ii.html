@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>APORIA II · Harder Questions Still</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌀</text></svg>" />
+
+<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+
+<style>
+  html, body { margin: 0; height: 100%; background: #131124; }
+  #root { min-height: 100%; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useRef } = React;
+
+/* ============================================================================
+   APORIA II — harder thought experiments (ages ~11+). Volume two.
+   Every position has a price. Edit the QUESTIONS array to add puzzles.
+   Uses its OWN save key so it never collides with Aporia Volume One.
+   ========================================================================== */
+
+const QUESTIONS = [
+  { id:"evil", theme:"Reality",
+    q:"Suppose there were an all-powerful, all-knowing, perfectly good being. Then why does the world hold so much suffering — disease, disasters, cruelty? Can all three be true at once: all-powerful, all-good, AND a world of great suffering?",
+    stances:["They can't all be true","They can — suffering must serve some purpose","We simply can't know"],
+    bullet:"If suffering serves a greater good, you must explain why an ALL-powerful being couldn't reach that same good WITHOUT the suffering. And if you say 'we can't know', you're admitting the puzzle has no comfortable answer.",
+    deeper:"This is the 'problem of evil', the oldest challenge to belief in a perfect, all-powerful God. Some answer with free will (evil as the price of real freedom); others doubt one of the three claims.",
+    thinkers:"Epicurus posed it ~2,300 years ago; thinkers from Augustine to Leibniz to today have wrestled with the replies.",
+    push:"Does the 'free will' answer explain suffering humans DON'T cause — like earthquakes or disease? What would you add to it?" },
+
+  { id:"stone", theme:"Logic",
+    q:"Could an all-powerful being create a stone so heavy that even THEY could not lift it?",
+    stances:["Yes — they can do anything","No — that's a limit","The question is broken"],
+    bullet:"If YES, there's now something they can't do (lift it). If NO, there's something they can't do (make it). Either way, 'can do absolutely anything' seems to trip over its own feet.",
+    deeper:"It probes what 'all-powerful' (omnipotence) could even mean. Many conclude it must mean 'can do anything POSSIBLE' — and 'a stone an almighty being can't lift' may just be a contradiction, like a square circle, not a real thing at all.",
+    thinkers:"A medieval puzzle debated by thinkers like Thomas Aquinas, who argued power doesn't stretch to outright contradictions.",
+    push:"Is 'can't do the logically impossible' really a limit on power — or is a 'square circle' simply nonsense dressed up as a thing?" },
+
+  { id:"gettier", theme:"Knowledge",
+    q:"You glance at a wall clock reading 3 o'clock and believe it's 3 o'clock. It IS 3 o'clock — but unknown to you the clock stopped exactly 12 hours ago and is right purely by luck. Did you really KNOW the time?",
+    stances:["Yes — your belief was true","No — you were just lucky","Sort of, but not really"],
+    bullet:"It feels like NOT real knowledge — yet your belief was true AND you had a good reason (you read a clock). So 'a true belief you have good reason for' isn't quite enough for knowledge. Something's missing — but what?",
+    deeper:"For 2,000 years knowledge was defined as 'justified true belief'. This tiny example shows that's not enough — lucky true beliefs slip through the net. Philosophers still argue over the missing ingredient.",
+    thinkers:"Edmund Gettier upended the definition of knowledge in 1963 with a three-page paper — one of philosophy's great short shocks.",
+    push:"What EXTRA ingredient turns a lucky true belief into real knowledge? Try to put it into words — it's harder than it looks." },
+
+  { id:"qualia", theme:"Mind",
+    q:"What if the colour YOU see when you look at grass is the colour I would call 'red' — but because we both learned to call it 'green', neither of us could ever notice. Could your inner colours be completely flipped from mine?",
+    stances:["Yes — and we could never tell","No — colours must look the same to everyone","The question makes no sense"],
+    bullet:"We use the same words and point at the same grass, so no test could ever catch a difference. That means your private inner experience might be sealed off forever — totally real to you, yet impossible for anyone else to check.",
+    deeper:"This is the puzzle of 'qualia' — the private feel of an experience. It suggests there's a part of your mind that science, language and other people may never fully reach.",
+    thinkers:"John Locke raised it over 300 years ago; it sits at the centre of today's 'hard problem of consciousness'.",
+    push:"If a difference could NEVER be detected, does it even matter whether your red is my red? And why does it still feel like it matters?" },
+
+  { id:"zeno", theme:"Logic",
+    q:"To cross a room you must first go halfway, then half of what's left, then half again — forever. There seem to be infinitely many steps to finish. So how can you EVER arrive?",
+    stances:["You can't — motion is an illusion","You do arrive — the maths works out","Something is wrong with the question"],
+    bullet:"You obviously DO cross the room — so the argument must hide a mistake. But pinning down exactly WHERE it goes wrong took humanity over 2,000 years and the invention of new mathematics.",
+    deeper:"This is Zeno's paradox. The resolution: infinitely many steps can add up to a FINITE distance (½ + ¼ + ⅛ + … = 1). An endless sum can still have a perfectly ordinary total.",
+    thinkers:"Zeno of Elea posed it ~2,500 years ago; it was only fully tamed with the maths of infinite series and limits.",
+    push:"How can adding up INFINITELY many numbers give a normal, finite answer? Does that still feel a little impossible to you?" },
+
+  { id:"isought", theme:"Ethics",
+    q:"From facts about how the world IS (people compete; the strong often win; sugar tastes nice), can you ever logically prove how things OUGHT to be — what we SHOULD do?",
+    stances:["Yes — facts can tell us what's right","No — an 'is' never proves an 'ought'","Only sometimes"],
+    bullet:"Notice that every 'therefore we should…' quietly smuggles in a hidden VALUE ('…and we ought to do what's natural'). Pure facts alone, with no value added, never seem to squeeze out an 'ought'. So where do our 'oughts' actually come from?",
+    deeper:"This is Hume's 'is/ought gap'. It warns against arguing that because something IS a certain way (natural, common, traditional), it therefore OUGHT to be that way.",
+    thinkers:"David Hume spotted the leap in the 1700s; it still trips up arguments today ('it's natural, so it must be good').",
+    push:"Find a 'that's just natural, so it's fine' argument out in the world. What hidden VALUE is it secretly sneaking in?" },
+
+  { id:"repugnant", theme:"Ethics",
+    q:"World A: a billion people with wonderful, rich lives. World B: a trillion people whose lives are only just barely worth living — a tiny scrap of joy each. If we only add up TOTAL happiness, B wins. Is the huge, barely-happy world really better?",
+    stances:["Yes — more total happiness is better","No — that can't be right","I'm genuinely torn"],
+    bullet:"Almost everyone feels B is WORSE — yet the simple, sensible-sounding rule 'more total happiness is better' forces us to call it better. So either that rule is wrong, or our gut is. One of them has to give way.",
+    deeper:"This is Parfit's 'Repugnant Conclusion', the great headache of 'population ethics'. It shows how a reasonable principle can march you somewhere deeply uncomfortable — and nobody has a fully agreed escape.",
+    thinkers:"Derek Parfit laid it out in 1984; philosophers have been trying to wriggle out of it ever since.",
+    push:"Is a life 'barely worth living' worth creating at all? Does a 'happier world' mean MORE happy people, or happIER people?" },
+
+  { id:"relativism", theme:"Ethics",
+    q:"Different cultures have believed wildly different things were right or wrong. So is morality simply INVENTED by each society — true 'for them' — or are some things truly right or wrong everywhere, for everyone?",
+    stances:["Invented by each culture","Some things are right or wrong everywhere","A mix of both"],
+    bullet:"If right and wrong are purely 'whatever your culture says', then you could NEVER call another society's cruelty wrong — only 'different'. But if some things ARE wrong everywhere, who decides which, and how could we know?",
+    deeper:"This is the clash between 'moral relativism' and 'moral objectivism'. Most people want SOME things (cruelty for fun) to be wrong everywhere — but defending that, without just imposing your own culture, is genuinely hard.",
+    thinkers:"A debate running from the ancient Greek Sophists right through to modern anthropologists and philosophers.",
+    push:"Name one thing you believe is wrong in EVERY culture, ever. How would you defend that to someone who genuinely disagreed?" },
+
+  { id:"grandfather", theme:"Reality",
+    q:"You build a time machine, travel to the past, and accidentally stop your own grandparents from ever meeting. Then you're never born… so you never built the machine… so you never went back… so they DID meet. What's going on?",
+    stances:["Time travel to the past must be impossible","The timeline would protect itself somehow","It would split off a new, separate timeline"],
+    bullet:"Each tidy 'solution' costs you something: maybe the past simply CAN'T be changed (so you were always part of it), or every change spawns a whole new universe (so you never touch YOUR past at all). There's no free lunch here.",
+    deeper:"The 'grandfather paradox' is the classic argument against changing the past. Physicists take it seriously, exploring 'self-consistent' timelines and 'many-worlds' as possible escapes.",
+    thinkers:"A staple of science fiction AND serious physics, tangled up with ideas from Einstein's relativity onward.",
+    push:"If you went back in time, do you think you COULD change anything — or would the universe always somehow stop the contradiction?" },
+
+  { id:"pascal", theme:"Logic",
+    q:"Suppose reason can't tell you whether God exists. One thinker said: just look at the BET. Believe, and if you're right you gain everything, if wrong you lose little. Don't believe, and if you're wrong you lose everything. So you 'should' believe. Good argument?",
+    stances:["Yes — believing is the smart bet","No — you can't choose beliefs like bets","Clever, but flawed"],
+    bullet:"Even if the maths of the bet works, can you actually MAKE yourself believe something just because it's a good gamble? And which god do you bet on — there are many, with different rules? The wager may prove far less than it promises.",
+    deeper:"This is 'Pascal's Wager', an early use of decision-making under uncertainty. Its deep problem: belief might not be something you can simply CHOOSE for a payoff — and it ignores all the rival options.",
+    thinkers:"Blaise Pascal, a brilliant mathematician, framed it in the 1600s — and helped invent the maths of probability along the way.",
+    push:"Can you decide to genuinely BELIEVE something just because believing it would pay off? Try it with something small — does it actually work?" },
+
+  { id:"tolerance", theme:"Ethics",
+    q:"A kind, tolerant society accepts all sorts of views. But what should it do about people trying to DESTROY tolerance itself — who want to silence and harm others? Should a tolerant society tolerate THEM?",
+    stances:["Yes — tolerate everyone, no exceptions","No — tolerance can't include destroying tolerance","There has to be a careful line"],
+    bullet:"If it tolerates those bent on crushing tolerance, the society may be destroyed by them. But if it starts banning views, it risks becoming the very intolerant thing it feared. Both paths carry a real danger.",
+    deeper:"This is Karl Popper's 'paradox of tolerance'. His answer: tolerance must be defended, so a society may justly refuse to tolerate ACTIVE intolerance — but drawing that line carefully, without abusing it, is the hard part.",
+    thinkers:"Karl Popper named it in 1945, having watched tolerant societies fall to intolerant movements.",
+    push:"Where would YOU draw the line between 'a view I dislike but allow' and 'a view too dangerous to allow'? Why is that line so risky?" },
+
+  { id:"hedonism", theme:"Mind",
+    q:"You want to be happy. So should you spend your life directly CHASING happiness — always asking 'is this making me happy?' and reaching for the next fun thing?",
+    stances:["Yes — go straight for happiness","No — chasing it directly tends to backfire","It depends"],
+    bullet:"Oddly, people who constantly chase happiness often feel LESS happy — happiness tends to arrive as a side-effect of being absorbed in something else (a friend, a project, a craft). Aim straight at it, and it slips away.",
+    deeper:"This is the 'paradox of hedonism': happiness is best caught sideways, not hunted head-on. It hints that a good life isn't a pile of pleasures, but comes from meaning, mastery and connection.",
+    thinkers:"Noticed by thinkers from Aristotle to John Stuart Mill, who wrote that you're happiest when you're not asking whether you are.",
+    push:"Think of a time you were truly happy. Were you CHASING happiness then — or completely lost in something else?" },
+
+  { id:"animals", theme:"Ethics",
+    q:"We agree it's wrong to make a human suffer for fun. A dog, a pig and an octopus can also clearly suffer. So do we owe animals moral consideration too — and if so, how much?",
+    stances:["Yes — if it can suffer, that suffering matters","No — only humans count morally","Some animals, more than others"],
+    bullet:"If what makes cruelty wrong is the SUFFERING it causes, it's hard to explain why an animal's suffering should count for nothing. But if animals DO count, it raises uncomfortable questions about how we treat them — questions most people would rather not face.",
+    deeper:"This asks what gives a being 'moral status'. Is it intelligence? Being human? Or simply the ability to suffer? Different answers reshape how we should treat animals — and maybe AI, one day.",
+    thinkers:"Jeremy Bentham put it sharply: the question isn't 'can they reason?' but 'can they suffer?'. Peter Singer revived the debate in our times.",
+    push:"What exactly gives a being moral worth — being clever, being human, or being able to suffer? Where does YOUR line fall?" },
+
+  { id:"meaning", theme:"Reality",
+    q:"Some say life can only matter if there's a grand cosmic PURPOSE behind it. Others say the universe gives us no built-in purpose at all. If there were no cosmic meaning, would your life be meaningless?",
+    stances:["Yes — without cosmic purpose, nothing matters","No — we can create our own meaning","'Meaning' isn't quite the right question"],
+    bullet:"If meaning must come from OUTSIDE us, we're left waiting for a purpose we can't find. But if we MAKE our own meaning, you have to explain how something can TRULY matter just because we decide it does.",
+    deeper:"This is the question of life's meaning, and 'the absurd' — the gap between our craving for purpose and a silent universe. Some meet it with despair, some with faith, and some with a kind of joyful defiance.",
+    thinkers:"Explored by existentialist thinkers like Albert Camus, who pictured Sisyphus endlessly rolling his rock — and said we must imagine him HAPPY.",
+    push:"Where does the meaning in YOUR life come from — people, projects, wonder? Does it need the universe's permission to count?" },
+
+  { id:"buridan", theme:"Mind",
+    q:"A hungry donkey stands exactly between two identical, equally tasty piles of hay, with NO reason to prefer one over the other. A purely logical chooser would have no reason to pick either… so would it just stand there and starve?",
+    stances:["Yes — with no reason, it can't choose","No — it'll just pick one anyway","The setup is impossible"],
+    bullet:"Obviously a real donkey just eats! So pure 'only ever act on reasons' logic seems to PREDICT starvation — meaning either our picture of rational choice is incomplete, or sometimes a free, reasonless 'just pick one' is itself perfectly sensible.",
+    deeper:"'Buridan's ass' probes free will and choice: can you decide between two perfectly equal options? Perhaps the power to choose WITHOUT a deciding reason is part of what free will even is.",
+    thinkers:"Named after the medieval philosopher Jean Buridan, though the puzzle traces back to Aristotle.",
+    push:"When you've faced two equally good options, how did you ACTUALLY choose in the end? Was it reason — or something else?" },
+
+  { id:"why", theme:"Knowledge",
+    q:"Many of these questions still have no agreed answer after THOUSANDS of years. So is doing philosophy — asking questions that may never be settled — actually pointless?",
+    stances:["Yes — unanswerable questions are a waste","No — the thinking itself changes you","Some questions, but not all"],
+    bullet:"If you only value FINAL answers, philosophy looks like failure. But notice what's happened to YOU across these puzzles: sharper questions, assumptions spotted, more careful views. Maybe the point was never a tidy answer — it was becoming a clearer thinker.",
+    deeper:"Philosophy rarely hands you final answers; it hands you better questions, sharper tools, and the habit of examining what everyone else just takes for granted. Socrates called the examined life the only one truly worth living.",
+    thinkers:"From Socrates ('the unexamined life is not worth living') right through to philosophers today, the search itself has been prized.",
+    push:"Which puzzle across both volumes of Aporia changed how you think the most? Did you actually need a final ANSWER for it to be worth it?" },
+];
+
+const THEME_META = {
+  "Ethics":   { color:"#f06b9a" },
+  "Mind":     { color:"#36d6e7" },
+  "Reality":  { color:"#34d3a6" },
+  "Knowledge":{ color:"#f0b84e" },
+  "Logic":    { color:"#b6e36a" },
+  "Identity": { color:"#a78bfa" },
+};
+
+const MOVES = [
+  { key:"bullet",   emoji:"🎯", label:"I bit the bullet" },
+  { key:"counter",  emoji:"🔍", label:"I found a counter-example" },
+  { key:"distinct", emoji:"✂️", label:"I drew a distinction" },
+  { key:"changed",  emoji:"🔄", label:"I changed my mind" },
+  { key:"newq",     emoji:"❓", label:"I have a new question" },
+];
+
+const STORAGE_KEY = "aporia-2-philosophy:v1";
+const TOTAL = QUESTIONS.length;
+function loadState(){ try{ const r=localStorage.getItem(STORAGE_KEY); if(r) return JSON.parse(r); }catch(e){} return null; }
+
+function AporiaTwo(){
+  const saved = useRef(loadState()).current;
+  const [answers, setAnswers] = useState((saved && saved.answers) || {});
+  const [idx, setIdx] = useState(0);
+
+  useEffect(()=>{ try{ localStorage.setItem(STORAGE_KEY, JSON.stringify({ answers })); }catch(e){} }, [answers]);
+
+  const q = QUESTIONS[idx];
+  const meta = THEME_META[q.theme] || THEME_META["Ethics"];
+  const a = answers[q.id] || { stance:null, moves:{}, note:"" };
+  const answered = a.stance !== null && a.stance !== undefined;
+
+  const pondered = Object.values(answers).filter(x => x.stance !== null && x.stance !== undefined).length;
+  const badges = Object.values(answers).reduce((n,x)=> n + (x.moves ? Object.values(x.moves).filter(Boolean).length : 0), 0);
+
+  let level = "Certain — for now 😏";
+  if (pondered >= TOTAL) level = "💛 Lover of Wisdom — that's what 'philosopher' means";
+  else if (pondered >= 12) level = "🌌 Metaphysician";
+  else if (pondered >= 8) level = "⚔️ Dialectician";
+  else if (pondered >= 4) level = "🤨 Sceptic";
+  else if (pondered >= 1) level = "🌱 Questioner";
+
+  function choose(i){ setAnswers(p => ({ ...p, [q.id]: { ...(p[q.id]||{moves:{},note:""}), stance:i } })); }
+  function toggleMove(key){ setAnswers(p => { const cur = p[q.id] || { stance:null, moves:{}, note:"" }; const moves={...(cur.moves||{})}; moves[key]=!moves[key]; return { ...p, [q.id]:{...cur, moves} }; }); }
+  function setNote(v){ setAnswers(p => { const cur = p[q.id] || { stance:null, moves:{}, note:"" }; return { ...p, [q.id]:{...cur, note:v} }; }); }
+
+  const css = `
+    @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,800&family=Nunito:wght@400;600;700;800&display=swap');
+    .a2 * { box-sizing:border-box; }
+    .a2 { font-family:'Nunito',sans-serif; color:#e7e3f5; min-height:100vh; padding:24px 16px 56px;
+      background: radial-gradient(800px 500px at 85% -10%, #241b40 0%, transparent 55%), radial-gradient(700px 500px at 5% 5%, #1c2640 0%, transparent 55%), #131124; }
+    .a2-wrap { max-width:680px; margin:0 auto; }
+    .a2-head { text-align:center; }
+    .a2-kicker { font-family:'Fraunces',serif; letter-spacing:.3em; text-transform:uppercase; font-size:11px; color:#9b86e6; }
+    .a2-title { font-family:'Fraunces',serif; font-weight:800; font-size:clamp(34px,8.5vw,58px); margin:.06em 0 .04em; letter-spacing:.04em;
+      background:linear-gradient(90deg,#f06b9a,#a78bfa,#36d6e7); -webkit-background-clip:text; background-clip:text; color:transparent; }
+    .a2-sub { font-weight:700; color:#b3acce; font-size:15px; margin:0 auto; max-width:34ch; line-height:1.45; }
+    .a2-note { font-size:13px; color:#7f78a0; font-style:italic; margin:10px auto 0; max-width:42ch; line-height:1.5; }
+
+    .a2-stats { display:flex; gap:10px; margin:20px 0 16px; }
+    .a2-stat { flex:1; background:#1d1a33; border:1.5px solid #322c52; border-radius:14px; padding:9px 12px; text-align:center; }
+    .a2-stat b { font-family:'Fraunces',serif; font-size:21px; display:block; line-height:1.1; color:#fff; }
+    .a2-stat span { font-size:11px; font-weight:800; color:#8780a6; text-transform:uppercase; letter-spacing:.5px; }
+    .a2-level { text-align:center; font-family:'Fraunces',serif; font-weight:600; color:#c9bdf5; margin:-4px 0 18px; font-size:15px; }
+
+    .a2-card { background:#1b1830; border:1.5px solid #332c54; border-radius:22px; padding:22px; position:relative;
+      box-shadow:0 18px 50px -22px ${meta.color}; }
+    .a2-tag { display:inline-block; border:1.5px solid ${meta.color}; color:${meta.color}; font-weight:800; font-size:11px; padding:4px 11px; border-radius:999px; text-transform:uppercase; letter-spacing:.6px; }
+    .a2-qnum { float:right; font-family:'Fraunces',serif; font-weight:600; font-size:12px; color:#6f688e; }
+    .a2-q { font-family:'Fraunces',serif; font-weight:500; font-size:clamp(18px,4vw,22px); line-height:1.5; margin:14px 0 0; color:#f3f0ff; }
+
+    .a2-stances { display:flex; flex-direction:column; gap:9px; margin-top:18px; }
+    .a2-stance { font-family:'Nunito',sans-serif; text-align:left; font-weight:700; font-size:15px; border:1.5px solid #3a3358; background:#221e3b; color:#e7e3f5; padding:13px 15px; border-radius:13px; cursor:pointer; transition:transform .06s, border-color .12s; }
+    .a2-stance:hover { border-color:${meta.color}; }
+    .a2-stance.sel { background:${meta.color}; border-color:${meta.color}; color:#15122a; }
+
+    .a2-reveal { margin-top:18px; animation:fade .3s ease; }
+    @keyframes fade { from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:none;} }
+    .a2-block { background:#221e3b; border-left:3px solid ${meta.color}; border-radius:0 13px 13px 0; padding:13px 15px; margin-top:11px; }
+    .a2-block .lab { display:block; font-weight:800; text-transform:uppercase; font-size:11px; letter-spacing:.6px; color:${meta.color}; margin-bottom:5px; }
+    .a2-block p { margin:0; font-weight:600; line-height:1.55; font-size:15px; color:#d7d2ee; }
+    .a2-block .who { font-family:'Fraunces',serif; font-weight:600; color:#fff; }
+
+    .a2-journal-lab { font-family:'Fraunces',serif; font-weight:600; font-size:13px; color:#b3acce; margin:18px 0 8px; }
+    .a2-journal { width:100%; min-height:90px; font-family:'Nunito',sans-serif; font-size:15px; line-height:1.5; color:#f3f0ff; background:#15122a; border:1.5px solid #3a3358; border-radius:13px; padding:12px 14px; outline:none; resize:vertical; }
+    .a2-journal:focus { border-color:${meta.color}; }
+    .a2-journal::placeholder { color:#6f688e; }
+
+    .a2-moves-lab { font-family:'Fraunces',serif; font-weight:600; font-size:13px; color:#b3acce; margin:16px 0 9px; text-align:center; }
+    .a2-moves { display:flex; flex-wrap:wrap; gap:8px; justify-content:center; }
+    .a2-move { font-family:'Nunito',sans-serif; font-weight:800; font-size:13px; border:1.5px solid #3a3358; background:#221e3b; color:#9d96bd; padding:8px 13px; border-radius:999px; cursor:pointer; }
+    .a2-move.on { background:#f0f0ff; border-color:#f0f0ff; color:#15122a; }
+
+    .a2-nav { display:flex; align-items:center; justify-content:space-between; margin-top:20px; gap:10px; }
+    .a2-navbtn { font-family:'Nunito',sans-serif; border:1.5px solid #3a3358; background:#1d1a33; border-radius:12px; padding:10px 16px; font-weight:800; cursor:pointer; color:#e7e3f5; }
+    .a2-navbtn:disabled { opacity:.3; cursor:default; }
+    .a2-navbtn.next { background:linear-gradient(90deg,#a78bfa,#f06b9a); color:#15122a; border:none; }
+    .a2-dots { display:flex; flex-wrap:wrap; gap:5px; justify-content:center; margin-top:18px; }
+    .a2-dot { width:9px; height:9px; border-radius:50%; background:#322c52; cursor:pointer; }
+    .a2-dot.done { background:#a78bfa; }
+    .a2-dot.cur { box-shadow:0 0 0 2px #f06b9a; }
+  `;
+
+  return (
+    <div className="a2">
+      <style>{css}</style>
+      <div className="a2-wrap">
+        <div className="a2-head">
+          <div className="a2-kicker">Harder questions still · volume two</div>
+          <div className="a2-title">APORIA II</div>
+          <div className="a2-sub">Every answer still has a price. Take a position — then face the part that should bother you.</div>
+          <div className="a2-note">You've conquered Volume One. These are the puzzles that have kept philosophers awake for centuries.</div>
+        </div>
+
+        <div className="a2-stats">
+          <div className="a2-stat"><b>{pondered}<span style={{ fontSize: 12, color: "#6f688e" }}> / {TOTAL}</span></b><span>Wrestled with</span></div>
+          <div className="a2-stat"><b>{badges}</b><span>Thinking badges</span></div>
+        </div>
+        <div className="a2-level">{level}</div>
+
+        <div className="a2-card">
+          <span className="a2-tag">{q.theme}</span>
+          <span className="a2-qnum">{idx + 1} / {TOTAL}</span>
+          <p className="a2-q">{q.q}</p>
+
+          <div className="a2-stances">
+            {q.stances.map((s, i) => (
+              <button key={i} className={"a2-stance" + (a.stance === i ? " sel" : "")} onClick={() => choose(i)}>{s}</button>
+            ))}
+          </div>
+
+          {answered && (
+            <div className="a2-reveal">
+              <div className="a2-block">
+                <span className="lab">⚡ The bullet you must bite</span>
+                <p>{q.bullet}</p>
+              </div>
+              <div className="a2-block">
+                <span className="lab">🌀 The deeper question</span>
+                <p>{q.deeper}</p>
+              </div>
+              <div className="a2-block">
+                <span className="lab">📚 Who lost sleep over this</span>
+                <p><span className="who">{q.thinkers}</span></p>
+              </div>
+              <div className="a2-block">
+                <span className="lab">✍️ Push yourself</span>
+                <p>{q.push}</p>
+              </div>
+
+              <div className="a2-journal-lab">Your reasoning (saved for you):</div>
+              <textarea className="a2-journal" placeholder="Where do you stand now — and why? What's the strongest objection to your own view?" value={a.note || ""} onChange={(e) => setNote(e.target.value)} />
+
+              <div className="a2-moves-lab">Which thinking moves did you just make? Earn a badge for each.</div>
+              <div className="a2-moves">
+                {MOVES.map(m => (
+                  <button key={m.key} className={"a2-move" + (a.moves && a.moves[m.key] ? " on" : "")} onClick={() => toggleMove(m.key)}>
+                    {m.emoji} {m.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="a2-nav">
+          <button className="a2-navbtn" disabled={idx <= 0} onClick={() => setIdx(i => Math.max(0, i - 1))}>← Back</button>
+          <button className="a2-navbtn next" disabled={idx >= TOTAL - 1} onClick={() => setIdx(i => Math.min(TOTAL - 1, i + 1))}>Next puzzle →</button>
+        </div>
+
+        <div className="a2-dots">
+          {QUESTIONS.map((qq, i) => {
+            const done = answers[qq.id] && answers[qq.id].stance !== null && answers[qq.id].stance !== undefined;
+            return <div key={qq.id} className={"a2-dot" + (done ? " done" : "") + (i === idx ? " cur" : "")} onClick={() => setIdx(i)} />;
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<AporiaTwo />);
+</script>
+</body>
+</html>
