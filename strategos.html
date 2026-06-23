@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>STRATEGOS · The Hidden Games Behind Our Choices</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>♟️</text></svg>" />
+
+<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+
+<style>
+  html, body { margin: 0; height: 100%; background: #0c1a16; }
+  #root { min-height: 100%; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useRef } = React;
+
+/* ============================================================================
+   STRATEGOS — game theory & economics for a young thinker (ages ~11+)
+   Make your move, then discover the surprising logic of choices among people.
+   Edit the QUESTIONS array to add games.
+   ========================================================================== */
+
+const QUESTIONS = [
+  { id:"prisoner", field:"Cooperation",
+    q:"You and a friend are both caught (for something minor!). Held in separate rooms, each of you is offered the same deal: snitch on the other and YOU go free while they're punished. If you BOTH snitch, you're both punished. If you BOTH stay silent, you each get only a tiny telling-off. You can't talk to each other. Do you stay silent or snitch?",
+    stances:["Stay silent — trust your friend","Snitch — play it safe for yourself","It depends who the friend is"],
+    reveal:"Here's the cruel logic: whatever your friend does, snitching looks better for YOU — so two 'rational' players both snitch… and end up worse off than if they'd both kept quiet. Trust would have beaten cleverness.",
+    clever:"This is the famous Prisoner's Dilemma. It shows how everyone chasing what's best for themselves can produce the WORST result for everyone — the deep reason cooperation is so hard.",
+    thinkers:"First studied at the RAND think-tank in the 1950s, and later made famous by Robert Axelrod.",
+    push:"Where in real life do people 'both snitch' — each doing the safe thing for themselves, and leaving everyone worse off?" },
+
+  { id:"repeated", field:"Cooperation",
+    q:"Now imagine playing that exact same game against the SAME person again and again, hundreds of times. Does that change whether you should cooperate?",
+    stances:["Yes — now cooperating can pay off","No — you should still always snitch","Only right at the very end"],
+    reveal:"Yes! When you'll meet again, a betrayal can be punished next round and kindness repaid — so cooperating becomes worth it. The shadow of the future changes the present.",
+    clever:"In a famous tournament of strategies, the WINNER was the simplest of all: 'Tit-for-Tat' — start friendly, then just copy whatever the other did last time. Be nice, don't be a pushover, and forgive quickly.",
+    thinkers:"Robert Axelrod ran the contests; Tit-for-Tat (submitted by Anatol Rapoport) beat far cleverer programs.",
+    push:"Why might 'be nice first, hit back if crossed, then forgive' work so well — in games AND in real friendships?" },
+
+  { id:"commons", field:"Cooperation",
+    q:"A village shares one grassy field for everyone's sheep. Each family gains by adding just one more sheep — but if EVERYONE does, the grass is destroyed and all the sheep starve. What tends to happen?",
+    stances:["Everyone shares it carefully","Everyone adds 'just one more', and the field is ruined","The strongest family grabs it all"],
+    reveal:"Sadly, each family reasons 'one more sheep helps ME, and the damage is shared by everyone' — so all keep adding, and the shared field collapses. Each acting in self-interest wrecks the very thing they all depend on.",
+    clever:"This is the 'Tragedy of the Commons'. It explains overfishing, litter, traffic and pollution — and why shared things often need rules, limits, or shared ownership to survive.",
+    thinkers:"Named by Garrett Hardin in 1968; the economist Elinor Ostrom won a Nobel Prize for showing communities CAN solve it with clever rules.",
+    push:"Think of a 'commons' in your own life (a shared fridge? a group project?). What single rule would prevent the tragedy?" },
+
+  { id:"ultimatum", field:"Fairness",
+    q:"A stranger is handed £10 and must offer YOU a share. If you accept, you each keep your shares. If you REJECT, you BOTH get nothing. They offer you just £1, keeping £9. Do you take it?",
+    stances:["Take the £1 — free money beats nothing","Reject it — that split is insulting","Depends on my mood"],
+    reveal:"Pure logic says take the £1 (free money!). Yet most people REJECT unfair offers — choosing to lose £1 just to punish a greedy split. We care about fairness, not only profit.",
+    clever:"This 'Ultimatum Game' shows humans aren't cold calculators: a sense of fairness runs deep, and we'll pay a price to punish unfairness. Knowing this, clever offerers usually propose close to a fair 50/50.",
+    thinkers:"Designed by Werner Güth and colleagues in 1982, and tested around the world with strikingly similar results.",
+    push:"Why might caring about fairness — even when it 'costs' us something — actually be smart for humans as a group?" },
+
+  { id:"freerider", field:"Cooperation",
+    q:"Everyone in class chips in to a fund for a brilliant end-of-term party that ALL will enjoy — even anyone who didn't pay. You could quietly not contribute and still go along. What's tempting, and what happens if everyone thinks the same?",
+    stances:["Pay your fair share","Free-ride — enjoy it without paying","If everyone free-rides, there's no party at all"],
+    reveal:"Each person is tempted to 'free-ride' — enjoy the party without paying. But if everyone does that, the fund stays empty and NOBODY gets a party. The thing everyone wants needs everyone to chip in.",
+    clever:"This 'free-rider problem' is exactly why we have taxes, rules and shared duties: some good things (clean parks, street lights, safety) only happen if everyone contributes — including the tempted.",
+    thinkers:"A core idea in economics, studied by Mancur Olson among many others.",
+    push:"What's something everyone enjoys but no single person would ever pay for alone? How do we actually get it built?" },
+
+  { id:"driving", field:"Strategy",
+    q:"There's no 'correct' side of the road to drive on — yet everyone in a country drives on the SAME side. Why does that happen, and could a country switch sides easily?",
+    stances:["A law simply forces it","Everyone copies everyone else — and switching is terrifyingly hard","It's random each day"],
+    reveal:"It's a 'coordination game': what's best for YOU depends entirely on what everyone else does. Once a country settles on a side, no single driver dares switch — even though the other side would work just as well.",
+    clever:"Some games have several equally-good 'stable' answers (left OR right) and we just need to land on the SAME one. That's why customs, languages and standards lock in — and become so hard to change later.",
+    thinkers:"These 'coordination games' are central to the work of Thomas Schelling, a Nobel-winning game theorist.",
+    push:"Name another 'we just need to all agree on the same thing' situation (a meeting spot? a language?). Why is it so hard to change once it's set?" },
+
+  { id:"nash", field:"Strategy",
+    q:"At a concert, the people in front stand up to see better — so the row behind must stand too, then the next… soon EVERYONE is standing and seeing no better than if all had stayed seated. Why can't they just all sit back down?",
+    stances:["No one can sit alone without losing their view","They could easily all just sit","Someone must be in charge"],
+    reveal:"Everyone standing is a 'stable standoff': no single person can sit down without being worse off (they'd see nothing). So everyone's stuck standing — even though everyone SITTING would be just as good a view, and comfier.",
+    clever:"This is a 'Nash equilibrium': a situation where no one can improve by changing alone, even though a better arrangement exists for all. Escaping it needs everyone to move together — or a rule.",
+    thinkers:"Named after John Nash, whose idea won a Nobel Prize and inspired the film 'A Beautiful Mind'.",
+    push:"Spot a real 'we're all stuck even though we'd ALL prefer something else' situation. What would it take to escape it?" },
+
+  { id:"positivesum", field:"Trade",
+    q:"Two situations: (A) you split a fixed cake — more for me means less for you. (B) you each own something the other wants more, so you swap. In which one can BOTH people end up happier?",
+    stances:["Only A","Only B","Both equally"],
+    reveal:"In B! When you trade things you value differently, BOTH sides gain — each gives up something they want less for something they want more. Trade can grow the 'pie', not just divide it.",
+    clever:"'Zero-sum' games (one wins, one loses, like splitting a cake) feel natural to our brains — but much of life, especially trade and teamwork, is 'positive-sum': cooperation can create value out of thin air.",
+    thinkers:"A foundational idea in economics, running back to Adam Smith and David Ricardo.",
+    push:"Think of a swap where BOTH people walked away happier. What made it positive-sum rather than zero-sum?" },
+
+  { id:"advantage", field:"Trade",
+    q:"You're FASTER than your friend at BOTH making sandwiches AND pouring drinks. Should you just do both jobs yourself, or split them up?",
+    stances:["Do both — I'm faster at everything","Split it: I do what I'm RELATIVELY best at, they do the rest","Take turns at random"],
+    reveal:"Surprisingly, you should still split! Even when you're better at everything, your time is limited. If you focus on what you're MOST better at and let your friend handle the rest, together you produce more than if you did it all.",
+    clever:"This is 'comparative advantage' — one of the most surprising ideas in all of economics. It's WHY people (and whole countries) specialise and trade, even when one side is better at everything.",
+    thinkers:"David Ricardo worked it out 200 years ago — and it still catches people out today.",
+    push:"Where could you and a friend get MORE done by each focusing on your relative strength and swapping the rest?" },
+
+  { id:"cobra", field:"Incentives",
+    q:"A city had too many dangerous cobras, so its rulers offered a cash reward for every dead cobra handed in. What unexpected thing happened?",
+    stances:["The cobras vanished — problem solved","People started BREEDING cobras to claim the reward","Nothing at all changed"],
+    reveal:"People started breeding cobras to cash in! When the reward was finally scrapped, the now-worthless snakes were set free — leaving MORE cobras than before. The well-meaning reward backfired spectacularly.",
+    clever:"Incentives are powerful — people really do respond to rewards — but they reward the EXACT thing you measure, not always what you intended. This 'cobra effect' is a classic warning about unintended consequences.",
+    thinkers:"A legendary tale from colonial-era India, used by economists to teach how incentives can misfire.",
+    push:"Can you design a reward that would NOT backfire? Why does that turn out to be surprisingly tricky?" },
+
+  { id:"opportunity", field:"Incentives",
+    q:"You have one free Saturday and you spend the whole thing gaming. What did that day REALLY cost you?",
+    stances:["Nothing — it was free","The best OTHER thing you could have done instead","Only the electricity"],
+    reveal:"Its true cost is the best thing you GAVE UP — maybe seeing friends, or finishing a project you care about. Economists call this 'opportunity cost': the real price of any choice is the next-best option you didn't take.",
+    clever:"This reframes every decision: there's no truly 'free' afternoon, or free money, or free lunch. Choosing one thing always means NOT choosing another — time and money are always being traded.",
+    thinkers:"A cornerstone taught in the very first week of any economics course.",
+    push:"Think about a recent choice of yours. What was its hidden opportunity cost — the thing you quietly gave up?" },
+
+  { id:"signalling", field:"Incentives",
+    q:"A male peacock drags around an enormous, heavy, dazzling tail that makes it far easier for predators to spot and catch. Why on earth would such a 'useless', risky thing ever evolve?",
+    stances:["It's just a mistake of nature","It PROVES he's strong — only a top bird could survive such a handicap","To keep him warm"],
+    reveal:"The tail is an HONEST signal: surviving DESPITE such a costly handicap proves the peacock is genuinely healthy and strong. A weak bird simply couldn't afford one. The cost is exactly what makes the signal believable.",
+    clever:"Humans do this too: expensive qualifications, fancy logos and guarantees can be 'costly signals' — trusted PRECISELY because they'd be too expensive to fake. The cost is the whole point.",
+    thinkers:"The idea of 'signalling' earned Michael Spence a Nobel Prize; the biology version is Amotz Zahavi's 'handicap principle'.",
+    push:"What 'costly signals' do people use to prove things about themselves? When is a signal honest — and when is it just for show?" },
+
+  { id:"beauty", field:"Strategy",
+    q:"Everyone secretly picks a number from 0 to 100. The winner is whoever lands closest to TWO-THIRDS of the average of everyone's guesses. What number should you pick?",
+    stances:["50 — right in the middle","Low — because everyone reasoning like me will go low too","100"],
+    reveal:"Go low! If everyone picked 50, two-thirds is about 33 — so you'd pick 33. But every clever player thinks that too, dropping the target to ~22… then lower still. Perfectly logical players spiral all the way down towards 0.",
+    clever:"The twist: in real life people DON'T all reason perfectly, so the winning guess is usually around 20–30. Winning isn't about being the cleverest — it's about judging how clever everyone ELSE will be.",
+    thinkers:"Inspired by economist John Maynard Keynes' famous 'beauty contest' idea; a favourite real-world experiment.",
+    push:"Why does winning depend on judging how OTHERS think, not just on thinking hard yourself? Where else is that true?" },
+
+  { id:"bystander", field:"Cooperation",
+    q:"A whole crowd sees someone drop their shopping. Helping is easy but a little annoying. Surprisingly — is that person MORE or LESS likely to get help in a big crowd than if just one person were passing by?",
+    stances:["More — more people means more help","Less — everyone assumes someone ELSE will step in","No difference at all"],
+    reveal:"Less likely! In a crowd, everyone thinks 'someone else will surely help', so often nobody does. With only ONE person passing, that person knows it's entirely down to them — and usually steps in.",
+    clever:"This is the 'bystander effect' (a volunteer's dilemma): when responsibility is shared among many, it can end up feeling like it belongs to no one. Knowing the trap helps you beat it — BE the one who acts.",
+    thinkers:"Studied by psychologists Bibb Latané and John Darley after famous real-life cases.",
+    push:"How could you make sure help actually happens in a crowd? (Clue: what changes if you point at ONE person and ask them directly?)" },
+
+  { id:"auction", field:"Incentives",
+    q:"Lots of people bid in an auction for a sealed jar of coins whose exact value nobody knows. The highest bidder wins it. Why might WINNING actually be bad news?",
+    stances:["Winning is always great","The winner is usually whoever most OVER-estimated — so they overpaid","Auctions are pure luck"],
+    reveal:"To win, you had to bid MORE than everyone else — which usually means you guessed the value highest, i.e. you over-estimated the most. So the 'winner' often overpays. Winning is itself a clue that you were too optimistic!",
+    clever:"This 'winner's curse' shows up in auctions, bidding wars, even hiring. The clever move is to bid a little LESS than you think it's worth — precisely because the act of winning carries bad news.",
+    thinkers:"First spotted by oil engineers bidding for drilling rights, then studied right across economics.",
+    push:"Why does the very fact that you WON tell you something useful — and why is that so easy to forget in the heat of the moment?" },
+
+  { id:"cooperate", field:"Cooperation",
+    q:"Game theory keeps showing that 'every-one-for-themselves' often wrecks things — yet humans cooperate constantly, even with total strangers. How on earth do we pull that off?",
+    stances:["We're just naturally nice","Reputation, repeated meetings, and punishing cheats make cooperation pay","We don't really — it's an illusion"],
+    reveal:"It's mostly clever structure: we meet people again (repeated games), we talk and build REPUTATIONS, and we punish cheats (like rejecting unfair offers). Together, these tip the maths so that being trustworthy genuinely pays.",
+    clever:"So human cooperation isn't only kindness — it's also a brilliant set of social 'rules of the game' that flip the Prisoner's Dilemma on its head. Understanding the games lets us BUILD ones worth playing.",
+    thinkers:"A grand theme woven through Axelrod, Ostrom, Nash, Schelling and many others — and still being explored today.",
+    push:"If you were designing a club or a classroom, what 'rules of the game' would you build in to make cooperation the winning move?" },
+];
+
+const THEME_META = {
+  "Cooperation": { color:"#5fd17a" },
+  "Fairness":    { color:"#f06b9a" },
+  "Strategy":    { color:"#6aa9ff" },
+  "Trade":       { color:"#e0a64e" },
+  "Incentives":  { color:"#c08bff" },
+};
+
+const MOVES = [
+  { key:"others",   emoji:"🎯", label:"I thought about what others would do" },
+  { key:"meall",    emoji:"🔄", label:"I saw why 'best for me' ≠ 'best for all'" },
+  { key:"coop",     emoji:"🤝", label:"I found a way to cooperate" },
+  { key:"payoff",   emoji:"🧮", label:"I worked out the payoff" },
+  { key:"newq",     emoji:"❓", label:"I have a new question" },
+];
+
+const STORAGE_KEY = "strategos-game-theory:v1";
+const TOTAL = QUESTIONS.length;
+function loadState(){ try{ const r=localStorage.getItem(STORAGE_KEY); if(r) return JSON.parse(r); }catch(e){} return null; }
+
+function Strategos(){
+  const saved = useRef(loadState()).current;
+  const [answers, setAnswers] = useState((saved && saved.answers) || {});
+  const [idx, setIdx] = useState(0);
+
+  useEffect(()=>{ try{ localStorage.setItem(STORAGE_KEY, JSON.stringify({ answers })); }catch(e){} }, [answers]);
+
+  const q = QUESTIONS[idx];
+  const meta = THEME_META[q.field] || THEME_META["Strategy"];
+  const a = answers[q.id] || { stance:null, moves:{}, note:"" };
+  const answered = a.stance !== null && a.stance !== undefined;
+
+  const pondered = Object.values(answers).filter(x => x.stance !== null && x.stance !== undefined).length;
+  const badges = Object.values(answers).reduce((n,x)=> n + (x.moves ? Object.values(x.moves).filter(Boolean).length : 0), 0);
+
+  let level = "Newcomer to the game";
+  if (pondered >= TOTAL) level = "👑 Grandmaster of the Game";
+  else if (pondered >= 12) level = "🏛️ Strategos";
+  else if (pondered >= 8) level = "♟️ Strategist";
+  else if (pondered >= 4) level = "🎲 Tactician";
+  else if (pondered >= 1) level = "🌱 Player";
+
+  function choose(i){ setAnswers(p => ({ ...p, [q.id]: { ...(p[q.id]||{moves:{},note:""}), stance:i } })); }
+  function toggleMove(key){ setAnswers(p => { const cur = p[q.id] || { stance:null, moves:{}, note:"" }; const moves={...(cur.moves||{})}; moves[key]=!moves[key]; return { ...p, [q.id]:{...cur, moves} }; }); }
+  function setNote(v){ setAnswers(p => { const cur = p[q.id] || { stance:null, moves:{}, note:"" }; return { ...p, [q.id]:{...cur, note:v} }; }); }
+
+  const css = `
+    @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,800&family=Nunito:wght@400;600;700;800&display=swap');
+    .st * { box-sizing:border-box; }
+    .st { font-family:'Nunito',sans-serif; color:#e3efe7; min-height:100vh; padding:24px 16px 56px;
+      background: radial-gradient(820px 520px at 85% -10%, #103a2c 0%, transparent 55%), radial-gradient(720px 520px at 8% 4%, #0f3038 0%, transparent 55%), #0c1a16; }
+    .st-wrap { max-width:680px; margin:0 auto; }
+    .st-head { text-align:center; }
+    .st-kicker { font-family:'Fraunces',serif; letter-spacing:.28em; text-transform:uppercase; font-size:11px; color:#7fcf9e; }
+    .st-title { font-family:'Fraunces',serif; font-weight:800; font-size:clamp(34px,8vw,56px); margin:.05em 0 .04em; letter-spacing:.05em;
+      background:linear-gradient(90deg,#e0a64e,#5fd17a,#6aa9ff); -webkit-background-clip:text; background-clip:text; color:transparent; }
+    .st-sub { font-weight:700; color:#a7c5b4; font-size:15px; margin:0 auto; max-width:36ch; line-height:1.45; }
+    .st-note { font-size:13px; color:#6f9484; font-style:italic; margin:10px auto 0; max-width:44ch; line-height:1.5; }
+
+    .st-stats { display:flex; gap:10px; margin:20px 0 16px; }
+    .st-stat { flex:1; background:#12241d; border:1.5px solid #224536; border-radius:14px; padding:9px 12px; text-align:center; }
+    .st-stat b { font-family:'Fraunces',serif; font-size:21px; display:block; line-height:1.1; color:#fff; }
+    .st-stat span { font-size:11px; font-weight:800; color:#7fa28f; text-transform:uppercase; letter-spacing:.5px; }
+    .st-level { text-align:center; font-family:'Fraunces',serif; font-weight:600; color:#bfe3cd; margin:-4px 0 18px; font-size:15px; }
+
+    .st-card { background:#102019; border:1.5px solid #234738; border-radius:22px; padding:22px; position:relative;
+      box-shadow:0 18px 50px -22px ${meta.color}; }
+    .st-tag { display:inline-block; border:1.5px solid ${meta.color}; color:${meta.color}; font-weight:800; font-size:11px; padding:4px 11px; border-radius:999px; text-transform:uppercase; letter-spacing:.6px; }
+    .st-qnum { float:right; font-family:'Fraunces',serif; font-weight:600; font-size:12px; color:#5e8270; }
+    .st-q { font-family:'Fraunces',serif; font-weight:500; font-size:clamp(17px,3.9vw,21px); line-height:1.5; margin:14px 0 0; color:#eef7f1; }
+
+    .st-stances { display:flex; flex-direction:column; gap:9px; margin-top:18px; }
+    .st-stance { font-family:'Nunito',sans-serif; text-align:left; font-weight:700; font-size:15px; border:1.5px solid #2f5848; background:#16291f; color:#e3efe7; padding:13px 15px; border-radius:13px; cursor:pointer; transition:transform .06s, border-color .12s; }
+    .st-stance:hover { border-color:${meta.color}; }
+    .st-stance.sel { background:${meta.color}; border-color:${meta.color}; color:#0c1a16; }
+
+    .st-reveal { margin-top:18px; animation:fade .3s ease; }
+    @keyframes fade { from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:none;} }
+    .st-block { background:#16291f; border-left:3px solid ${meta.color}; border-radius:0 13px 13px 0; padding:13px 15px; margin-top:11px; }
+    .st-block .lab { display:block; font-weight:800; text-transform:uppercase; font-size:11px; letter-spacing:.6px; color:${meta.color}; margin-bottom:5px; }
+    .st-block p { margin:0; font-weight:600; line-height:1.55; font-size:15px; color:#d2e4d9; }
+    .st-block .who { font-family:'Fraunces',serif; font-weight:600; color:#fff; }
+
+    .st-journal-lab { font-family:'Fraunces',serif; font-weight:600; font-size:13px; color:#a7c5b4; margin:18px 0 8px; }
+    .st-journal { width:100%; min-height:84px; font-family:'Nunito',sans-serif; font-size:15px; line-height:1.5; color:#eef7f1; background:#0c1813; border:1.5px solid #2f5848; border-radius:13px; padding:12px 14px; outline:none; resize:vertical; }
+    .st-journal:focus { border-color:${meta.color}; }
+    .st-journal::placeholder { color:#5e8270; }
+
+    .st-moves-lab { font-family:'Fraunces',serif; font-weight:600; font-size:13px; color:#a7c5b4; margin:16px 0 9px; text-align:center; }
+    .st-moves { display:flex; flex-wrap:wrap; gap:8px; justify-content:center; }
+    .st-move { font-family:'Nunito',sans-serif; font-weight:800; font-size:13px; border:1.5px solid #2f5848; background:#16291f; color:#8fb3a0; padding:8px 13px; border-radius:999px; cursor:pointer; }
+    .st-move.on { background:#eef7f1; border-color:#eef7f1; color:#0c1a16; }
+
+    .st-nav { display:flex; align-items:center; justify-content:space-between; margin-top:20px; gap:10px; }
+    .st-navbtn { font-family:'Nunito',sans-serif; border:1.5px solid #2f5848; background:#12241d; border-radius:12px; padding:10px 16px; font-weight:800; cursor:pointer; color:#e3efe7; }
+    .st-navbtn:disabled { opacity:.3; cursor:default; }
+    .st-navbtn.next { background:linear-gradient(90deg,#5fd17a,#6aa9ff); color:#0c1a16; border:none; }
+    .st-dots { display:flex; flex-wrap:wrap; gap:5px; justify-content:center; margin-top:18px; }
+    .st-dot { width:9px; height:9px; border-radius:50%; background:#224536; cursor:pointer; }
+    .st-dot.done { background:#5fd17a; }
+    .st-dot.cur { box-shadow:0 0 0 2px #6aa9ff; }
+  `;
+
+  return (
+    <div className="st">
+      <style>{css}</style>
+      <div className="st-wrap">
+        <div className="st-head">
+          <div className="st-kicker">The hidden games behind our choices</div>
+          <div className="st-title">STRATEGOS</div>
+          <div className="st-sub">Make your move — then discover the surprising logic of choosing among other people.</div>
+          <div className="st-note">In ancient Athens, a 'strategos' was a chosen general who had to outthink everyone. Here, the battlefield is made of choices.</div>
+        </div>
+
+        <div className="st-stats">
+          <div className="st-stat"><b>{pondered}<span style={{ fontSize: 12, color: "#5e8270" }}> / {TOTAL}</span></b><span>Games played</span></div>
+          <div className="st-stat"><b>{badges}</b><span>Thinking badges</span></div>
+        </div>
+        <div className="st-level">{level}</div>
+
+        <div className="st-card">
+          <span className="st-tag">{q.field}</span>
+          <span className="st-qnum">{idx + 1} / {TOTAL}</span>
+          <p className="st-q">{q.q}</p>
+
+          <div className="st-stances">
+            {q.stances.map((s, i) => (
+              <button key={i} className={"st-stance" + (a.stance === i ? " sel" : "")} onClick={() => choose(i)}>{s}</button>
+            ))}
+          </div>
+
+          {answered && (
+            <div className="st-reveal">
+              <div className="st-block">
+                <span className="lab">🎲 What happens</span>
+                <p>{q.reveal}</p>
+              </div>
+              <div className="st-block">
+                <span className="lab">🧠 The clever bit</span>
+                <p>{q.clever}</p>
+              </div>
+              <div className="st-block">
+                <span className="lab">📜 Who worked it out</span>
+                <p><span className="who">{q.thinkers}</span></p>
+              </div>
+              <div className="st-block">
+                <span className="lab">🌍 Think further</span>
+                <p>{q.push}</p>
+              </div>
+
+              <div className="st-journal-lab">Your thinking (saved for you):</div>
+              <textarea className="st-journal" placeholder="What surprised you? Where do you see this game in real life?" value={a.note || ""} onChange={(e) => setNote(e.target.value)} />
+
+              <div className="st-moves-lab">Which thinking moves did you make? Earn a badge for each.</div>
+              <div className="st-moves">
+                {MOVES.map(m => (
+                  <button key={m.key} className={"st-move" + (a.moves && a.moves[m.key] ? " on" : "")} onClick={() => toggleMove(m.key)}>
+                    {m.emoji} {m.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="st-nav">
+          <button className="st-navbtn" disabled={idx <= 0} onClick={() => setIdx(i => Math.max(0, i - 1))}>← Back</button>
+          <button className="st-navbtn next" disabled={idx >= TOTAL - 1} onClick={() => setIdx(i => Math.min(TOTAL - 1, i + 1))}>Next game →</button>
+        </div>
+
+        <div className="st-dots">
+          {QUESTIONS.map((qq, i) => {
+            const done = answers[qq.id] && answers[qq.id].stance !== null && answers[qq.id].stance !== undefined;
+            return <div key={qq.id} className={"st-dot" + (done ? " done" : "") + (i === idx ? " cur" : "")} onClick={() => setIdx(i)} />;
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<Strategos />);
+</script>
+</body>
+</html>
