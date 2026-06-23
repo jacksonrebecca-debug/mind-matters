@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PROMETHEUS · The Ideas That Changed Everything</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔥</text></svg>" />
+
+<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+
+<style>
+  html, body { margin: 0; height: 100%; background: #15100a; }
+  #root { min-height: 100%; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useRef } = React;
+
+/* ============================================================================
+   PROMETHEUS — the history of ideas, for a young thinker (ages ~11+)
+   Imagine the world before the idea, guess what changed it, then discover
+   the idea, its impact, and where it really came from. Edit QUESTIONS below.
+   ========================================================================== */
+
+const QUESTIONS = [
+  { id:"writing", field:"Knowledge",
+    q:"Picture a world with NO writing. Everything anyone knows — every story, law, recipe and discovery — lives only inside people's heads, and dies when they do. What single invention changed that forever?",
+    stances:["Writing","Talking louder","Better memories","Machine-printed books"],
+    reveal:"Writing: a way to freeze a thought into marks that outlast the thinker. Suddenly ideas could travel across distance AND across centuries — from a total stranger, long dead, straight to you.",
+    impact:"It's the foundation under everything else here. Laws, science, history, this very game — all need writing. It let humans build knowledge ON TOP of knowledge, instead of starting from scratch every generation.",
+    origin:"Invented independently in several places — Mesopotamia (cuneiform, ~5,000 years ago), Egypt, China and Mesoamerica — and often first used just to count sheep and grain!",
+    push:"Writing was the first way to 'save' a thought outside a brain. What's the newest way we do that — and what has it changed?" },
+
+  { id:"alphabet", field:"Knowledge",
+    q:"Early writing used hundreds or thousands of symbols — one for each word or idea — so only specially-trained scribes could read. What clever twist put reading within reach of ordinary people?",
+    stances:["An alphabet — a few symbols for SOUNDS","Even more symbols","Just bigger schools","Magic ink"],
+    reveal:"The alphabet: instead of a symbol per word, just ~20–30 symbols for the basic SOUNDS of speech. Combine them and you can spell ANY word — and learn the whole system in weeks, not years.",
+    impact:"Reading and writing stopped being a secret power held by priests and scribes. A tiny toolkit of letters put literacy within reach of everyone — a quiet revolution in WHO gets to hold knowledge.",
+    origin:"The first alphabets came from the ancient Near East (Phoenician traders spread one ~3,000 years ago); the Greeks added vowels. Almost every alphabet in use today descends from these.",
+    push:"Why is 'a few symbols for sounds' so much more powerful than 'one symbol per word'? (Think how many words there are!)" },
+
+  { id:"zero", field:"Numbers & Money",
+    q:"For most of history there was no number for 'nothing' — and no easy way to tell 25 from 205 from 2005. What 'invisible' idea fixed this and unlocked modern maths?",
+    stances:["Zero","The letter O","A bigger abacus","Roman numerals"],
+    reveal:"Zero: a symbol for nothing — AND a placeholder that lets '2', '20' and '200' be told apart by position. It sounds obvious now, but treating 'nothing' as a real number was a genuine mental leap.",
+    impact:"Zero made arithmetic, algebra, decimals and eventually computers possible (everything digital is just 0s and 1s!). A symbol for nothing turned out to be one of the most powerful ideas humans ever had.",
+    origin:"Developed in India — the scholar Brahmagupta wrote rules for zero ~1,400 years ago — then carried westward by Persian and Arab mathematicians, and only slowly accepted in Europe.",
+    push:"Why do you think people resisted the idea of a 'number for nothing' for so long? Is 'nothing' really a thing?" },
+
+  { id:"money", field:"Numbers & Money",
+    q:"Imagine trying to trade your bike for a holiday by swapping goods directly — you'd need to find someone who has a holiday AND happens to want exactly your bike. What idea solved this awkward problem?",
+    stances:["Money — a shared token of value","Just shouting the price","Bigger markets","Taking it by force"],
+    reveal:"Money: an agreed token that ANYONE will accept — so you sell your bike for money, then spend it on anything you like. It only works because we all share the belief that it's worth something.",
+    impact:"Money let strangers trade across the world, save for the future and borrow against it, and made huge economies possible. It's one of humanity's most successful shared 'fictions'.",
+    origin:"From cattle and grain, to shells, to the first coins (Lydia, ~2,700 years ago), to paper notes (first in China), to numbers on a screen today.",
+    push:"A £10 note is just paper. So why is it worth £10? What would happen if everyone suddenly stopped believing in it?" },
+
+  { id:"democracy", field:"Power",
+    q:"For almost all of history, a few kings, emperors or chiefs made every decision, and ordinary people had no say at all. What radical idea challenged that?",
+    stances:["Democracy — the people rule","A kinder king","More kings","No rules at all"],
+    reveal:"Democracy: the startling idea that ordinary people — not only rulers born to power — should help decide how they are governed, through debate and voting.",
+    impact:"It slowly transformed power itself: rulers could now be chosen AND removed by the people. The earliest versions were small and unfair, but the IDEA kept widening over centuries to include far more people.",
+    origin:"Born in ancient Athens ~2,500 years ago (the word means 'people-power') — though their version excluded women and enslaved people. The idea was reborn and broadened much later.",
+    push:"Athenian democracy left most people out. Does that mean it wasn't 'real' democracy — or that big ideas keep growing over time?" },
+
+  { id:"law", field:"Power",
+    q:"What if even the most powerful king had to obey the same rules as everyone else? For most of history, rulers simply WERE the law. What idea began to change that?",
+    stances:["The rule of law — no one is above it","Stronger kings","Bigger armies","No laws at all"],
+    reveal:"The 'rule of law': the principle that everyone — even the ruler — is bound by the law, and that the law should apply equally, not bend to a king's whim.",
+    impact:"It's the difference between living under fair, predictable rules and living at the mercy of one powerful person's mood. It underpins fair courts, rights, and real limits on power.",
+    origin:"Hinted at in ancient codes (like Hammurabi's, ~3,800 years ago), and famously pushed forward when English barons forced King John to sign Magna Carta in 1215: the king, too, must obey.",
+    push:"Why is it so important — and so difficult — to make the MOST powerful person also have to follow the rules?" },
+
+  { id:"science", field:"Mind",
+    q:"For centuries, the way to settle an argument about nature was to ask 'what did the great ancient thinkers say?'. What new idea replaced 'because an authority said so'?",
+    stances:["Test it with evidence and experiment","Just ask louder","Trust the oldest book","Take a guess"],
+    reveal:"The scientific method: don't merely trust authority — make a careful observation or experiment and let EVIDENCE decide. If the world disagrees with the expert, the world wins.",
+    impact:"This one shift — test, don't just trust — powered nearly all modern discovery: medicine, engineering, physics, the lot. It made knowledge something anyone could check, rather than simply accept.",
+    origin:"Pioneered by thinkers such as Ibn al-Haytham (Alhazen) in the Arab world ~1,000 years ago, and later sharpened by Francis Bacon and Galileo in Europe.",
+    push:"Why is 'test it yourself' such a powerful — and humble — idea? What does it really say about trusting experts?" },
+
+  { id:"printing", field:"Knowledge",
+    q:"Before the 1450s in Europe, every book was copied out by hand — taking months, costing a fortune — so almost nobody owned one. What machine blew this wide open?",
+    stances:["The printing press","A faster pen","More monks copying","A bigger library"],
+    reveal:"The printing press: movable metal letters that could stamp out identical pages by the hundred. A book that once took a year could now be printed in days, for a tiny fraction of the cost.",
+    impact:"Ideas suddenly reached ordinary people faster than rulers could control them — fuelling the Reformation, the scientific revolution and mass literacy. It shattered the old monopoly on knowledge.",
+    origin:"Johannes Gutenberg in Germany (~1450) — though movable type and printing had already existed earlier in China and Korea.",
+    push:"The printing press let ideas spread beyond anyone's control. What modern invention did the very same thing — and is that good, bad, or both?" },
+
+  { id:"rights", field:"People",
+    q:"For most of history, your worth and freedom depended on your birth — noble or peasant, free or enslaved. What revolutionary idea says you have value and rights simply by being HUMAN?",
+    stances:["Human rights — yours just for being a person","Rights only for the rich","Rights only for kings","No rights for anyone"],
+    reveal:"Human rights: the idea that EVERY person — whatever their birth, country or rank — has a basic worth and certain rights that no one may rightfully take away.",
+    impact:"It became the moral engine behind ending slavery, winning votes for women, and protecting people from cruel rulers. It's an idea humanity is still working hard to fully live up to.",
+    origin:"With roots in many cultures and faiths, it was sharpened in the 1700s Enlightenment and written into the world's Universal Declaration of Human Rights in 1948, after the horrors of WWII.",
+    push:"Why might it have taken thousands of years for people to agree that EVERYONE has rights? Is the idea fully achieved even today?" },
+
+  { id:"contract", field:"Power",
+    q:"Where does a government get its right to make you obey? Kings once claimed it came from God or their bloodline. What idea said it really comes from somewhere quite different?",
+    stances:["From the agreement of the people themselves","From the gods only","From the biggest sword","From nowhere"],
+    reveal:"The 'social contract': the idea that people agree to live under a government for their shared benefit — so a ruler's power flows FROM THE PEOPLE, who can fairly replace rulers that break the deal.",
+    impact:"It pulled the rug out from 'kings rule by divine right', and helped inspire revolutions and written constitutions. If power comes from the people, the people can hold it to account.",
+    origin:"Developed by thinkers such as Thomas Hobbes, John Locke and Jean-Jacques Rousseau in the 1600s and 1700s.",
+    push:"If a government's power really comes from the people's agreement, what should happen when it badly breaks that agreement?" },
+
+  { id:"individual", field:"People",
+    q:"For much of history, you were expected to think, believe and live exactly as your village, church or ruler told you. What Enlightenment idea dared you to think for YOURSELF?",
+    stances:["That each person can use their own reason and conscience","That experts should think for you","That thinking is dangerous","That everyone must agree"],
+    reveal:"The idea of the thinking individual: that each person has their own mind, and the right — even the duty — to question, reason and decide for themselves. The Enlightenment motto was 'Dare to know!'",
+    impact:"It powered free speech, freedom of belief, science and art. It's the reason you're ALLOWED to disagree with authority and ask 'but is that actually true?' — exactly what you do in these games.",
+    origin:"A central idea of the 1700s Enlightenment, captured by the philosopher Immanuel Kant's challenge: 'Sapere aude' — dare to know.",
+    push:"When is thinking for yourself wise — and when is it wiser to listen to others who know more? How do you tell the difference?" },
+
+  { id:"progress", field:"Mind",
+    q:"For most of history, people assumed life would always be roughly the same — or even that the 'golden age' lay in the PAST. What surprisingly modern idea says tomorrow can be BETTER than today?",
+    stances:["The idea of progress","That nothing ever really changes","That the past was always best","That the future is doomed"],
+    reveal:"The idea of progress: the belief that, through knowledge and effort, the future can genuinely improve on the past — that problems can be SOLVED, not just endured.",
+    impact:"This hope changed how humans act: it inspires people to invent, reform, cure diseases and build for a future they believe can be better. Without it — why bother trying to improve anything at all?",
+    origin:"It grew especially during the Enlightenment and scientific revolution, as discoveries showed that life really COULD be transformed.",
+    push:"Is believing 'things can get better' always a good thing? Could it ever make people careless about what we might lose?" },
+
+  { id:"education", field:"People",
+    q:"For almost all of history, only a tiny, wealthy few were taught to read — everyone else worked from childhood. What recent, radical idea changed that?",
+    stances:["That EVERY child should be educated","That only the rich need learning","That children shouldn't learn","That reading is dangerous"],
+    reveal:"Universal education: the once-unthinkable idea that every child — rich or poor, girl or boy — deserves to learn to read, write and think. We take it for granted now; for most of history it was astonishing.",
+    impact:"It unlocked human talent everywhere — geniuses who would have been stuck in the fields could now invent, heal and lead. An educated population also makes democracy and science possible.",
+    origin:"Spread mostly within the last 200 years; free schooling for all is, in the long story of humanity, remarkably new.",
+    push:"How might the whole world be different if EVERY child who ever lived had been able to go to school?" },
+
+  { id:"time", field:"Mind",
+    q:"Long ago, time was rough and natural — sunrise, midday, the seasons. What invention chopped the day into exact, equal hours and minutes, and quietly reshaped human life?",
+    stances:["The mechanical clock","A bigger sundial","Roosters","Counting heartbeats"],
+    reveal:"The mechanical clock: dividing the day into precise, equal units that tick on regardless of the sun. Suddenly everyone in a town could agree on exactly WHEN something would happen.",
+    impact:"Precise time made coordinated work, trains, experiments, factories and global travel possible. It also changed US — we began to 'spend', 'save' and 'waste' time, and to live our lives by the clock.",
+    origin:"Mechanical clocks appeared in medieval Europe (~1300s); later, accurate clocks even let sailors work out their position far out at sea.",
+    push:"The clock made us treat time like money — to 'save' and 'waste' it. Has living by the clock been all good, or do we lose something too?" },
+
+  { id:"internet", field:"Knowledge",
+    q:"Writing SAVED ideas; the alphabet SHARED them; the printing press SPREAD them. What recent leap connected nearly ALL human knowledge — and almost everyone — at once?",
+    stances:["The internet","A bigger library","More newspapers","Faster post"],
+    reveal:"The internet: a network linking computers — and people — across the entire planet, so almost any idea can reach almost anyone, almost instantly. It's the newest chapter in the story that began with writing.",
+    impact:"It put a library bigger than any in history in your pocket and let strangers worldwide work together — but, just like the printing press, it makes ideas (true AND false) spread faster than anyone can control.",
+    origin:"It grew out of research networks in the late 1900s; the World Wide Web was invented by Tim Berners-Lee in 1989 — within living memory!",
+    push:"The printing press spread knowledge AND lies; the internet does the same, far faster. How can YOU tell the good ideas from the bad? (Your Logos dojo helps here!)" },
+
+  { id:"spread", field:"Mind",
+    q:"Looking back over all of these — writing, zero, democracy, rights — what do the most world-changing ideas seem to have in COMMON?",
+    stances:["They're useful, easy to copy and share, and beat the old way","They all came from kings","They were all invented in one place","They appeared purely by luck"],
+    reveal:"The biggest ideas tend to be useful, easy to copy and pass on, and clearly better than what came before — so they spread from mind to mind, across cultures, and outlive their inventors. Ideas, not just armies, shape history.",
+    impact:"It means history isn't only a tale of rulers and battles — it's a story of ideas competing, spreading and improving. And it means a single good idea, from anyone, anywhere, can change the entire world.",
+    origin:"This very way of looking at the past — studying the 'history of ideas' itself — is a fairly modern idea about ideas!",
+    push:"If a brilliant new idea popped into YOUR head tomorrow, what would it actually take for it to spread and change things?" },
+];
+
+const THEME_META = {
+  "Knowledge":      { color:"#6aa9ff" },
+  "Numbers & Money":{ color:"#e0a64e" },
+  "Power":          { color:"#f06b9a" },
+  "People":         { color:"#5fd17a" },
+  "Mind":           { color:"#c08bff" },
+};
+
+const MOVES = [
+  { key:"before",   emoji:"🌍", label:"I imagined the world before this idea" },
+  { key:"today",    emoji:"🔗", label:"I connected it to today" },
+  { key:"radical",  emoji:"💡", label:"I saw why it was radical" },
+  { key:"origin",   emoji:"🤔", label:"I asked where an idea comes from" },
+  { key:"newq",     emoji:"❓", label:"I have a new question" },
+];
+
+const STORAGE_KEY = "prometheus-ideas:v1";
+const TOTAL = QUESTIONS.length;
+function loadState(){ try{ const r=localStorage.getItem(STORAGE_KEY); if(r) return JSON.parse(r); }catch(e){} return null; }
+
+function Prometheus(){
+  const saved = useRef(loadState()).current;
+  const [answers, setAnswers] = useState((saved && saved.answers) || {});
+  const [idx, setIdx] = useState(0);
+
+  useEffect(()=>{ try{ localStorage.setItem(STORAGE_KEY, JSON.stringify({ answers })); }catch(e){} }, [answers]);
+
+  const q = QUESTIONS[idx];
+  const meta = THEME_META[q.field] || THEME_META["Mind"];
+  const a = answers[q.id] || { stance:null, moves:{}, note:"" };
+  const answered = a.stance !== null && a.stance !== undefined;
+
+  const pondered = Object.values(answers).filter(x => x.stance !== null && x.stance !== undefined).length;
+  const badges = Object.values(answers).reduce((n,x)=> n + (x.moves ? Object.values(x.moves).filter(Boolean).length : 0), 0);
+
+  let level = "Newcomer";
+  if (pondered >= TOTAL) level = "🔥 Fire-Bringer";
+  else if (pondered >= 12) level = "💡 Idea-Smith";
+  else if (pondered >= 8) level = "🔥 Thinker";
+  else if (pondered >= 4) level = "📜 Scholar";
+  else if (pondered >= 1) level = "🌱 Apprentice";
+
+  function choose(i){ setAnswers(p => ({ ...p, [q.id]: { ...(p[q.id]||{moves:{},note:""}), stance:i } })); }
+  function toggleMove(key){ setAnswers(p => { const cur = p[q.id] || { stance:null, moves:{}, note:"" }; const moves={...(cur.moves||{})}; moves[key]=!moves[key]; return { ...p, [q.id]:{...cur, moves} }; }); }
+  function setNote(v){ setAnswers(p => { const cur = p[q.id] || { stance:null, moves:{}, note:"" }; return { ...p, [q.id]:{...cur, note:v} }; }); }
+
+  const css = `
+    @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,800&family=Nunito:wght@400;600;700;800&display=swap');
+    .pr * { box-sizing:border-box; }
+    .pr { font-family:'Nunito',sans-serif; color:#f0e7d8; min-height:100vh; padding:24px 16px 56px;
+      background: radial-gradient(820px 520px at 84% -10%, #4a2410 0%, transparent 55%), radial-gradient(720px 520px at 8% 4%, #3a2410 0%, transparent 55%), #15100a; }
+    .pr-wrap { max-width:680px; margin:0 auto; }
+    .pr-head { text-align:center; }
+    .pr-kicker { font-family:'Fraunces',serif; letter-spacing:.26em; text-transform:uppercase; font-size:11px; color:#f0b84e; }
+    .pr-title { font-family:'Fraunces',serif; font-weight:800; font-size:clamp(32px,8vw,54px); margin:.05em 0 .04em; letter-spacing:.05em;
+      background:linear-gradient(90deg,#f0b84e,#f0855e,#e8d27a); -webkit-background-clip:text; background-clip:text; color:transparent; }
+    .pr-sub { font-weight:700; color:#cdbba0; font-size:15px; margin:0 auto; max-width:36ch; line-height:1.45; }
+    .pr-note { font-size:13px; color:#a08c6e; font-style:italic; margin:10px auto 0; max-width:44ch; line-height:1.5; }
+
+    .pr-stats { display:flex; gap:10px; margin:20px 0 16px; }
+    .pr-stat { flex:1; background:#241a10; border:1.5px solid #43321d; border-radius:14px; padding:9px 12px; text-align:center; }
+    .pr-stat b { font-family:'Fraunces',serif; font-size:21px; display:block; line-height:1.1; color:#fff; }
+    .pr-stat span { font-size:11px; font-weight:800; color:#a8916e; text-transform:uppercase; letter-spacing:.5px; }
+    .pr-level { text-align:center; font-family:'Fraunces',serif; font-weight:600; color:#e8cfa0; margin:-4px 0 18px; font-size:15px; }
+
+    .pr-card { background:#201810; border:1.5px solid #443420; border-radius:22px; padding:22px; position:relative;
+      box-shadow:0 18px 50px -22px ${meta.color}; }
+    .pr-tag { display:inline-block; border:1.5px solid ${meta.color}; color:${meta.color}; font-weight:800; font-size:11px; padding:4px 11px; border-radius:999px; text-transform:uppercase; letter-spacing:.6px; }
+    .pr-qnum { float:right; font-family:'Fraunces',serif; font-weight:600; font-size:12px; color:#8a7556; }
+    .pr-q { font-family:'Fraunces',serif; font-weight:500; font-size:clamp(17px,3.9vw,21px); line-height:1.5; margin:14px 0 0; color:#f6efe2; }
+
+    .pr-stances { display:flex; flex-direction:column; gap:9px; margin-top:18px; }
+    .pr-stance { font-family:'Nunito',sans-serif; text-align:left; font-weight:700; font-size:15px; border:1.5px solid #4f3c24; background:#28200f; color:#f0e7d8; padding:13px 15px; border-radius:13px; cursor:pointer; transition:transform .06s, border-color .12s; }
+    .pr-stance:hover { border-color:${meta.color}; }
+    .pr-stance.sel { background:${meta.color}; border-color:${meta.color}; color:#15100a; }
+
+    .pr-reveal { margin-top:18px; animation:fade .3s ease; }
+    @keyframes fade { from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:none;} }
+    .pr-block { background:#28200f; border-left:3px solid ${meta.color}; border-radius:0 13px 13px 0; padding:13px 15px; margin-top:11px; }
+    .pr-block .lab { display:block; font-weight:800; text-transform:uppercase; font-size:11px; letter-spacing:.6px; color:${meta.color}; margin-bottom:5px; }
+    .pr-block p { margin:0; font-weight:600; line-height:1.55; font-size:15px; color:#e4d8c4; }
+    .pr-block .who { font-family:'Fraunces',serif; font-weight:600; color:#fff; }
+
+    .pr-journal-lab { font-family:'Fraunces',serif; font-weight:600; font-size:13px; color:#cdbba0; margin:18px 0 8px; }
+    .pr-journal { width:100%; min-height:84px; font-family:'Nunito',sans-serif; font-size:15px; line-height:1.5; color:#f6efe2; background:#15100a; border:1.5px solid #4f3c24; border-radius:13px; padding:12px 14px; outline:none; resize:vertical; }
+    .pr-journal:focus { border-color:${meta.color}; }
+    .pr-journal::placeholder { color:#8a7556; }
+
+    .pr-moves-lab { font-family:'Fraunces',serif; font-weight:600; font-size:13px; color:#cdbba0; margin:16px 0 9px; text-align:center; }
+    .pr-moves { display:flex; flex-wrap:wrap; gap:8px; justify-content:center; }
+    .pr-move { font-family:'Nunito',sans-serif; font-weight:800; font-size:13px; border:1.5px solid #4f3c24; background:#28200f; color:#b39c78; padding:8px 13px; border-radius:999px; cursor:pointer; }
+    .pr-move.on { background:#f6efe2; border-color:#f6efe2; color:#15100a; }
+
+    .pr-nav { display:flex; align-items:center; justify-content:space-between; margin-top:20px; gap:10px; }
+    .pr-navbtn { font-family:'Nunito',sans-serif; border:1.5px solid #4f3c24; background:#241a10; border-radius:12px; padding:10px 16px; font-weight:800; cursor:pointer; color:#f0e7d8; }
+    .pr-navbtn:disabled { opacity:.3; cursor:default; }
+    .pr-navbtn.next { background:linear-gradient(90deg,#f0b84e,#f0855e); color:#15100a; border:none; }
+    .pr-dots { display:flex; flex-wrap:wrap; gap:5px; justify-content:center; margin-top:18px; }
+    .pr-dot { width:9px; height:9px; border-radius:50%; background:#43321d; cursor:pointer; }
+    .pr-dot.done { background:#f0b84e; }
+    .pr-dot.cur { box-shadow:0 0 0 2px #f0855e; }
+  `;
+
+  return (
+    <div className="pr">
+      <style>{css}</style>
+      <div className="pr-wrap">
+        <div className="pr-head">
+          <div className="pr-kicker">The ideas that changed everything</div>
+          <div className="pr-title">PROMETHEUS</div>
+          <div className="pr-sub">Picture the world before the idea — guess what changed it — then discover where it really came from.</div>
+          <div className="pr-note">In Greek myth, Prometheus stole fire and gave it to humans. Fire here means knowledge — the spark behind every idea in this game.</div>
+        </div>
+
+        <div className="pr-stats">
+          <div className="pr-stat"><b>{pondered}<span style={{ fontSize: 12, color: "#8a7556" }}> / {TOTAL}</span></b><span>Ideas explored</span></div>
+          <div className="pr-stat"><b>{badges}</b><span>Thinking badges</span></div>
+        </div>
+        <div className="pr-level">{level}</div>
+
+        <div className="pr-card">
+          <span className="pr-tag">{q.field}</span>
+          <span className="pr-qnum">{idx + 1} / {TOTAL}</span>
+          <p className="pr-q">{q.q}</p>
+
+          <div className="pr-stances">
+            {q.stances.map((s, i) => (
+              <button key={i} className={"pr-stance" + (a.stance === i ? " sel" : "")} onClick={() => choose(i)}>{s}</button>
+            ))}
+          </div>
+
+          {answered && (
+            <div className="pr-reveal">
+              <div className="pr-block">
+                <span className="lab">💡 The big idea</span>
+                <p>{q.reveal}</p>
+              </div>
+              <div className="pr-block">
+                <span className="lab">🌍 Why it changed everything</span>
+                <p>{q.impact}</p>
+              </div>
+              <div className="pr-block">
+                <span className="lab">📜 Where it came from</span>
+                <p><span className="who">{q.origin}</span></p>
+              </div>
+              <div className="pr-block">
+                <span className="lab">🤔 Think further</span>
+                <p>{q.push}</p>
+              </div>
+
+              <div className="pr-journal-lab">Your thinking (saved for you):</div>
+              <textarea className="pr-journal" placeholder="Which idea surprised you most? What would the world be like without it?" value={a.note || ""} onChange={(e) => setNote(e.target.value)} />
+
+              <div className="pr-moves-lab">Which thinking moves did you make? Earn a badge for each.</div>
+              <div className="pr-moves">
+                {MOVES.map(m => (
+                  <button key={m.key} className={"pr-move" + (a.moves && a.moves[m.key] ? " on" : "")} onClick={() => toggleMove(m.key)}>
+                    {m.emoji} {m.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="pr-nav">
+          <button className="pr-navbtn" disabled={idx <= 0} onClick={() => setIdx(i => Math.max(0, i - 1))}>← Back</button>
+          <button className="pr-navbtn next" disabled={idx >= TOTAL - 1} onClick={() => setIdx(i => Math.min(TOTAL - 1, i + 1))}>Next idea →</button>
+        </div>
+
+        <div className="pr-dots">
+          {QUESTIONS.map((qq, i) => {
+            const done = answers[qq.id] && answers[qq.id].stance !== null && answers[qq.id].stance !== undefined;
+            return <div key={qq.id} className={"pr-dot" + (done ? " done" : "") + (i === idx ? " cur" : "")} onClick={() => setIdx(i)} />;
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<Prometheus />);
+</script>
+</body>
+</html>
