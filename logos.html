@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>LOGOS · The Reasoning Dojo</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🥋</text></svg>" />
+
+<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+
+<style>
+  html, body { margin: 0; height: 100%; background: #f1ede1; }
+  #root { min-height: 100%; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useRef } = React;
+
+/* ============================================================================
+   LOGOS — the reasoning dojo (for ~age 11+)
+   Four rounds: spot the fallacy, test validity, solve puzzles, catch your
+   own biases. Right answers exist here — explanations teach the skill.
+   ========================================================================== */
+
+const CHAPTERS = [
+  {
+    id:"fallacies", title:"Spot the Trap", emoji:"🪤",
+    intro:"Round 1: Every argument below hides a sneaky flaw. Can you name the trap?",
+    questions:[
+      { q:"\"Don't listen to Maya's argument that we should recycle more — she's rubbish at football.\" What's gone wrong?",
+        options:["Attacking the person instead of their argument","It's a fair point","Slippery slope","Circular reasoning"], correct:0,
+        why:"This is the 'ad hominem' trap — attacking the PERSON instead of what they said. Maya's football skills have nothing to do with whether recycling is a good idea. Spot it: an insult standing in for an answer." },
+      { q:"\"Everyone in my class has a phone, so Mum should DEFINITELY get me one.\" What's the flaw?",
+        options:["'Everyone does it' (the bandwagon)","Watertight logic","Attacking the person","False dilemma"], correct:0,
+        why:"The 'bandwagon' trap: 'lots of people do it, so it must be right'. Many people believing something doesn't make it true or wise. Spot it: when the only reason is 'everyone else…'." },
+      { q:"\"If we let students chew gum, next they'll eat crisps in class, then throw parties, and soon nobody will ever learn anything!\" What's the flaw?",
+        options:["Slippery slope","A solid prediction","Circular reasoning","Ad hominem"], correct:0,
+        why:"The 'slippery slope' — claiming one small step MUST tumble all the way to disaster, with no real reason each step follows. Spot it: a chain of 'and then… and then…' ending in catastrophe." },
+      { q:"\"Either you love our team, or you're our enemy.\" What's the flaw?",
+        options:["False dilemma — only two choices offered","Fair enough","Bandwagon","Hasty generalisation"], correct:0,
+        why:"A 'false dilemma' pretends there are only two options when there are really many — you might simply not care about football at all! Spot it: a forced 'either/or' with no middle ground." },
+      { q:"\"This film must be the best ever — it's the most popular, and it's popular because it's the best.\" What's the flaw?",
+        options:["Circular reasoning — it uses itself as proof","Valid","Slippery slope","Ad hominem"], correct:0,
+        why:"'Circular reasoning' goes round in a loop, using its conclusion as its own evidence. Spot it: when the reason and the claim are really the same thing in different words." },
+      { q:"\"Every time I wear my lucky socks, my team wins. My socks MAKE them win!\" What's the flaw?",
+        options:["Assuming one thing caused another just because they happened together","Solid science","False dilemma","Bandwagon"], correct:0,
+        why:"This confuses 'happening together' (correlation) with 'one causing the other' (causation). Two things lining up doesn't mean one caused the other. Spot it: 'X and Y happened together, so X caused Y'." },
+      { q:"\"I met two rude tourists today. People from that whole country are SO rude.\" What's the flaw?",
+        options:["A sweeping rule from tiny evidence (hasty generalisation)","A fair conclusion","Circular reasoning","False dilemma"], correct:0,
+        why:"A 'hasty generalisation' leaps from a couple of examples to a giant claim about millions of people. Spot it: a big rule built on a tiny, unfair sample." },
+      { q:"\"You say I should tidy my room — but YOU never tidy YOURS!\" As a way to win the argument, this is…",
+        options:["A red herring that dodges the actual point","A knockout reply","Valid logic","A slippery slope"], correct:0,
+        why:"Pointing at someone else doesn't answer whether YOU should tidy your room — it's a 'red herring' dragging attention away. (It might be a fair separate point, but it doesn't win this one.) Spot it: 'but what about…' used to dodge." },
+    ]
+  },
+  {
+    id:"validity", title:"Does It Follow?", emoji:"🔗",
+    intro:"Round 2: Forget whether the facts are TRUE. Ask only this — IF the starting lines were true, would the ending HAVE to be true?",
+    questions:[
+      { q:"\"All cats are mammals. Mittens is a cat. So Mittens is a mammal.\" Does the conclusion follow?",
+        options:["Yes — it must follow","No, it doesn't follow","Only sometimes"], correct:0,
+        why:"Yes — watertight (logicians call it 'valid'). If the two starting lines are true, the ending simply HAS to be true. Perfect logic." },
+      { q:"\"All dogs can fly. Rex is a dog. So Rex can fly.\" Does the conclusion follow?",
+        options:["Yes — the logic follows, even though a starting line is false!","No — dogs can't fly","Only if Rex is small"], correct:0,
+        why:"Surprise — the LOGIC is perfect! IF all dogs could fly and Rex is a dog, then Rex would fly. An argument can be 'valid' even built on a silly, false fact. Truth and logic are two SEPARATE tests — that's the big idea of this round." },
+      { q:"\"If it rains, the ground gets wet. The ground IS wet. So it rained.\" Does the conclusion follow?",
+        options:["Yes, definitely","No — something else could have wet the ground","Only in winter"], correct:1,
+        why:"No! A sprinkler, a hose, or a spilled bucket could have wet it. 'If rain, then wet' does NOT mean 'if wet, then rain'. This is a classic trap called 'affirming the consequent'." },
+      { q:"\"Some footballers are tall. Sam is tall. So Sam is a footballer.\" Does the conclusion follow?",
+        options:["Yes","No — being tall doesn't make you a footballer","Only if Sam likes football"], correct:1,
+        why:"No. Loads of tall people aren't footballers! 'Some footballers are tall' guarantees nothing about Sam. The conclusion doesn't follow." },
+      { q:"\"All A are B. All B are C. So all A are C.\" Does it follow?",
+        options:["Yes — it chains together","No","Can't tell"], correct:0,
+        why:"Yes — a valid chain. If every A is a B, and every B is a C, then every A must be a C. (Try it: all cats are mammals; all mammals are animals; so all cats are animals.)" },
+      { q:"\"No fish are birds. All robins are birds. So no robins are fish.\" Does it follow?",
+        options:["Yes — it's valid","No","Only some robins"], correct:0,
+        why:"Yes, watertight. If nothing that's a fish is a bird, and every robin is a bird, then no robin can possibly be a fish. Clean logic." },
+      { q:"So why does it matter that an argument can be perfectly LOGICAL yet still reach a false conclusion?",
+        options:["Because to trust a conclusion you need BOTH true starting facts AND valid logic","It doesn't matter","Because logic is always right","Because facts don't matter"], correct:0,
+        why:"This is the heart of clear thinking: an argument only proves its conclusion if the starting facts are TRUE and the logic is VALID. Always check both — a slick argument can rest on a false fact, and a true-sounding claim can be badly argued." },
+    ]
+  },
+  {
+    id:"puzzles", title:"Brain Benders", emoji:"🧩",
+    intro:"Round 3: Pure reasoning puzzles. Slow right down, think it through, THEN check.",
+    questions:[
+      { q:"Two coins add up to 30p. One of them is NOT a 10p. What are the two coins?",
+        options:["A 20p and a 10p","Two 15p coins","A 25p and a 5p","Impossible"], correct:0,
+        why:"A 20p and a 10p! The trick is the exact wording: 'ONE of them is not a 10p' — true, the 20p isn't. But the OTHER one is still allowed to be a 10p. Riddles love to hide in precise wording." },
+      { q:"A bat and a ball cost £1.10 together. The bat costs £1 MORE than the ball. How much is the ball?",
+        options:["10p","5p","1p","50p"], correct:1,
+        why:"5p! Most brains blurt '10p' — but then the bat (£1 more) would be £1.10, making £1.20 total. With the ball at 5p, the bat is £1.05, and together that's exactly £1.10. Your fast brain loves the obvious-but-wrong answer." },
+      { q:"You're in a race and you overtake the person in 2nd place. What place are you in now?",
+        options:["1st","2nd","3rd","Last"], correct:1,
+        why:"2nd! If you overtake the runner in 2nd, you take THEIR place — you don't leap to 1st. The leader is still ahead of you." },
+      { q:"On an island, Knights ALWAYS tell the truth and Knaves ALWAYS lie. Someone says: 'I am a Knave.' What's the problem?",
+        options:["Nobody could ever truthfully say that — it traps itself","Nothing, they're a Knave","They must be a Knight","They're both"], correct:0,
+        why:"It's impossible! A truth-telling Knight would never falsely call himself a Knave, and a lying Knave would never truthfully admit he is one. The sentence ties itself in a knot — a cousin of the famous 'liar paradox'." },
+      { q:"Three boxes; one hides a prize. You pick Box 1. The host (who KNOWS where the prize is) opens Box 3 to show it's empty, then offers to let you switch to Box 2. Should you switch?",
+        options:["Yes — switching wins more often","No — it's now 50/50","It makes no difference","Always stick"], correct:0,
+        why:"Switch! It FEELS like 50/50, but switching actually wins 2 times out of 3. Your first pick had only a 1-in-3 chance, and the host's clue piles the leftover odds onto the other box. This puzzle (the 'Monty Hall problem') fooled even professional mathematicians." },
+      { q:"'This sentence is false.' Is that sentence true, or false?",
+        options:["Neither works — it contradicts itself; it's a paradox","True","False","Both are fine"], correct:0,
+        why:"If it's true, then it's false (that's what it says) — but if it's false, then it's true! It flips forever and can't settle. This is the ancient 'liar paradox', and it still keeps logicians up at night." },
+    ]
+  },
+  {
+    id:"biases", title:"Tricks of the Mind", emoji:"🧠",
+    intro:"Round 4: The sneakiest flaws hide in your OWN head. Catch your brain in the act.",
+    questions:[
+      { q:"You believe a rumour, so you notice every clue that fits it and ignore the clues that don't. What's this called?",
+        options:["Confirmation bias","Good detective work","A red herring","A false dilemma"], correct:0,
+        why:"'Confirmation bias' — our brains love evidence that agrees with what we already believe, and quietly skip the rest. The fix: actively hunt for evidence you might be WRONG, not just proof you're right." },
+      { q:"A fair coin lands heads five times in a row. Is it now MORE likely to land tails on the next throw?",
+        options:["No — it's still 50/50 every single throw","Yes, tails is 'due'","Yes, the coin remembers","No, it'll be heads forever"], correct:0,
+        why:"Still 50/50! A coin has no memory — each throw is brand new. Believing tails is 'due' is the 'gambler's fallacy'. Past flips can't reach forward and change the next one." },
+      { q:"After the match, everyone says 'it was OBVIOUS they'd win' — though hardly anyone said so beforehand. What's this?",
+        options:["Hindsight bias — it feels obvious only AFTER we know","A clever prediction","Confirmation bias","Bandwagon"], correct:0,
+        why:"'Hindsight bias' — once we know how things turned out, our brain quietly rewrites the past so it feels like we 'knew it all along'. Catch it by asking: did I really predict this, or does it just feel obvious now?" },
+      { q:"In WWII, engineers checked returning planes to see where they were hit most, planning to add armour there. One thinker said: armour the spots with NO bullet holes instead. Why?",
+        options:["The planes hit in those spots never made it back — so those are the deadly areas","He made a mistake","To save metal","Because holes are harmless"], correct:0,
+        why:"Brilliant: they only ever saw the planes that SURVIVED. The undamaged spots on survivors are exactly where the planes that were LOST must have been hit. This is 'survivorship bias' — forgetting the cases you never get to see." },
+      { q:"'Tara loves justice and reads a lot.' Which is MORE likely: (a) Tara works in a bank, or (b) Tara works in a bank AND campaigns for fairness?",
+        options:["(a) — one thing alone is always at least as likely as that thing PLUS another","(b) — it fits her better","They're exactly equal","Impossible to say"], correct:0,
+        why:"(a) must be more likely! Adding a detail ('AND campaigns…') can only make something LESS likely or equal — never more, because fewer people do both. The story 'fits', so our brain ignores the maths. This is the 'conjunction fallacy'." },
+      { q:"So what's the best protection against ALL of these mind-tricks?",
+        options:["Slow down, ask 'how might I be wrong?', and check the evidence","Always trust your gut","Decide as fast as possible","Only listen to people who agree with you"], correct:0,
+        why:"The master move: when you feel certain, slow down and deliberately ask 'what would prove me WRONG?'. Good thinkers aren't people who never make these errors — they're people who CATCH themselves doing it. That's the black belt." },
+    ]
+  },
+];
+
+const STORAGE_KEY = "logos-logic:v1";
+function loadState(){ try{ const r=localStorage.getItem(STORAGE_KEY); if(r) return JSON.parse(r); }catch(e){} return null; }
+const TOTAL = CHAPTERS.reduce((n,c)=>n+c.questions.length,0);
+
+function Logos(){
+  const saved = useRef(loadState()).current;
+  const [answers, setAnswers] = useState((saved && saved.answers) || {});
+  const [ch, setCh] = useState(0);
+  const [qi, setQi] = useState(0);
+
+  useEffect(()=>{ try{ localStorage.setItem(STORAGE_KEY, JSON.stringify({ answers })); }catch(e){} }, [answers]);
+
+  const chapter = CHAPTERS[ch];
+  const q = chapter.questions[qi];
+  const key = chapter.id + ":" + qi;
+  const chosen = answers[key];
+  const answered = chosen !== undefined && chosen !== null;
+
+  const points = Object.entries(answers).reduce((n,[k,v])=>{
+    const [cid, i] = k.split(":");
+    const c = CHAPTERS.find(x=>x.id===cid);
+    if(c && c.questions[+i] && c.questions[+i].correct === v) return n+1;
+    return n;
+  },0);
+
+  let belt = "White belt — let's begin";
+  if (points >= TOTAL) belt = "🥋 Black belt · Master of the Dojo";
+  else if (points >= 24) belt = "🥋 Black belt";
+  else if (points >= 18) belt = "🥋 Brown belt";
+  else if (points >= 12) belt = "🥋 Green belt";
+  else if (points >= 6) belt = "🥋 Orange belt";
+  else if (points >= 1) belt = "🥋 Yellow belt";
+
+  function answer(i){ if(answered) return; setAnswers(p=>({ ...p, [key]: i })); }
+
+  const chDone = chapter.questions.every((_,i)=> answers[chapter.id+":"+i] !== undefined);
+  const chCorrect = chapter.questions.reduce((n,qq,i)=> n + (answers[chapter.id+":"+i] === qq.correct ? 1 : 0), 0);
+
+  const css = `
+    @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700;9..144,900&family=Nunito:wght@400;600;700;800&display=swap');
+    .lg * { box-sizing:border-box; }
+    .lg { font-family:'Nunito',sans-serif; color:#2a2a2e; min-height:100vh; padding:24px 16px 52px;
+      background: radial-gradient(820px 460px at 50% -12%, #faf7ee 0%, transparent 60%), #f1ede1; }
+    .lg-wrap { max-width:680px; margin:0 auto; }
+    .lg-head { text-align:center; }
+    .lg-seal { width:54px; height:54px; margin:0 auto 6px; border-radius:50%; border:3px solid #c0392b; display:flex; align-items:center; justify-content:center; font-size:24px; box-shadow:0 0 0 4px rgba(192,57,43,.10); }
+    .lg-kicker { font-family:'Fraunces',serif; letter-spacing:.28em; text-transform:uppercase; font-size:11px; color:#c0392b; }
+    .lg-title { font-family:'Fraunces',serif; font-weight:900; font-size:clamp(38px,9vw,60px); margin:.02em 0 .04em; color:#2a2a2e; letter-spacing:.06em; }
+    .lg-sub { font-weight:700; color:#7a7363; font-size:15px; max-width:34ch; margin:0 auto; line-height:1.45; }
+
+    .lg-stats { display:flex; gap:10px; margin:20px 0 14px; }
+    .lg-stat { flex:1; background:#fffdf8; border:2px solid #e4dcc6; border-radius:13px; padding:9px 12px; text-align:center; box-shadow:0 3px 0 #e4dcc6; }
+    .lg-stat b { font-family:'Fraunces',serif; font-size:20px; display:block; line-height:1.1; color:#c0392b; }
+    .lg-stat span { font-size:11px; font-weight:800; color:#9a917b; text-transform:uppercase; letter-spacing:.5px; }
+
+    .lg-tabs { display:flex; flex-wrap:wrap; gap:7px; justify-content:center; margin-bottom:16px; }
+    .lg-tab { font-family:'Nunito',sans-serif; font-weight:800; font-size:13px; border:2px solid #e4dcc6; background:#fffdf8; color:#7a7363; padding:8px 12px; border-radius:10px; cursor:pointer; box-shadow:0 2px 0 #e4dcc6; }
+    .lg-tab.active { background:#2a2a2e; color:#faf7ee; border-color:#2a2a2e; box-shadow:0 2px 0 #000; }
+    .lg-tab .tick { color:#3f7d4f; }
+
+    .lg-intro { background:#f6f0e0; border-left:4px solid #c0392b; border-radius:0 12px 12px 0; padding:11px 14px; font-weight:700; font-style:italic; color:#6f6852; font-size:14px; margin-bottom:14px; line-height:1.45; }
+
+    .lg-card { background:#fffdf8; border:2.5px solid #2a2a2e; border-radius:16px; padding:20px 20px 18px; box-shadow:7px 7px 0 #c0392b; position:relative; }
+    .lg-file { font-family:'Fraunces',serif; font-size:11px; color:#b3a988; letter-spacing:.12em; text-transform:uppercase; }
+    .lg-q { font-family:'Fraunces',serif; font-weight:500; font-size:clamp(17px,3.8vw,21px); line-height:1.5; margin:8px 0 0; color:#2a2a2e; }
+    .lg-opts { display:flex; flex-direction:column; gap:9px; margin-top:16px; }
+    .lg-opt { font-family:'Nunito',sans-serif; text-align:left; font-weight:700; font-size:15px; border:2px solid #ded5bd; background:#fdfbf4; color:#2a2a2e; padding:12px 14px; border-radius:11px; cursor:pointer; transition:transform .05s; }
+    .lg-opt:hover:not(:disabled){ border-color:#c0392b; }
+    .lg-opt:disabled{ cursor:default; }
+    .lg-opt.correct{ background:#dcedd9; border-color:#3f7d4f; color:#2c5a37; }
+    .lg-opt.wrong{ background:#f7ddd8; border-color:#c0392b; color:#8f2c20; }
+
+    .lg-verdict { margin-top:15px; background:#f6f0e0; border-radius:12px; padding:13px 15px; animation:pop .25s ease; }
+    .lg-verdict .stamp { font-family:'Fraunces',serif; font-weight:700; font-size:14px; letter-spacing:.04em; }
+    .lg-verdict.good .stamp{ color:#3f7d4f; }
+    .lg-verdict.bad .stamp{ color:#c0392b; }
+    .lg-verdict p { margin:6px 0 0; font-weight:600; line-height:1.5; font-size:15px; color:#5b5440; }
+    @keyframes pop { from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:none;} }
+
+    .lg-nav { display:flex; align-items:center; justify-content:space-between; margin-top:18px; gap:10px; }
+    .lg-navbtn { font-family:'Nunito',sans-serif; border:2px solid #e4dcc6; background:#fffdf8; border-radius:11px; padding:9px 15px; font-weight:800; cursor:pointer; color:#2a2a2e; box-shadow:0 3px 0 #e4dcc6; }
+    .lg-navbtn:disabled { opacity:.35; box-shadow:none; cursor:default; }
+    .lg-navbtn.next { background:#c0392b; color:#fff; border-color:#9b2d22; box-shadow:0 3px 0 #9b2d22; }
+    .lg-dots { display:flex; gap:6px; justify-content:center; margin-top:14px; }
+    .lg-dot { width:9px; height:9px; border-radius:50%; background:#ddd4bc; cursor:pointer; }
+    .lg-dot.right { background:#3f7d4f; }
+    .lg-dot.wrong { background:#c0392b; }
+    .lg-dot.cur { box-shadow:0 0 0 2px #2a2a2e; }
+
+    .lg-cleared { text-align:center; font-family:'Fraunces',serif; color:#3f7d4f; margin-top:16px; font-size:15px; }
+  `;
+
+  return (
+    <div className="lg">
+      <style>{css}</style>
+      <div className="lg-wrap">
+        <div className="lg-head">
+          <div className="lg-seal">🥋</div>
+          <div className="lg-kicker">The reasoning dojo</div>
+          <div className="lg-title">LOGOS</div>
+          <div className="lg-sub">Train your thinking. Spot the trick, test the argument, catch your own brain.</div>
+        </div>
+
+        <div className="lg-stats">
+          <div className="lg-stat"><b>{points}<span style={{ fontSize: 12, color: "#b3a988" }}> / {TOTAL}</span></b><span>Points won</span></div>
+          <div className="lg-stat"><b style={{ fontSize: 15 }}>{belt}</b><span>Your belt</span></div>
+        </div>
+
+        <div className="lg-tabs">
+          {CHAPTERS.map((c, i) => {
+            const done = c.questions.every((_, j) => answers[c.id + ":" + j] !== undefined);
+            return (
+              <button key={c.id} className={"lg-tab" + (i === ch ? " active" : "")} onClick={() => { setCh(i); setQi(0); }}>
+                {c.emoji} {c.title} {done && <span className="tick">✓</span>}
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="lg-intro">{chapter.intro}</div>
+
+        <div className="lg-card">
+          <div className="lg-file">Round {ch + 1} · Move {qi + 1} of {chapter.questions.length}</div>
+          <p className="lg-q">{q.q}</p>
+
+          <div className="lg-opts">
+            {q.options.map((o, i) => {
+              let cls = "lg-opt";
+              if (answered && i === q.correct) cls += " correct";
+              else if (answered && i === chosen) cls += " wrong";
+              return <button key={i} className={cls} disabled={answered} onClick={() => answer(i)}>{o}</button>;
+            })}
+          </div>
+
+          {answered && (
+            <div className={"lg-verdict " + (chosen === q.correct ? "good" : "bad")}>
+              <div className="stamp">{chosen === q.correct ? "✓ POINT WON" : "✗ MISSED — HERE'S WHY"}</div>
+              <p>{q.why}</p>
+            </div>
+          )}
+
+          <div className="lg-nav">
+            <button className="lg-navbtn" disabled={qi <= 0} onClick={() => setQi(i => Math.max(0, i - 1))}>← Back</button>
+            {qi < chapter.questions.length - 1
+              ? <button className="lg-navbtn next" onClick={() => setQi(i => i + 1)}>Next move →</button>
+              : (ch < CHAPTERS.length - 1
+                  ? <button className="lg-navbtn next" onClick={() => { setCh(ch + 1); setQi(0); }}>Next round →</button>
+                  : <button className="lg-navbtn next" disabled>Final move</button>)}
+          </div>
+
+          <div className="lg-dots">
+            {chapter.questions.map((qq, i) => {
+              const a = answers[chapter.id + ":" + i];
+              let cls = "lg-dot";
+              if (a !== undefined) cls += (a === qq.correct ? " right" : " wrong");
+              if (i === qi) cls += " cur";
+              return <div key={i} className={cls} onClick={() => setQi(i)} />;
+            })}
+          </div>
+
+          {chDone && <div className="lg-cleared">Round {ch + 1} cleared! {chCorrect} / {chapter.questions.length} points won 🥋</div>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<Logos />);
+</script>
+</body>
+</html>
