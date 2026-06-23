@@ -153,6 +153,7 @@ function SummerMathsQuest() {
   const [selected, setSelected] = useState(() => clamp(daysBetween(((saved && saved.startDate) || todayISO()), todayISO()) + 1, 1, TOTAL));
   const [showHint, setShowHint] = useState(false);
   const [showAnswer, setShowAnswer] = useState(false);
+  const [myAnswer, setMyAnswer] = useState("");
   const [showSettings, setShowSettings] = useState(false);
   const [burst, setBurst] = useState(0);
 
@@ -162,7 +163,7 @@ function SummerMathsQuest() {
   }, [startDate, completed]);
 
   // Reset reveals when changing day
-  useEffect(() => { setShowHint(false); setShowAnswer(false); }, [selected]);
+  useEffect(() => { setShowHint(false); setShowAnswer(false); setMyAnswer(""); }, [selected]);
 
   const q = QUESTIONS.find((x) => x.day === selected);
   const meta = TYPE_META[q.type] || TYPE_META["Fun"];
@@ -223,6 +224,11 @@ function SummerMathsQuest() {
     .smq-reveal { margin-top:16px; background:${meta.soft}; border-radius:16px; padding:14px 16px; font-weight:600; line-height:1.5; animation: pop .25s ease; }
     .smq-reveal .lab { font-weight:800; color:${meta.color}; text-transform:uppercase; font-size:12px; letter-spacing:.6px; display:block; margin-bottom:3px; }
     .smq-reveal .ans { font-family:'Fraunces',serif; font-size:22px; font-weight:800; }
+    .smq-answerbox { display:flex; gap:10px; margin-top:20px; flex-wrap:wrap; }
+    .smq-input { flex:1; min-width:160px; font-family:'Nunito',sans-serif; font-weight:700; font-size:16px; padding:11px 15px; border:2.5px solid #efe3cc; border-radius:14px; outline:none; color:#2a2320; background:#fff; }
+    .smq-input:focus { border-color:${meta.color}; }
+    .smq-youwrote { font-weight:700; margin-bottom:6px; }
+    .smq-youwrote b { color:${meta.color}; }
     @keyframes pop { from { opacity:0; transform: translateY(6px) scale(.98);} to {opacity:1; transform:none;} }
     .smq-nav { display:flex; align-items:center; justify-content:space-between; margin-top:18px; gap:10px; }
     .smq-navbtn { border:2px solid #efe3cc; background:#fff; border-radius:12px; padding:8px 14px; font-weight:800; cursor:pointer; box-shadow:0 3px 0 #efe3cc; }
@@ -274,6 +280,18 @@ function SummerMathsQuest() {
           <p className="smq-q">{q.q}</p>
           <div className="smq-diff">Difficulty: <span className="dot">{"★".repeat(q.diff)}</span><span style={{ color: "#e6dcc8" }}>{"★".repeat(3 - q.diff)}</span></div>
 
+          <div className="smq-answerbox">
+            <input
+              className="smq-input"
+              type="text"
+              placeholder="Work it out, then type your answer…"
+              value={myAnswer}
+              onChange={(e) => setMyAnswer(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") setShowAnswer(true); }}
+            />
+            <button className="smq-btn solve" onClick={() => setShowAnswer(true)}>✓ Check</button>
+          </div>
+
           <div className="smq-actions">
             {burst > 0 && (
               <div className="smq-confetti" key={burst}>
@@ -284,16 +302,17 @@ function SummerMathsQuest() {
               </div>
             )}
             {q.hint && <button className="smq-btn ghost" onClick={() => setShowHint((s) => !s)}>{showHint ? "Hide hint" : "💡 Hint"}</button>}
-            <button className="smq-btn ghost" onClick={peek}>👀 Reveal answer</button>
+            <button className="smq-btn ghost" onClick={peek}>👀 Just show me</button>
             {completed[selected] && completed[selected].solved
               ? <button className="smq-btn solved" onClick={unmark}>✓ Solved!</button>
-              : <button className="smq-btn solve" onClick={markSolved}>I solved it ⭐</button>}
+              : <button className="smq-btn solve" onClick={markSolved}>I got it right ⭐</button>}
           </div>
 
           {showHint && q.hint && (<div className="smq-reveal"><span className="lab">Hint</span>{q.hint}</div>)}
           {showAnswer && (
             <div className="smq-reveal">
               <span className="lab">Answer</span>
+              {myAnswer.trim() && <div className="smq-youwrote">You wrote: <b>{myAnswer}</b></div>}
               <div className="ans">{q.answer}</div>
               {q.why && <div style={{ marginTop: 8, fontWeight: 600 }}>{q.why}</div>}
             </div>
